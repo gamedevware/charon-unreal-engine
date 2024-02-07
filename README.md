@@ -9,3 +9,8 @@ This is Unreal Engine plugin for [gamedevware/charon](https://github.com/gamedev
 # Collaboration
 
 [Discord](https://discord.gg/2quB5vXryd) • [Plugin Issues](https://github.com/gamedevware/charon-unreal-engine/issues) • [support@gamedevware.com](mailto:support@gamedevware.com)  
+
+
+# License
+
+MIT
