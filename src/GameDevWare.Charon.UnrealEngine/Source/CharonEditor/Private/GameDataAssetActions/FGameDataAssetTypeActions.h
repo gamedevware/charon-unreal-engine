@@ -1,5 +1,7 @@
-﻿#pragma once
-	 
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
+ 
 #include "CoreMinimal.h"
 #include "AssetTypeActions_Base.h"
 

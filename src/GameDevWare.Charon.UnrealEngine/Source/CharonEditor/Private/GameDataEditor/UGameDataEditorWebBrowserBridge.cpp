@@ -1,4 +1,8 @@
-﻿#include "UGameDataEditorWebBrowserBridge.h"
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
+
+#include "UGameDataEditorWebBrowserBridge.h"
 
 // ReSharper disable CppMemberFunctionMayBeConst, CppParameterNeverUsed
 

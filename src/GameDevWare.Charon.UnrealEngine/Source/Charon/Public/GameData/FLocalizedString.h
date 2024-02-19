@@ -1,3 +1,4 @@
+// Copyright GameDevWare, Denis Zykov 2024
 
 #pragma once
 
@@ -37,7 +38,7 @@ public:
 	/*
 	 * Map of FText by BCP-47 language tag. Values could be empty FTexts. Not all supported language tags could present in map.
 	 */
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Game Data Localization")
 	TMap<FString, FText> TextByLanguageId;
 
 	/*

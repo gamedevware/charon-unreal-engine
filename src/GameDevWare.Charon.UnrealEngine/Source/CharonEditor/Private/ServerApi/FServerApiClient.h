@@ -1,4 +1,6 @@
-﻿#pragma once
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
 
 #include "FProjectsResponse.h"
 #include "Interfaces/IHttpRequest.h"

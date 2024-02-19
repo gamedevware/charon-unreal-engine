@@ -1,4 +1,8 @@
-﻿#include "FSequentialCharonTaskRunner.h"
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
+
+#include "FSequentialCharonTaskRunner.h"
 
 #include "Async/Async.h"
 

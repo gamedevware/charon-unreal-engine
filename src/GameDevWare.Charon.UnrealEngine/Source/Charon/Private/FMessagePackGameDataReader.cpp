@@ -1,7 +1,11 @@
-﻿#include "GameData/Formatters/FMessagePackGameDataReader.h"
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
+
+#include "GameData/Formatters/FMessagePackGameDataReader.h"
 #include "Misc/Base64.h"
 
-enum EMessagePackType : uint8
+enum class EMessagePackType : uint8
 {
 	PositiveFixIntStart = 0x00,
 	PositiveFixIntEnd = 0x7f,
@@ -152,15 +156,15 @@ bool FMessagePackGameDataReader::ReadNext()
 	uint8 FormatValue;
 	Stream->Serialize(&FormatValue, 1);
 
-	if (FormatValue >= EMessagePackType::FixArrayStart && FormatValue <= EMessagePackType::FixArrayEnd)
+	if (FormatValue >= static_cast<uint8>(EMessagePackType::FixArrayStart) && FormatValue <= static_cast<uint8>(EMessagePackType::FixArrayEnd))
 	{
-		const auto ArraySize = FormatValue - EMessagePackType::FixArrayStart;
+		const auto ArraySize = FormatValue - static_cast<uint8>(EMessagePackType::FixArrayStart);
 		PushClosingTokenCounter(EJsonNotation::ArrayEnd, ArraySize + 1);
 		Notation = EJsonNotation::ArrayStart;
 	}
-	else if (FormatValue >= EMessagePackType::FixStrStart && FormatValue <= EMessagePackType::FixStrEnd)
+	else if (FormatValue >= static_cast<uint8>(EMessagePackType::FixStrStart) && FormatValue <= static_cast<uint8>(EMessagePackType::FixStrEnd))
 	{
-		const auto Utf8StringSize = FormatValue - EMessagePackType::FixStrStart;
+		const auto Utf8StringSize = FormatValue - static_cast<uint8>(EMessagePackType::FixStrStart);
 		TArray<uint8> Utf8StringBytes;
 		ReadBytes(Utf8StringBytes, Utf8StringSize);
 		auto Utf8String = FString(UTF8_TO_TCHAR(Utf8StringBytes.GetData()));
@@ -177,19 +181,19 @@ bool FMessagePackGameDataReader::ReadNext()
 		StringValue = Utf8String;
 		Notation = EJsonNotation::String;
 	}
-	else if (FormatValue >= EMessagePackType::FixMapStart && FormatValue <= EMessagePackType::FixMapEnd)
+	else if (FormatValue >= static_cast<uint8>(EMessagePackType::FixMapStart) && FormatValue <= static_cast<uint8>(EMessagePackType::FixMapEnd))
 	{
-		const auto MapSize = FormatValue - EMessagePackType::FixMapStart;
+		const auto MapSize = FormatValue - static_cast<uint8>(EMessagePackType::FixMapStart);
 
 		PushClosingTokenCounter(EJsonNotation::ObjectEnd, MapSize * 2 + 1);
 		Notation = EJsonNotation::ObjectStart;
 	}
-	else if (FormatValue >= EMessagePackType::NegativeFixIntStart)
+	else if (FormatValue >= static_cast<uint8>(EMessagePackType::NegativeFixIntStart))
 	{
 		NumberValue = static_cast<int8>(FormatValue);
 		Notation = EJsonNotation::Number;
 	}
-	else if (FormatValue <= EMessagePackType::PositiveFixIntEnd)
+	else if (FormatValue <= static_cast<uint8>(EMessagePackType::PositiveFixIntEnd))
 	{
 		NumberValue = FormatValue;
 		Notation = EJsonNotation::Number;
@@ -205,13 +209,13 @@ bool FMessagePackGameDataReader::ReadNext()
 		case EMessagePackType::Array32:
 			{
 				uint32 ArraySize = 0;
-				if (FormatValue == EMessagePackType::Array16)
+				if (FormatValue == static_cast<uint8>(EMessagePackType::Array16))
 				{
 					uint16 SmallArraySize;
 					Stream->Serialize(&SmallArraySize, 2);
 					ArraySize = SmallArraySize;
 				}
-				else if (FormatValue == EMessagePackType::Array32)
+				else if (FormatValue == static_cast<uint8>(EMessagePackType::Array32))
 				{
 					Stream->Serialize(&ArraySize, 4);
 				}
@@ -225,13 +229,13 @@ bool FMessagePackGameDataReader::ReadNext()
 		case EMessagePackType::Map32:
 			{
 				uint32 MapSize = 0;
-				if (FormatValue == EMessagePackType::Map16)
+				if (FormatValue == static_cast<uint8>(EMessagePackType::Map16))
 				{
 					uint16 SmallMapSize;
 					Stream->Serialize(&SmallMapSize, 2);
 					MapSize = SmallMapSize;
 				}
-				else if (FormatValue == EMessagePackType::Map32)
+				else if (FormatValue == static_cast<uint8>(EMessagePackType::Map32))
 				{
 					Stream->Serialize(&MapSize, 4);
 				}
@@ -246,19 +250,19 @@ bool FMessagePackGameDataReader::ReadNext()
 		case EMessagePackType::Str8:
 			{
 				auto Utf8StringSize = 0L;
-				if (FormatValue == EMessagePackType::Str8)
+				if (FormatValue == static_cast<uint8>(EMessagePackType::Str8))
 				{
 					uint8 TinyStringSize = 0;
 					Stream->Serialize(&TinyStringSize, 1);
 					Utf8StringSize = TinyStringSize;
 				}
-				else if (FormatValue == EMessagePackType::Str16)
+				else if (FormatValue == static_cast<uint8>(EMessagePackType::Str16))
 				{
 					uint16 SmallStringSize = 0;
 					Stream->Serialize(&SmallStringSize, 2);
 					Utf8StringSize = SmallStringSize;
 				}
-				else if (FormatValue == EMessagePackType::Str32)
+				else if (FormatValue == static_cast<uint8>(EMessagePackType::Str32))
 				{
 					Stream->Serialize(&Utf8StringSize, 4);
 				}
@@ -291,19 +295,19 @@ bool FMessagePackGameDataReader::ReadNext()
 		case EMessagePackType::Bin8:
 			{
 				auto BinarySize = 0L;
-				if (FormatValue == EMessagePackType::Bin8)
+				if (FormatValue == static_cast<uint8>(EMessagePackType::Bin8))
 				{
 					uint8 TinyBinarySize = 0;
 					Stream->Serialize(&TinyBinarySize, 1);
 					BinarySize = TinyBinarySize;
 				}
-				else if (FormatValue == EMessagePackType::Bin16)
+				else if (FormatValue == static_cast<uint8>(EMessagePackType::Bin16))
 				{
 					uint16 SmallBinarySize = 0;
 					Stream->Serialize(&SmallBinarySize, 2);
 					BinarySize = SmallBinarySize;
 				}
-				else if (FormatValue == EMessagePackType::Bin32)
+				else if (FormatValue == static_cast<uint8>(EMessagePackType::Bin32))
 				{
 					Stream->Serialize(&BinarySize, 4);
 				}
@@ -333,39 +337,39 @@ bool FMessagePackGameDataReader::ReadNext()
 		case EMessagePackType::Ext8:
 			{
 				uint32 ExtSize = 0;
-				if (FormatValue == EMessagePackType::FixExt1)
+				if (FormatValue == static_cast<uint8>(EMessagePackType::FixExt1))
 				{
 					ExtSize = 1;
 				}
-				else if (FormatValue == EMessagePackType::FixExt2)
+				else if (FormatValue == static_cast<uint8>(EMessagePackType::FixExt2))
 				{
 					ExtSize = 2;
 				}
-				else if (FormatValue == EMessagePackType::FixExt4)
+				else if (FormatValue == static_cast<uint8>(EMessagePackType::FixExt4))
 				{
 					ExtSize = 4;
 				}
-				else if (FormatValue == EMessagePackType::FixExt8)
+				else if (FormatValue == static_cast<uint8>(EMessagePackType::FixExt8))
 				{
 					ExtSize = 8;
 				}
-				else if (FormatValue == EMessagePackType::FixExt16)
+				else if (FormatValue == static_cast<uint8>(EMessagePackType::FixExt16))
 				{
 					ExtSize = 16;
 				}
-				if (FormatValue == EMessagePackType::Ext8)
+				if (FormatValue == static_cast<uint8>(EMessagePackType::Ext8))
 				{
 					uint8 TinyExtSize;
 					Stream->Serialize(&TinyExtSize, 1);
 					ExtSize = TinyExtSize;
 				}
-				else if (FormatValue == EMessagePackType::Ext16)
+				else if (FormatValue == static_cast<uint8>(EMessagePackType::Ext16))
 				{
 					uint16 SmallExtSize;
 					Stream->Serialize(&SmallExtSize, 2);
 					ExtSize = SmallExtSize;
 				}
-				else if (FormatValue == EMessagePackType::Ext32)
+				else if (FormatValue == static_cast<uint8>(EMessagePackType::Ext32))
 				{
 					Stream->Serialize(&ExtSize, 4);
 				}

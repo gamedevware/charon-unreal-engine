@@ -1,4 +1,5 @@
 @echo off
+rem Copyright GameDevWare, Denis Zykov 2024
 
 rem ###### DETERMINE CURRENT DIRECTORY ##########
 

@@ -1,4 +1,6 @@
-﻿#pragma once
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
 
 #include "Containers/Array.h"
 #include "Containers/Map.h"
@@ -9,6 +11,7 @@
 #include "Misc/Optional.h"
 #include "Misc/DateTime.h"
 #include "Misc/Timespan.h"
+#include "Misc/Variant.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonTypes.h"
 #include "Serialization/Archive.h"

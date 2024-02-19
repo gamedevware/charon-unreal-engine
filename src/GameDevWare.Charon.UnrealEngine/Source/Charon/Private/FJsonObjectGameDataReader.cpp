@@ -1,4 +1,8 @@
-﻿#include "GameData/Formatters/FJsonObjectGameDataReader.h"
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
+
+#include "GameData/Formatters/FJsonObjectGameDataReader.h"
 
 FJsonObjectGameDataReader::FJsonObjectReaderFrame::FJsonObjectReaderFrame(TSharedPtr<FJsonObject>& JsonObject)
 {

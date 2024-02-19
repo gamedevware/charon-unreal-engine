@@ -1,4 +1,8 @@
-﻿#include "GameData/UGameDataBase.h"
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
+
+#include "GameData/UGameDataBase.h"
 
 #include "GameData/UGameDataImportData.h"
 

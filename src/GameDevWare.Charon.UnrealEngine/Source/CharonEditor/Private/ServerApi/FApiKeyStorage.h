@@ -1,4 +1,6 @@
-﻿#pragma once
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
 
 DECLARE_LOG_CATEGORY_EXTERN(LogFApiKeyStorage, Log, All);
 

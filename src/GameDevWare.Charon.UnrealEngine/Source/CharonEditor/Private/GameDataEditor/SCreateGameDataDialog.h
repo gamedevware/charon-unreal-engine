@@ -1,4 +1,7 @@
-﻿#pragma once
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
+
 #include "Widgets/Workflow/SWizard.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogSCreateGameDataDialog, Log, All);

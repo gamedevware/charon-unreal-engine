@@ -1,4 +1,6 @@
+// Copyright GameDevWare, Denis Zykov 2024
 #pragma once
+
 #include "FDocumentValidationRecord.h"
 
 #include "FValidationReport.generated.h"

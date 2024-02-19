@@ -1,3 +1,5 @@
+// Copyright GameDevWare, Denis Zykov 2024
+
 #pragma once
 
 #include "FProject.generated.h"
@@ -8,18 +10,18 @@ struct FProject
 	GENERATED_BODY();
 
 	/** Id of project. */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY()
 	FString Id;
 
 	/** Name of project. */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY()
 	FString Name;
 
 	/** Picture URL of project. */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY()
 	FString PictureUrl;
 
 	/** Picture URL of project. */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY()
 	TArray<FBranch> Branches;
 };

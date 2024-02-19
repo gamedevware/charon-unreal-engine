@@ -1,3 +1,5 @@
+// Copyright GameDevWare, Denis Zykov 2024
+
 #pragma once
 
 #include "FProject.h"
@@ -11,10 +13,10 @@ struct FProjectsResponse
 	GENERATED_BODY();
 	
 	/** List of projects. */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY()
 	TArray<FProject> Result;
 
 	/** Any error occurred during request. Null if no errors occurred. */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY()
 	TArray<FApiError> Errors;
 };

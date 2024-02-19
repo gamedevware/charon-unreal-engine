@@ -1,4 +1,7 @@
-﻿#pragma once
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
+
 
 #include "SCreateGameDataDialog.h"
 
@@ -98,7 +101,7 @@ void SCreateGameDataDialog::Construct(const FArguments& InArgs)
 							[
 								SNew(SHyperlink)
 								.OnNavigate(this, &SCreateGameDataDialog::GoToDocumentation)
-								.Text(INVTEXT("Documentation: Getting started guide for Unreal Engine."))
+								.Text(INVTEXT("Guide: How to Create Game Data File."))
 							]
 						]
 
@@ -196,7 +199,7 @@ void SCreateGameDataDialog::Construct(const FArguments& InArgs)
 							[
 								SNew(SHyperlink)
 								.OnNavigate(this, &SCreateGameDataDialog::GoToDocumentation)
-								.Text(INVTEXT("Documentation: Getting started guide for Unreal Engine."))
+								.Text(INVTEXT("Guide: How to Create Game Data File."))
 							]
 						]
 						
@@ -470,7 +473,7 @@ bool SCreateGameDataDialog::CanFinish() const
 
 void SCreateGameDataDialog::GoToDocumentation()
 {
-	const FString DocumentationUrl = TEXT("https://gamedevware.github.io/charon/");
+	const FString DocumentationUrl = TEXT("https://gamedevware.github.io/charon/unreal_engine/creating_game_data.html");
 	FString LaunchError;
 	FPlatformProcess::LaunchURL(*DocumentationUrl, nullptr, &LaunchError);
 	ErrorText = FText::FromString(LaunchError);

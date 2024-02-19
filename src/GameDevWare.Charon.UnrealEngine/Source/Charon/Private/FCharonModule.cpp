@@ -1,6 +1,8 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright GameDevWare, Denis Zykov 2024
 
-#include "GameData\FCharonModule.h"
+#pragma once
+
+#include "GameData/FCharonModule.h"
 
 #define LOCTEXT_NAMESPACE "FCharonModule"
 

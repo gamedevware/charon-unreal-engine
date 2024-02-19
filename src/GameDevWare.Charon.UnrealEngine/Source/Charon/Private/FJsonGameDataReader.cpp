@@ -1,4 +1,8 @@
-﻿#include "GameData/Formatters/FJsonGameDataReader.h"
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
+
+#include "GameData/Formatters/FJsonGameDataReader.h"
 
 FJsonGameDataReader::FJsonGameDataReader(FArchive* const Stream)
 	: Notation(EJsonNotation::Null)

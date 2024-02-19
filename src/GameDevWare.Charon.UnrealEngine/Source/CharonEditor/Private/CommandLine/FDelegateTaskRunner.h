@@ -1,5 +1,8 @@
-﻿#pragma once
-#include "GameData\ICharonTask.h"
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
+
+#include "GameData/ICharonTask.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogFDelegateTaskRunner, Log, All);
 

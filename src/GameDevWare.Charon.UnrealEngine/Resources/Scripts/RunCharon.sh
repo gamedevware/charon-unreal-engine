@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright GameDevWare, Denis Zykov 2024
 
 # ###### DETERMINE CURRENT DIRECTORY ##########
 SCRIPT_DIR=$(cd "`dirname "$0"`" && pwd)
@@ -33,10 +34,10 @@ locate_executable() {
     fi
 
     # ###### RESTORING NUGET PACKAGE ##########
-    pushd "$SCRIPT_DIR"
+    pushd "$SCRIPT_DIR" > /dev/null
     dotnet restore --packages "." --force --ignore-failed-sources > /dev/null
     EXITCODE=$?
-    popd
+    popd > /dev/null
     RESTORE_IS_DONE=1
 
     if [[ "$EXITCODE" != "0" ]]; then
@@ -47,7 +48,7 @@ locate_executable() {
 }
 
 run_executable() {
-    pushd "$EXECUTABLE_DIR"
+    pushd "$EXECUTABLE_DIR" > /dev/null
     STANDALONE__APPLICATIONDATAPATH="$SCRIPT_DIR/data"
     STANDALONE__APPLICATIONTEMPPATH="$SCRIPT_DIR/temp"
     SERILOG__WRITETO__0__NAME="File"
@@ -59,7 +60,7 @@ run_executable() {
     # Run 'mono Charon.exe' with passed parameters
     mono "./$EXECUTABLE_NAME" "$@"
     EXITCODE=$?
-    popd
+    popd > /dev/null
 
     if [[ "$EXITCODE" != "0" ]]; then
         exit_failure

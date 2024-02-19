@@ -1,4 +1,6 @@
-﻿#pragma once
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
 
 #include "FApiError.generated.h"
 
@@ -8,10 +10,10 @@ struct FApiError
 	GENERATED_BODY();
 	
 	/** Error message. */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY()
 	FString Message;
 
 	/** Error code. */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY()
 	FString Code;
 };

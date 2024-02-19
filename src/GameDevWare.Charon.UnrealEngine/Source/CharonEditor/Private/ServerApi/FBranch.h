@@ -1,4 +1,6 @@
-﻿#pragma once
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
 
 #include "FBranch.generated.h"
 
@@ -8,18 +10,18 @@ struct FBranch
 	GENERATED_BODY();
 
 	/** Id of branch, also it is dataSourceId. */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY()
 	FString Id;
 
 	/** Name of branch. */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY()
 	FString Name;
 
 	/** Is it primary branch. */
-	UPROPERTY(VisibleAnywhere)
-	bool IsPrimary;
+	UPROPERTY()
+	bool IsPrimary = false;
 
 	/** Size of branch. */
-	UPROPERTY(VisibleAnywhere)
-	int32 DataSize;
+	UPROPERTY()
+	int32 DataSize = 0;
 };

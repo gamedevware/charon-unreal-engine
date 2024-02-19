@@ -1,7 +1,9 @@
-﻿#pragma once
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
 
 #include "GameData/UGameDataBase.h"
-#include "PropertyEditor/Public/IPropertyTypeCustomization.h"
+#include "IPropertyTypeCustomization.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogFGameDataDocumentReferenceCustomization, Log, All);
 

@@ -1,3 +1,4 @@
+// Copyright GameDevWare, Denis Zykov 2024
 
 #pragma once
 
@@ -19,22 +20,22 @@ public:
 	/*
 	 * Currently selected language. Value is BCP-47 language tag.
 	 */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category="Game Data")
 	FString CurrentLanguageId = "en-US";
 	/*
 	 * Fallback language which is used is value of CurrentLanguageId is empty string. Value is BCP-47 language tag.
 	 */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category="Game Data")
 	FString FallbackLanguageId = "en-US";
 	/*
 	 * Primary language of UGameDataBase which is set in Project Settings which is used if FallbackLanguageId is empty string. Value is BCP-47 language tag.
 	 */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category="Game Data")
 	FString PrimaryLanguageId = "en-US";
 	/*
 	 *  When to fallback to `FallbackLanguageId` localization text.
 	 */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category="Game Data")
 	ELocalizedStringFallbackOption FallbackOption = ELocalizedStringFallbackOption::OnNull;
 };
 

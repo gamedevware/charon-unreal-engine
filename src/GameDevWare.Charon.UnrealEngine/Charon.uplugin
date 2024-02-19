@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.0",
+	"VersionName": "2024.1.3",
 	"FriendlyName": "Charon",
 	"Description": "Charon game data editor support for Unreal Engine editor",
 	"Category": "Other",
@@ -10,6 +10,7 @@
 	"DocsURL": "https://gamedevware.github.io/charon/",
 	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/b4231a79707e491ba96b9842d971e6f4",
 	"SupportURL": "https://www.gamedevware.com/",
+	"EngineVersion": "5.1.0",
 	"CanContainContent": true,
 	"IsBetaVersion": true,
 	"IsExperimentalVersion": false,
@@ -18,13 +19,14 @@
 		{
 			"Name": "Charon",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"PlatformAllowList": [ "Win64", "Mac", "Linux" ]
 		},
 		{
 			"Name": "CharonEditor",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms": ["Win64", "Mac", "Linux"]
+			"PlatformAllowList": [ "Win64", "Mac", "Linux" ]
 		}
 	],
 	"Plugins": [

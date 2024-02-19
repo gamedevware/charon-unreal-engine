@@ -1,3 +1,5 @@
+// Copyright GameDevWare, Denis Zykov 2024
+
 #pragma once
 
 #include "FDocumentValidationError.generated.h"
@@ -17,7 +19,7 @@ struct CHARONEDITOR_API FDocumentValidationError
 	 * The format of this path is a JSON Pointer as defined in RFC 6901 (https://datatracker.ietf.org/doc/html/rfc6901).
 	 * It provides a precise location within the document where the validation error was identified. 
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Validation")
+	UPROPERTY(VisibleAnywhere, Category="Game Data")
 	FString Path;
 
 	/**
@@ -26,7 +28,7 @@ struct CHARONEDITOR_API FDocumentValidationError
 	 * This string provides a human-readable description of the validation error, offering insight into
 	 * what aspect of the document did not meet the validation criteria.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Validation")
+	UPROPERTY(VisibleAnywhere, Category="Game Data")
 	FString Message;
 
 	/**
@@ -35,6 +37,6 @@ struct CHARONEDITOR_API FDocumentValidationError
 	 * This code serves as an identifier for the specific type of validation error encountered, which can
 	 * be used for categorizing, reporting, or further processing of the error.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Validation")
+	UPROPERTY(VisibleAnywhere, Category="Game Data")
 	FString Code;
 };

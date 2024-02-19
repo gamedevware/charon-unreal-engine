@@ -1,7 +1,8 @@
-﻿#pragma once
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
 
 #include "FGameDataEditorToolkit.h"
-
 #include "ServerApi/FApiKeyStorage.h"
 #include "GameData/CommandLine/FCharonCli.h"
 #include "FGameDataEditorCommands.h"
@@ -9,13 +10,13 @@
 #include "SConnectGameDataDialog.h"
 #include "SourceCodeNavigation.h"
 #include "SWebBrowser.h"
-#include "GameData\UImportGameDataFactory.h"
 #include "Dialogs/Dialogs.h"
 #include "Framework/Notifications/NotificationManager.h"
 #include "Math/UnrealMathUtility.h"
 #include "SSetApiKeyDialog.h"
 #include "UGameDataEditorWebBrowserBridge.h"
 #include "Widgets/Notifications/SNotificationList.h"
+#include "GameData/UGameDataImportData.h"
 
 DEFINE_LOG_CATEGORY(LogFGameDataEditorToolkit);
 
@@ -215,7 +216,7 @@ void FGameDataEditorToolkit::RegisterTabSpawners(const TSharedRef<FTabManager>& 
 
 	WorkspaceMenuCategory = InTabManager->AddLocalWorkspaceMenuCategory(INVTEXT("Game Data Editor"));
 
-	InTabManager->RegisterTabSpawner("GameDataBrowserTab", FOnSpawnTab::CreateLambda([=](const FSpawnTabArgs&)
+	InTabManager->RegisterTabSpawner("GameDataBrowserTab", FOnSpawnTab::CreateLambda([this](const FSpawnTabArgs&)
 	            {
 		            return SNew(SDockTab)
 		            [
@@ -237,7 +238,7 @@ void FGameDataEditorToolkit::RegisterTabSpawners(const TSharedRef<FTabManager>& 
 	DetailsViewArgs.NameAreaSettings = FDetailsViewArgs::HideNameArea;
 	const TSharedRef<IDetailsView> DetailsView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
 	DetailsView->SetObjects(TArray<UObject*>{GameData});
-	InTabManager->RegisterTabSpawner("GameDataDetailsTab", FOnSpawnTab::CreateLambda([=](const FSpawnTabArgs&)
+	InTabManager->RegisterTabSpawner("GameDataDetailsTab", FOnSpawnTab::CreateLambda([this, DetailsView](const FSpawnTabArgs&)
 	            {
 		            return SNew(SDockTab)
 		            [

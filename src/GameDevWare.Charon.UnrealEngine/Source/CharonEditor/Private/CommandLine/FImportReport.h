@@ -1,4 +1,7 @@
+// Copyright GameDevWare, Denis Zykov 2024
+
 #pragma once
+
 #include "FImportReportDocumentChange.h"
 
 #include "FImportReport.generated.h"
@@ -9,7 +12,7 @@ struct CHARONEDITOR_API FImportReport
 	GENERATED_BODY();
 	
 	/** List of all changes made during import. */
-	UPROPERTY(VisibleAnywhere, Category="Report")
+	UPROPERTY(VisibleAnywhere, Category="Game Data")
 	TArray<FImportReportDocumentChange> Changes;
 
 	/** Hash of metadata after import operation. */

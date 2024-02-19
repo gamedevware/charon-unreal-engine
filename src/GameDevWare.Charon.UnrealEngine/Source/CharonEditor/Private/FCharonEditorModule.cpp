@@ -1,4 +1,6 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
 
 #include "GameData/FCharonEditorModule.h"
 

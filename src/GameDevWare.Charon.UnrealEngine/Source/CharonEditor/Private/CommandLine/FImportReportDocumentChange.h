@@ -1,3 +1,5 @@
+// Copyright GameDevWare, Denis Zykov 2024
+
 #pragma once
 
 #include "EImportReportDocumentChangeStatus.h"
@@ -10,31 +12,31 @@ struct CHARONEDITOR_API FImportReportDocumentChange
 	GENERATED_BODY();
 	
 	/** Id of the changed document. */
-	UPROPERTY(VisibleAnywhere, Category="Change")
+	UPROPERTY(VisibleAnywhere, Category="Game Data")
 	FString Id;
 
 	/** New id of the newly created document. */
-	UPROPERTY(VisibleAnywhere, Category="Change")
+	UPROPERTY(VisibleAnywhere, Category="Game Data")
 	FString NewId;
 
 	/** Schema name of changed document. */
-	UPROPERTY(VisibleAnywhere, Category="Change")
+	UPROPERTY(VisibleAnywhere, Category="Game Data")
 	FString SchemaName;
 	
 	/** Schema name of changed document. */
-	UPROPERTY(VisibleAnywhere, Category="Change")
+	UPROPERTY(VisibleAnywhere, Category="Game Data")
 	FString SchemaId;
 
 	/** Status of change for document. */
-	UPROPERTY(VisibleAnywhere, Category="Change")
+	UPROPERTY(VisibleAnywhere, Category="Game Data")
 	EImportReportDocumentChangeStatus Status = EImportReportDocumentChangeStatus::Skipped;
 
 	/** Reason or informational comment for a change status. */
-	UPROPERTY(VisibleAnywhere, Category="Change")
+	UPROPERTY(VisibleAnywhere, Category="Game Data")
 	FString Comment;
 
 	/** List of errors happened during attempt to apply change. Could be empty even if EImportReportDocumentChangeStatus::Error */
-	UPROPERTY(VisibleAnywhere, Category="Change")
+	UPROPERTY(VisibleAnywhere, Category="Game Data")
 	TArray<FDocumentValidationError> Errors;
 };
 

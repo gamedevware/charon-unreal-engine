@@ -1,3 +1,7 @@
+// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
+
 #include "GameData/FLocalizedString.h"
 
 FLocalizedString::FLocalizedString

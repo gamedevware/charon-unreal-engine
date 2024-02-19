@@ -1,9 +1,12 @@
+// Copyright GameDevWare, Denis Zykov 2024
+
 #pragma once
 
 #include "CoreMinimal.h"
 #include "EGameDataFormat.h"
 #include "UGameDataDocument.h"
 #include "UObject/Class.h"
+#include "Engine/DataAsset.h"
 #include "GameData/UGameDataImportData.h"
 
 #include "UGameDataBase.generated.h"

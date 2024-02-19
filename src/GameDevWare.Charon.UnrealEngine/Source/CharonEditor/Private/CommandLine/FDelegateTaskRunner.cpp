@@ -1,4 +1,8 @@
-﻿#include "FDelegateTaskRunner.h"
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
+
+#include "FDelegateTaskRunner.h"
 
 #include "Async/Async.h"
 

@@ -1,4 +1,7 @@
-﻿#pragma once
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
+
 #include "EditorFramework/AssetImportData.h"
 
 #include "UGameDataImportData.generated.h"
@@ -13,45 +16,54 @@ public:
 	/*
 	 * Address of game data server to which this asset is connected. 
 	 */
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, Category="Game Data")
 	FString ServerAddress;
 	/*
 	 * Id of project to which this asset is connected. 
 	 */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category="Game Data")
 	FString ProjectId;
 	/*
 	 * Id of branch on project to which this asset is connected. 
 	 */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category="Game Data")
 	FString BranchId;
 	/*
 	 * Name of project to which this asset is connected. Used for UI. 
 	 */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category="Game Data")
 	FString ProjectName;
 	/*
 	 * Name of branch on project to which this asset is connected. Used for UI.
 	 */
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, Category="Game Data")
 	FString BranchName;
+#endif
 	
 	/*
 	 * Is this game data asset is connected to remote project. 
 	 */
-	bool IsConnected() const { return !ServerAddress.IsEmpty() && !ProjectId.IsEmpty() && !BranchId.IsEmpty(); }
+	inline bool IsConnected() const
+	{
+#if WITH_EDITORONLY_DATA
+		return !ServerAddress.IsEmpty() && !ProjectId.IsEmpty() && !BranchId.IsEmpty();
+#else
+		return false;
+#endif
+	}
 
 	/*
 	 * Disconnect this data from remote project.
 	 */
-	UFUNCTION(BlueprintCallable)
-	void Disconnect()
+	UFUNCTION(BlueprintCallable, Category="Game Data")
+	inline void Disconnect()
 	{
+#if WITH_EDITORONLY_DATA
 		ServerAddress.Empty();
 		ProjectId.Empty();
 		ProjectName.Empty();
 		BranchId.Empty();
 		BranchName.Empty();
-	}
 #endif
+	}
 };

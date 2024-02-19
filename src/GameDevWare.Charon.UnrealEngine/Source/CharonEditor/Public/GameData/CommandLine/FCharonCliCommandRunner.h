@@ -1,4 +1,7 @@
-﻿#pragma once
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
+
 #include "Misc/MonitoredProcess.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogFCharonCliCommandRunner, Log, All);

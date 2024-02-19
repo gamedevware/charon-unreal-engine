@@ -1,3 +1,5 @@
+// Copyright GameDevWare, Denis Zykov 2024
+
 #pragma once
 
 #include "CoreMinimal.h"
@@ -25,7 +27,7 @@ private:
 	
 	bool PickClass();
 public:
-	UPROPERTY(EditAnywhere, Category=DataAsset)
+	UPROPERTY()
 	TSubclassOf<UGameDataBase> GameDataClass;
 
 	explicit UImportGameDataFactory(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());

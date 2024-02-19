@@ -1,6 +1,8 @@
-﻿#pragma once
+﻿// Copyright GameDevWare, Denis Zykov 2024
 
-#include "GameData/UNewGameDataFactory.h"
+#pragma once
+
+#include "GameDataAssetActions/UNewGameDataFactory.h"
 
 #include "UObject/Class.h"
 #include "Misc/FeedbackContext.h"

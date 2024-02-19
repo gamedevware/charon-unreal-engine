@@ -1,4 +1,7 @@
-﻿#pragma once
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
+
 #include "IGameDataReader.h"
 
 #include "Containers/Array.h"

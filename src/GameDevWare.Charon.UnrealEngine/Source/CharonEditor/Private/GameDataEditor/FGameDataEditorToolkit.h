@@ -1,4 +1,6 @@
-﻿#pragma once
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
 
 #include "CoreMinimal.h"
 #include "FConnectGameDataParameters.h"
@@ -63,6 +65,6 @@ public:
 	virtual FName GetToolkitFName() const override { return "GameDataEditor"; }
 	virtual FText GetBaseToolkitName() const override { return INVTEXT("Game Data Editor"); }
 	virtual FString GetWorldCentricTabPrefix() const override { return "Game Data "; }
-	virtual FString GetDocumentationLink() const override { return "https://gamedevware.github.io/charon/"; }
+	virtual FString GetDocumentationLink() const override { return "https://gamedevware.github.io/charon/unreal_engine/overview.html"; }
 	virtual FLinearColor GetWorldCentricTabColorScale() const override { return {}; }
 };

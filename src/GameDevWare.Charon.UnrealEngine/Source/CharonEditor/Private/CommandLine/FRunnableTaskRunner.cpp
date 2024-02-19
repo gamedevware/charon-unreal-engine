@@ -1,4 +1,8 @@
-﻿#include "FRunnableTaskRunner.h"
+﻿// Copyright GameDevWare, Denis Zykov 2024
+
+#pragma once
+
+#include "FRunnableTaskRunner.h"
 
 #include "Async/Async.h"
 

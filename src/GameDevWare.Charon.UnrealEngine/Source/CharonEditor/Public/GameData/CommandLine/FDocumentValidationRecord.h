@@ -1,3 +1,5 @@
+// Copyright GameDevWare, Denis Zykov 2024
+
 #pragma once
 
 #include "FDocumentValidationError.h"
@@ -18,24 +20,24 @@ struct CHARONEDITOR_API FDocumentValidationRecord
 	/**
 	 * @brief The ID of the document.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Validation")
+	UPROPERTY(VisibleAnywhere, Category="Game Data")
 	FString Id;
 
 	/**
 	 * @brief The name of the schema for the document.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Change")
+	UPROPERTY(VisibleAnywhere, Category="Game Data")
 	FString SchemaName;
     
 	/**
 	 * @brief The ID of the schema for the document.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Change")
+	UPROPERTY(VisibleAnywhere, Category="Game Data")
 	FString SchemaId;
 
 	/**
 	 * @brief List of errors found in the document during validation.
 	 */
-	UPROPERTY(VisibleAnywhere, Category="Change")
+	UPROPERTY(VisibleAnywhere, Category="Game Data")
 	TArray<FDocumentValidationError> Errors;
 };
