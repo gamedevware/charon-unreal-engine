@@ -19,6 +19,7 @@ _ReSharper*
 *.userprefs
 media/
 .vs
+.DS_Store
 bin/
 obj/
 packages/
