@@ -111,15 +111,19 @@ FString FCharonCliCommandRunner::GetOrCreateCharonIntermediateDirectory()
 				FPaths::GetExtension(TargetFileName) == TEXT("command"))
 			{
 				UE_LOG(LogFCharonCliCommandRunner, Log, TEXT("Running chmod +x for a script file '%s'."), *SourceFilePath);
-				FChmodProcess Chmod(TargetFileName, "+x");
-				if(!Chmod.Launch())
+				FChmodProcess ChmodProcess(TargetFileName, "+x");
+				if(!ChmodProcess.Launch())
 				{
-					UE_LOG(LogFCharonCliCommandRunner, Error, TEXT("Failed to run chmod +x for a script file '%s'."), *SourceFilePath);					
+					UE_LOG(LogFCharonCliCommandRunner, Error, TEXT("Failed to run chmod +x for a script file '%s'."), *SourceFilePath);
+					continue;
 				}
-				Chmod.Run();
-				if (Chmod.GetReturnCode() != 0)
+				while (ChmodProcess.Update())
 				{
-					UE_LOG(LogFCharonCliCommandRunner, Error, TEXT("Process chmod +x for a script file '%s' exited with code %d."), *SourceFilePath, Chmod.GetReturnCode());
+					FPlatformProcess::Sleep(0.01f);
+				}
+				if (ChmodProcess.GetReturnCode() != 0)
+				{
+					UE_LOG(LogFCharonCliCommandRunner, Error, TEXT("Process chmod +x for a script file '%s' exited with code %d."), *SourceFilePath, ChmodProcess$.GetReturnCode());
 				}
 			}
 #endif

@@ -98,4 +98,4 @@ exit_success() {
 # Start the process
 check_mono_version
 locate_executable
-run_executable
+run_executable "$@"
