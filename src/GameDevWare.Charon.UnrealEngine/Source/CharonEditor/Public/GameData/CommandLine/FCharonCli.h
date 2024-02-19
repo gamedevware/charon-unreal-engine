@@ -352,7 +352,7 @@ public:
 		FString DefineConstants = FString(),
 		TArray<ESourceCodeGenerationOptimizations> SourceCodeGenerationOptimizations = TArray<ESourceCodeGenerationOptimizations>(),
 		ESourceCodeIndentation SourceCodeIndentation = ESourceCodeIndentation::Tabs,
-#if WIN32
+#if PLATFORM_WINDOWS
 		ESourceCodeLineEndings SourceCodeLineEndings = ESourceCodeLineEndings::Windows,
 #else
 		ESourceCodeLineEndings SourceCodeLineEndings = ESourceCodeLineEndings::Unix,

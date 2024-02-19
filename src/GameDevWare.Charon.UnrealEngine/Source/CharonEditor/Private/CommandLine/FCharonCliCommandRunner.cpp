@@ -4,10 +4,11 @@
 
 #include "GameData/CommandLine/FCharonCliCommandRunner.h"
 
+#include "FChmodProcess.h"
+
 DEFINE_LOG_CATEGORY(LogFCharonCliCommandRunner);
 
 FCharonCliCommandRunner::FCharonCliCommandRunner(FString InParameters)
-// we will modify URL and Params in this constructor, so there's no need to pass anything up to base
 	: FMonitoredProcess("", "", true, true), FileCleanupList(), EnvironmentVariables()
 {
 	WorkingDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());
@@ -104,6 +105,24 @@ FString FCharonCliCommandRunner::GetOrCreateCharonIntermediateDirectory()
 				UE_LOG(LogFCharonCliCommandRunner, Warning,
 				       TEXT("Failed to copy file '%s' to Project's intermediate directory."), *SourceFilePath);
 			}
+
+#if PLATFORM_UNIX || PLATFORM_MAC || PLATFORM_LINUX
+			if (FPaths::GetExtension(TargetFileName) == TEXT("sh") ||
+				FPaths::GetExtension(TargetFileName) == TEXT("command"))
+			{
+				UE_LOG(LogFCharonCliCommandRunner, Log, TEXT("Running chmod +x for a script file '%s'."), *SourceFilePath);
+				FChmodProcess Chmod(TargetFileName, "+x");
+				if(!Chmod.Launch())
+				{
+					UE_LOG(LogFCharonCliCommandRunner, Error, TEXT("Failed to run chmod +x for a script file '%s'."), *SourceFilePath);					
+				}
+				Chmod.Run();
+				if (Chmod.GetReturnCode() != 0)
+				{
+					UE_LOG(LogFCharonCliCommandRunner, Error, TEXT("Process chmod +x for a script file '%s' exited with code %d."), *SourceFilePath, Chmod.GetReturnCode());
+				}
+			}
+#endif
 		}
 	}
 

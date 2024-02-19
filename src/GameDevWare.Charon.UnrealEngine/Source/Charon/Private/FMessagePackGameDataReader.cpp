@@ -15,7 +15,7 @@ enum class EMessagePackType : uint8
 	FixArrayEnd = 0x9f,
 	FixStrStart = 0xa0,
 	FixStrEnd = 0xbf,
-	Nil = 0xc0,
+	Null = 0xc0,
 	Unused = 0xc1,
 	False = 0xc2,
 	True = 0xc3,
@@ -200,9 +200,9 @@ bool FMessagePackGameDataReader::ReadNext()
 	}
 	else
 	{
-		switch (FormatValue)
+		switch (static_cast<EMessagePackType>(FormatValue))
 		{
-		case EMessagePackType::Nil:
+		case EMessagePackType::Null:
 			Notation = EJsonNotation::Null;
 			break;
 		case EMessagePackType::Array16:
