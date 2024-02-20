@@ -3,7 +3,6 @@
 #pragma once
 
 #include "EditorFramework/AssetImportData.h"
-
 #include "UGameDataImportData.generated.h"
 
 UCLASS(EditInlineNew)
@@ -43,40 +42,16 @@ public:
 	/*
 	 * Is this game data asset is connected to remote project. 
 	 */
-	inline bool IsConnected() const
-	{
-#if WITH_EDITORONLY_DATA
-		return !ServerAddress.IsEmpty() && !ProjectId.IsEmpty() && !BranchId.IsEmpty();
-#else
-		return false;
-#endif
-	}
+	bool IsConnected() const;
 
 	/*
 	 * Disconnect this data from remote project.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Game Data")
-	inline void Disconnect()
-	{
-#if WITH_EDITORONLY_DATA
-		ServerAddress.Empty();
-		ProjectId.Empty();
-		ProjectName.Empty();
-		BranchId.Empty();
-		BranchName.Empty();
-#endif
-	}
+	void Disconnect();
 
-	inline FString GetNormalizedGameDataPath() const
-	{
-		FString GameDataFilePath = GetFirstFilename();
-		if (GameDataFilePath.IsEmpty())
-		{
-			return GameDataFilePath;
-		}
-		GameDataFilePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), GameDataFilePath);
-		FPaths::NormalizeFilename(GameDataFilePath);
-		FPaths::CollapseRelativeDirectories(GameDataFilePath);
-		return GameDataFilePath;
-	}
+	/*
+	 * Get Path to source Game Data file.
+	 */
+	FString GetNormalizedGameDataPath() const;
 };
