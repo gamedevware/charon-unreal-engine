@@ -48,6 +48,7 @@ void SCreateGameDataDialog::Construct(const FArguments& InArgs)
 		.SaneWindowPlacement(true)
 		.SupportsMaximize(false)
 		.SupportsMinimize(false)
+		.MaxWidth(1600)
 		.Content()
 		[
 			SNew(SBorder)
@@ -290,11 +291,8 @@ void SCreateGameDataDialog::OnGenerateCodeAndAssets()
 	FString ModuleDirectory = FPaths::ProjectDir() / TEXT("Source") / Name;
 	const FName ModuleName = FName(Name);
 
-	FPaths::NormalizeDirectoryName(ModuleDirectory);
-	FPaths::CollapseRelativeDirectories(ModuleDirectory);
-
-	FPaths::NormalizeDirectoryName(GameDataFilePath);
-	FPaths::CollapseRelativeDirectories(GameDataFilePath);
+	ModuleDirectory = FPaths::ConvertRelativePathToFull(ModuleDirectory);
+	GameDataFilePath = FPaths::ConvertRelativePathToFull(GameDataFilePath);
 	
 	const FString EmptyGameData;
 	if (!PlatformFile.FileExists(*GameDataFilePath) && !FFileHelper::SaveStringToFile(EmptyGameData, *GameDataFilePath))

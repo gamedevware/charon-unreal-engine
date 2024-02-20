@@ -52,6 +52,8 @@ UObject* UNewGameDataFactory::FactoryCreateNew(UClass* InClass, UObject* InParen
 		return nullptr;
 	}
 
+	PackageFilePath = FPaths::ConvertRelativePathToFull(PackageFilePath);
+	
 	const auto CreateGameDataDialog = SNew(SCreateGameDataDialog)
 		.AssetPath(PackageFilePath);
 	CreateGameDataDialog->Show();
