@@ -12,31 +12,30 @@ SETLOCAL DISABLEDELAYEDEXPANSION
 set "SCRIPT_DIR=%DRIVE_LETTER%%~p0"
 set "EXECUTABLE_DIR=%DRIVE_LETTER%%~p0"
 set "EXECUTABLE_NAME=Charon.exe"
-set EXITCODE=0
-set RESTORE_IS_DONE=0
+set "EXIT_CODE=0"
 
 rem ###### LOCATING CHARON.EXE ##########
 
 :Locate_Executable
+
+if "%SKIP_CHARON_UPDATES%" NEQ "1" (
+    rem ###### RESTORING NUGET PACKAGE ##########
+    pushd "%SCRIPT_DIR%"
+    call dotnet restore --packages "." --force --ignore-failed-sources >nul
+    popd
+    if "%EXIT_CODE%" NEQ "0" goto Exit_Failure_Dotnet_Restore_Failed
+)
+
+rem ###### LOCATING Charon.exe ##########
 set "FILE_NAME=Charon.exe"
 for /d %%D in ("%SCRIPT_DIR%\gamedevware.charon\*") do (
     if exist "%%D\tools\%EXECUTABLE_NAME%" (
         set "EXECUTABLE_DIR=%%D\tools"
-        goto Found_Executable
     )
 )
 
-if "%RESTORE_IS_DONE%"=="1" goto Exit_Failure_No_Executable
-
-rem ###### RESTORING NUGET PACKAGE ##########
-pushd "%SCRIPT_DIR%"
-call dotnet restore --packages "." --force --ignore-failed-sources >nul
-popd
-set RESTORE_IS_DONE=1
-
-if "%EXITCODE%" NEQ "0" goto Exit_Failure_Dotnet_Restore_Failed
-
-goto Locate_Executable
+if exist "%EXECUTABLE_DIR%" goto Found_Executable
+goto Exit_Failure_No_Executable
 
 rem ###### RUNNING EXECUTABLE ##########
 :Found_Executable
@@ -54,30 +53,25 @@ call "%EXECUTABLE_NAME%" %*
 
 popd
 
-set EXITCODE=%ERRORLEVEL%
+set EXIT_CODE=%ERRORLEVEL%
 
-if "%EXITCODE%" NEQ "0" (
-    goto Exit_Failure
-) else (
-    goto Exit_Success
-)
-
+if "%EXIT_CODE%" NEQ "0" goto Exit_Failure
 goto Exit_Success
 
 rem ###### HANDLING ERRORS ##########
 
 :Exit_Failure_Dotnet_Restore_Failed
-set EXITCODE=-2
+set EXIT_CODE=-2
 echo Failed to execute the 'dotnet restore' command to retrieve the latest package version from NuGet. Ensure that the 'dotnet' tool is installed and available in the 'PATH'. Check 'https://dotnet.microsoft.com/en-us/download' for the installer.
 goto Exit_Failure
 
 :Exit_Failure_No_Executable
-set EXITCODE=-1
+set EXIT_CODE=-1
 echo Unable to find the '%FILE_NAME%' executable in './gamedevware.charon/*/tools' subfolders.
 goto Exit_Failure
 
 :Exit_Failure
-exit /B %EXITCODE%
+exit /B %EXIT_CODE%
 
 :Exit_Success
 exit /B 0

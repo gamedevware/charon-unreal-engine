@@ -91,6 +91,7 @@ FString FCharonCliCommandRunner::GetOrCreateCharonIntermediateDirectory()
 	if (!bScriptsCopied)
 	{
 		bScriptsCopied = true;
+
 		TArray<FString> FoundFiles;
 		PlatformFile.FindFiles(FoundFiles, *PluginScriptsDirectory, nullptr);
 		for (const FString SourceFilePath : FoundFiles)

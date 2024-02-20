@@ -5,8 +5,7 @@
 SCRIPT_DIR=$(cd "`dirname "$0"`" && pwd)
 EXECUTABLE_DIR=$SCRIPT_DIR
 EXECUTABLE_NAME="Charon.exe"
-EXITCODE=0
-RESTORE_IS_DONE=0
+EXIT_CODE=0
 
 check_mono_version() {
     local mono_version=$(mono --version | head -n1 | grep -oE 'version [0-9]+' | awk '{print $2}')
@@ -21,30 +20,31 @@ check_mono_version() {
 }
 
 locate_executable() {
+    
+    if [[ "$SKIP_CHARON_UPDATES" != "1" ]]; then
+      # ###### RESTORING NUGET PACKAGE ##########
+      pushd "$SCRIPT_DIR" > /dev/null
+      dotnet restore --packages "." --force --ignore-failed-sources > /dev/null
+      EXIT_CODE=$?
+      popd > /dev/null
+      
+      if [[ "$EXIT_CODE" != "0" ]]; then
+          exit_failure_dotnet_restore_failed
+      fi
+    fi
+    
+    # ###### LOCATING Charon.exe ##########
     FILE_NAME="Charon.exe"
     for D in "$SCRIPT_DIR"/gamedevware.charon/*/; do
         if [[ -e "$D/tools/$EXECUTABLE_NAME" ]]; then
             EXECUTABLE_DIR="$D/tools"
-            return
         fi
     done
 
-    if [[ "$RESTORE_IS_DONE" == "1" ]]; then
-        exit_failure_no_executable
+    if [[ -e "$EXECUTABLE_DIR" ]]; then
+        return
     fi
-
-    # ###### RESTORING NUGET PACKAGE ##########
-    pushd "$SCRIPT_DIR" > /dev/null
-    dotnet restore --packages "." --force --ignore-failed-sources > /dev/null
-    EXITCODE=$?
-    popd > /dev/null
-    RESTORE_IS_DONE=1
-
-    if [[ "$EXITCODE" != "0" ]]; then
-        exit_failure_dotnet_restore_failed
-    fi
-
-    locate_executable
+    exit_failure_no_executable
 }
 
 run_executable() {
@@ -59,10 +59,10 @@ run_executable() {
     
     # Run 'mono Charon.exe' with passed parameters
     mono "./$EXECUTABLE_NAME" "$@"
-    EXITCODE=$?
+    EXIT_CODE=$?
     popd > /dev/null
 
-    if [[ "$EXITCODE" != "0" ]]; then
+    if [[ "$EXIT_CODE" != "0" ]]; then
         exit_failure
     else
         exit_success
@@ -70,25 +70,25 @@ run_executable() {
 }
 
 exit_failure_wrong_or_missing_mono() {
-    EXITCODE=-3
-    echo "Wrong or missing installation of 'mono' framework. Ensure that the 'mono' v5+ is installed and available in the 'PATH'. Check https://www.mono-project.com/download/stable/ for the installer."
+    EXIT_CODE=-3
+    echo "Wrong or missing installation of 'mono' framework. Ensure that the 'mono' v5+ is installed and available in the 'PATH'. Check https://www.mono-project.com/download/stable/ for the installer." >&2
     exit_failure
 }
 
 exit_failure_dotnet_restore_failed() {
-    EXITCODE=-2
-    echo "Failed to execute the 'dotnet restore' command to retrieve the latest package version from NuGet. Ensure that the 'dotnet' tool is installed and available in the 'PATH'. Check 'https://dotnet.microsoft.com/en-us/download' for the installer."
+    EXIT_CODE=-2
+    echo "Failed to execute the 'dotnet restore' command to retrieve the latest package version from NuGet. Ensure that the 'dotnet' tool is installed and available in the 'PATH'. Check 'https://dotnet.microsoft.com/en-us/download' for the installer." >&2
     exit_failure
 }
 
 exit_failure_no_executable() {
-    EXITCODE=-1
-    echo "Unable to find the '$FILE_NAME' executable in './gamedevware.charon/*/tools' subfolders."
+    EXIT_CODE=-1
+    echo "Unable to find the '$FILE_NAME' executable in './gamedevware.charon/*/tools' subfolders." >&2
     exit_failure
 }
 
 exit_failure() {
-    exit $EXITCODE
+    exit $EXIT_CODE
 }
 
 exit_success() {
