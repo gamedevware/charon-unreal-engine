@@ -261,7 +261,7 @@ void FGameDataEditorToolkit::LaunchCharonProcess()
 	FString GameDataFilePath;
 	if (CanReimport())
 	{
-		GameDataFilePath = GameData->AssetImportData->GetFirstFilename();
+		GameDataFilePath = GameData->AssetImportData->GetNormalizedGameDataPath();
 	}
 	if (GameDataFilePath.IsEmpty() || !FPaths::FileExists(GameDataFilePath))
 	{
@@ -346,9 +346,11 @@ void FGameDataEditorToolkit::GenerateSourceCode_Execute()
 		return;
 	}
 
-	const FString SourceCodePath = FPaths::ConvertRelativePathToFull(GameDataClassPath / "../../");
-
-	FString GameDataUrl = GameData->AssetImportData->GetFirstFilename();
+	FString SourceCodePath = FPaths::ConvertRelativePathToFull(GameDataClassPath / "../../");
+	FPaths::NormalizeDirectoryName(SourceCodePath);
+	FPaths::CollapseRelativeDirectories(SourceCodePath);
+	
+	FString GameDataUrl = GameData->AssetImportData->GetNormalizedGameDataPath();
 	FString ApiKey;
 	if (GameData->AssetImportData->IsConnected())
 	{
@@ -384,7 +386,7 @@ void FGameDataEditorToolkit::GenerateSourceCode_Execute()
 	ICharonEditorModule& CharonEditorModule = ICharonEditorModule::Get(); 
 	TArray<TSharedRef<ICharonTask>> PreTasks, PostTasks, AllTasks;
 	CharonEditorModule.OnGameDataPreSourceCodeGeneration().Broadcast(GameData, PreTasks);
-	CharonEditorModule.OnGameDataPostSourceCodeGeneration().Broadcast(GameData, PreTasks);
+	CharonEditorModule.OnGameDataPostSourceCodeGeneration().Broadcast(GameData, PostTasks);
 
 	AllTasks.Append(PreTasks);
 	AllTasks.Add(GenerateSourceCodeCommand);
@@ -409,7 +411,7 @@ void FGameDataEditorToolkit::Connect_Execute()
 	}
 
 	const auto ConnectGameDataDialog = SNew(SConnectGameDataDialog)
-		.LocalGameDataFile(GameData->AssetImportData->GetFirstFilename())
+		.LocalGameDataFile(GameData->AssetImportData->GetNormalizedGameDataPath())
 		.OnFinished(this, &FGameDataEditorToolkit::OnConnectFinished);
 	ConnectGameDataDialog->Show();
 	PendingDialog = ConnectGameDataDialog;
@@ -437,7 +439,7 @@ void FGameDataEditorToolkit::OnConnectFinished(FConnectGameDataParameters Parame
 
 	if (Parameters.InitialSyncDirection > 0)
 	{
-		const auto GameDataFilePath = GameData->AssetImportData->GetFirstFilename();
+		const auto GameDataFilePath = GameData->AssetImportData->GetNormalizedGameDataPath();
 		const auto Command = FCharonCli::RestoreFromFile(BranchAddress, Parameters.ApiKey, GameDataFilePath, "auto");
 
 		BroadcastCommandRunning(
@@ -541,7 +543,7 @@ void FGameDataEditorToolkit::Sync_Execute()
 {
 	if (!CanReimport()) { return; }
 
-	const FString GameDataPath = GameData->AssetImportData->GetFirstFilename();
+	const FString GameDataPath = GameData->AssetImportData->GetNormalizedGameDataPath();
 	const FString GameDataDownloadPath = GameDataPath + ".tmp";
 	TSharedPtr<ICharonTask> PublishCommand;
 	
@@ -585,7 +587,7 @@ void FGameDataEditorToolkit::Sync_Execute()
 	ICharonEditorModule& CharonEditorModule = ICharonEditorModule::Get(); 
 	TArray<TSharedRef<ICharonTask>> PreTasks, PostTasks, AllTasks;
 	CharonEditorModule.OnGameDataPreSynchronization().Broadcast(GameData, PreTasks);
-	CharonEditorModule.OnGameDataPostSynchronization().Broadcast(GameData, PreTasks);
+	CharonEditorModule.OnGameDataPostSynchronization().Broadcast(GameData, PostTasks);
 
 	AllTasks.Append(PreTasks);
 	if (PublishCommand != nullptr)

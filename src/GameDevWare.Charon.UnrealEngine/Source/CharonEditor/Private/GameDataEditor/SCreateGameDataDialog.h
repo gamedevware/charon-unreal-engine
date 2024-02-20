@@ -46,7 +46,8 @@ private:
 	FText GetGenerationProgressText() const { return GenerationProgressText; }
 	TOptional<float> GetGenerationProgress() const { return GenerationProgress; }
 	void ReportGenerationProgress(TSharedRef<ICharonTask> Task, int TaskIndex, int TaskNum);
-	void AllTasksCompleted();
+	void CodeGenerationCompleted();
+	void CodeGenerationFailed();
 	FText GetFurtherStepsText() const { return FurtherStepsText; }
 	
 	void AddModuleToProjectFile(const FName ModuleName) const;

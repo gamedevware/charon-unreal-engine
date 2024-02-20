@@ -137,11 +137,11 @@ void TCharonCliCommand<InResultType>::OnProcessOutput(FString Output)
 	{
 		if (!WeakThisPtr.IsValid()) return;
 
-		if (SharedOutputRef->Contains(TEXT("Error]")))
+		if (SharedOutputRef->Contains(TEXT("Error]")) || SharedOutputRef->Contains(TEXT("ERR]")))
 		{
 			UE_LOG(LogTCharonCliCommand, Error, TEXT("%s"), *SharedOutputRef.Get());
 		}
-		else if(SharedOutputRef->Contains(TEXT("Warning]")))
+		else if(SharedOutputRef->Contains(TEXT("Warning]")) || SharedOutputRef->Contains(TEXT("WARN]")))
 		{
 			UE_LOG(LogTCharonCliCommand, Warning, TEXT("%s"), *SharedOutputRef.Get());
 		}

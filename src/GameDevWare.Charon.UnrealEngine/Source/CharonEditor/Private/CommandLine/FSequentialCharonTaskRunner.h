@@ -15,13 +15,14 @@ private:
 	FSimpleMulticastDelegate TaskFailed;
 	ENamedThreads::Type EventThread;
 	const TArray<TSharedRef<ICharonTask>> TaskList;
+	ETaskFailureHandling FailureHandlingMode;
 	std::atomic<int32> CurrentTaskIndex;
-	
+
 	void RunTask(int32 TasksIndex);
 public:
 	virtual const FText& GetDisplayName() override { return DisplayName; }
 	
-	explicit FSequentialCharonTaskRunner(const TArray<TSharedRef<ICharonTask>>& Tasks);
+	explicit FSequentialCharonTaskRunner(const TArray<TSharedRef<ICharonTask>>& Tasks, ETaskFailureHandling FailureHandling);
 
 	virtual bool Start(ENamedThreads::Type EventDispatchThread = ENamedThreads::AnyThread) override;
 	virtual void Stop() override;

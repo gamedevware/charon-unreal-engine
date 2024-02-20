@@ -286,10 +286,16 @@ bool SCreateGameDataDialog::CanGenerateCodeAndAssets() const
 void SCreateGameDataDialog::OnGenerateCodeAndAssets()
 {
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-	const FString GameDataFilePath = FPaths::GetPath(AssetPath) / Name + Extension;
-	const FString ModuleDirectory = FPaths::ProjectDir() / TEXT("Source") / Name;
+	FString GameDataFilePath = FPaths::GetPath(AssetPath) / Name + Extension;
+	FString ModuleDirectory = FPaths::ProjectDir() / TEXT("Source") / Name;
 	const FName ModuleName = FName(Name);
 
+	FPaths::NormalizeDirectoryName(ModuleDirectory);
+	FPaths::CollapseRelativeDirectories(ModuleDirectory);
+
+	FPaths::NormalizeDirectoryName(GameDataFilePath);
+	FPaths::CollapseRelativeDirectories(GameDataFilePath);
+	
 	const FString EmptyGameData;
 	if (!PlatformFile.FileExists(*GameDataFilePath) && !FFileHelper::SaveStringToFile(EmptyGameData, *GameDataFilePath))
 	{
@@ -334,7 +340,7 @@ void SCreateGameDataDialog::OnGenerateCodeAndAssets()
 		FSimpleDelegate::CreateSP(this, &SCreateGameDataDialog::CompileModule, ModuleName),
 		FText::Format(INVTEXT("Compiling '{0}' module..."), FText::FromString(Name))));
 	
-	GenerateTask = ICharonTask::AsSequentialRunner(Tasks);
+	GenerateTask = ICharonTask::AsSequentialRunner(Tasks, ETaskFailureHandling::FailOnFirstError);
 
 	const int32 TaskNum = Tasks.Num();
 	if (Tasks.Num() > 0)
@@ -347,7 +353,8 @@ void SCreateGameDataDialog::OnGenerateCodeAndAssets()
 		}
 	}
 	
-	GenerateTask->OnSucceed().AddSP(this, &SCreateGameDataDialog::AllTasksCompleted);
+	GenerateTask->OnSucceed().AddSP(this, &SCreateGameDataDialog::CodeGenerationCompleted);
+	GenerateTask->OnFailed().AddSP(this, &SCreateGameDataDialog::CodeGenerationFailed);
 	
 	GenerateTask->Start(ENamedThreads::GameThread);
 }
@@ -360,7 +367,7 @@ void SCreateGameDataDialog::ReportGenerationProgress(TSharedRef<ICharonTask> Tas
 	BringToFront(/*bForce*/ true);
 }
 
-void SCreateGameDataDialog::AllTasksCompleted()
+void SCreateGameDataDialog::CodeGenerationCompleted()
 {
 	bIsFinished = true;
 	MainWizard->AdvanceToPage(2); // Summary
@@ -376,6 +383,14 @@ void SCreateGameDataDialog::AllTasksCompleted()
 		FText::FromString(Name),
 		FText::FromString(FPaths::GetPath(GameDataFilePath))
 	);
+}
+
+void SCreateGameDataDialog::CodeGenerationFailed()
+{
+	GenerationProgressText = FText::GetEmpty();
+	GenerationProgress = 1.0;
+
+	ErrorText = INVTEXT("The source code generation process encountered errors and did not complete successfully. Please consult the Output Log for specific error details, address these issues, and attempt the generation process again. Note that there may have been partial changes made to the project files; it's advisable to review these modifications in your Source Control system and consider discarding them if necessary.");
 }
 
 void SCreateGameDataDialog::AddModuleToProjectFile(const FName ModuleName) const

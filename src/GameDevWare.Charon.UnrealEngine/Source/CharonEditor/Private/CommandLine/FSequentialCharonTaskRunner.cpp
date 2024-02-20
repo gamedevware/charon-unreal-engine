@@ -9,8 +9,8 @@
 DEFINE_LOG_CATEGORY(LogFSequentialCharonTaskRunner);
 
 
-FSequentialCharonTaskRunner::FSequentialCharonTaskRunner(const TArray<TSharedRef<ICharonTask>>& Tasks)
-	: EventThread(ENamedThreads::AnyThread), TaskList(Tasks), CurrentTaskIndex(-1) 
+FSequentialCharonTaskRunner::FSequentialCharonTaskRunner(const TArray<TSharedRef<ICharonTask>>& Tasks, ETaskFailureHandling FailureHandling)
+	: EventThread(ENamedThreads::AnyThread), TaskList(Tasks), CurrentTaskIndex(-1), FailureHandlingMode(FailureHandling) 
 {
 	DisplayName = FText::Format(INVTEXT("Tasks [{0}]"), TaskList.Num());
 }
@@ -41,11 +41,23 @@ void FSequentialCharonTaskRunner::RunTask(int32 TasksIndex)
 	
 	const auto Task = TaskList[TasksIndex];
 	const auto WeakThisPtr = this->AsWeak();
-	const auto NextTaskFn = [WeakThisPtr, this]
+	const auto NextTaskFn = [WeakThisPtr, this](bool Success)
 	{
 		const auto ThisPtr = WeakThisPtr.Pin();
 		if (!ThisPtr.IsValid()) { return; }
 
+		if (!Success && FailureHandlingMode == ETaskFailureHandling::FailOnFirstError)
+		{
+			const int32 CurrentIndex = CurrentTaskIndex.exchange(INT32_MIN);
+			if (CurrentIndex < 0 || CurrentIndex >= TaskList.Num())
+			{
+				return; // already done
+			}
+			
+			BroadcastEvent(AsWeak(), TaskFailed, EventThread);
+			return;
+		}
+		
 		const int32 NextIndex = CurrentTaskIndex.fetch_add(1) + 1;
 		if (NextIndex < 0)
 		{
@@ -53,14 +65,14 @@ void FSequentialCharonTaskRunner::RunTask(int32 TasksIndex)
 		}
 		RunTask(NextIndex);
 	};
-	
-	Task->OnSucceed().AddLambda(NextTaskFn);
-	Task->OnFailed().AddLambda(NextTaskFn);
 
+	Task->OnSucceed().AddLambda(NextTaskFn, true);
+	Task->OnFailed().AddLambda(NextTaskFn, false);
+	
 	if (!Task->Start(EventThread))
 	{
 		UE_LOG(LogFSequentialCharonTaskRunner, Warning, TEXT("Batched task #%d '%s' has failed to start."), TasksIndex, *Task->GetDisplayName().ToString());
-		NextTaskFn();
+		NextTaskFn(/*Success*/false);
 	}
 	else
 	{
@@ -81,7 +93,7 @@ void FSequentialCharonTaskRunner::Stop()
 	BroadcastEvent(AsWeak(), TaskFailed, EventThread);
 }
 
-TSharedRef<ICharonTask> ICharonTask::AsSequentialRunner(const TArray<TSharedRef<ICharonTask>>& Tasks)
+TSharedRef<ICharonTask> ICharonTask::AsSequentialRunner(const TArray<TSharedRef<ICharonTask>>& Tasks, ETaskFailureHandling FailureHandling)
 {
-	return MakeShared<FSequentialCharonTaskRunner>(Tasks);
+	return MakeShared<FSequentialCharonTaskRunner>(Tasks, FailureHandling);
 }

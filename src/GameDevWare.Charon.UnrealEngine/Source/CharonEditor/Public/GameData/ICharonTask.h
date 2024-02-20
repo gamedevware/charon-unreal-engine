@@ -1,6 +1,7 @@
 // Copyright GameDevWare, Denis Zykov 2024
 
 #pragma once
+#include "ETaskFailureHandling.h"
 
 /**
  * @class ICharonTask
@@ -84,9 +85,10 @@ public:
 	 * The combined task only fails if Stop() is called on it; failures from inner tasks do not propagate to the combined task.
 	 *
 	 * @param Tasks An array of tasks to be run sequentially.
+	 * @param FailureHandling Controls the behavior of execution if one of the tasks fails.
 	 * @return A shared reference to the newly created ICharonTask instance that represents the sequential runner.
 	 */
-	static TSharedRef<ICharonTask> AsSequentialRunner(const TArray<TSharedRef<ICharonTask>>& Tasks);
+	static TSharedRef<ICharonTask> AsSequentialRunner(const TArray<TSharedRef<ICharonTask>>& Tasks, ETaskFailureHandling FailureHandling = ETaskFailureHandling::ContinueOnFailure);
 
 protected:
 	template <typename ThisType>

@@ -123,7 +123,7 @@ FString FCharonCliCommandRunner::GetOrCreateCharonIntermediateDirectory()
 				}
 				if (ChmodProcess.GetReturnCode() != 0)
 				{
-					UE_LOG(LogFCharonCliCommandRunner, Error, TEXT("Process chmod +x for a script file '%s' exited with code %d."), *SourceFilePath, ChmodProcess$.GetReturnCode());
+					UE_LOG(LogFCharonCliCommandRunner, Error, TEXT("Process chmod +x for a script file '%s' exited with code %d."), *SourceFilePath, ChmodProcess.GetReturnCode());
 				}
 			}
 #endif

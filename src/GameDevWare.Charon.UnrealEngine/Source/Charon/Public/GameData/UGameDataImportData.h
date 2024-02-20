@@ -66,4 +66,17 @@ public:
 		BranchName.Empty();
 #endif
 	}
+
+	inline FString GetNormalizedGameDataPath() const
+	{
+		FString GameDataFilePath = GetFirstFilename();
+		if (GameDataFilePath.IsEmpty())
+		{
+			return GameDataFilePath;
+		}
+		GameDataFilePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), GameDataFilePath);
+		FPaths::NormalizeFilename(GameDataFilePath);
+		FPaths::CollapseRelativeDirectories(GameDataFilePath);
+		return GameDataFilePath;
+	}
 };
