@@ -9,6 +9,7 @@
 #include "GameData/CommandLine/FCharonEditorProcessRunner.h"
 #include "GameData/ICharonTask.h"
 #include "GameData/UGameDataBase.h"
+#include "ServerApi/FAuthenticationFlowStageResponse.h"
 #include "Toolkits/AssetEditorToolkit.h"
 #include "Styling/SlateStyle.h"
 
@@ -39,13 +40,14 @@ protected:
 	bool CanGenerateSourceCode() const;
 	void Connect_Execute();
 	void Sync_Execute();
-	void Disconnect_Execute() const;
+	void Disconnect_Execute();
 	bool CanDisconnect() const;
 	void SetApiKey_Execute();
 	bool CanSetApiKey() const;
 	void OnSetApiKeyFinished(FString String) const;
 	void OnConnectFinished(FConnectGameDataParameters Parameters);
 	void ReplaceGameDataFile(FString String, FString String1) const;
+	void OnGetLoginCodeResponse(FAuthenticationFlowStageResponse AuthenticationFlowStageResponse, FString BranchAddress) const;
 
 	static void BroadcastCommandRunning(const TSharedRef<ICharonTask>& Command, FSlateIcon Icon,
 	                                    FText CommandPendingText, FText CommandSucceedText, FText CommandFailedText,

@@ -17,6 +17,7 @@
 #include "UGameDataEditorWebBrowserBridge.h"
 #include "Widgets/Notifications/SNotificationList.h"
 #include "GameData/UGameDataImportData.h"
+#include "GenericPlatform/GenericPlatformHttp.h"
 
 DEFINE_LOG_CATEGORY(LogFGameDataEditorToolkit);
 
@@ -61,6 +62,11 @@ void FGameDataEditorToolkit::InitEditor(const TArray<UObject*>& InObjects)
 
 	InitAssetEditor(EToolkitMode::Standalone, {}, TEXT("GameDataEditor"), Layout, true, true, InObjects);
 
+	if (!Browser)
+	{
+		InvokeTab(FName("GameDataBrowserTab"));
+	}
+	
 	Browser->BindUObject("deployment", WebBrowserBridge, /* permanent */ true);
 	
 	ExtendToolbar();
@@ -219,6 +225,7 @@ void FGameDataEditorToolkit::RegisterTabSpawners(const TSharedRef<FTabManager>& 
 	InTabManager->RegisterTabSpawner("GameDataBrowserTab", FOnSpawnTab::CreateLambda([this](const FSpawnTabArgs&)
 	            {
 		            return SNew(SDockTab)
+					.CanEverClose(false)
 		            [
 			            SAssignNew(Browser, SWebBrowser)
 						.ShowErrorMessage(false)
@@ -258,11 +265,14 @@ void FGameDataEditorToolkit::UnregisterTabSpawners(const TSharedRef<FTabManager>
 
 void FGameDataEditorToolkit::LaunchCharonProcess()
 {
+	if (!Browser) { return; } // tab is closed
+	
 	FString GameDataFilePath;
 	if (CanReimport())
 	{
 		GameDataFilePath = GameData->AssetImportData->GetNormalizedGameDataPath();
 	}
+	
 	if (GameDataFilePath.IsEmpty() || !FPaths::FileExists(GameDataFilePath))
 	{
 		if (GameDataFilePath.IsEmpty())
@@ -286,6 +296,7 @@ void FGameDataEditorToolkit::LaunchCharonProcess()
 		switch (Status)
 		{
 		case EGameDataEditorLaunchStatus::Succeed: Browser->LoadURL(EditorProcess->StartUrl);
+			UE_LOG(LogFGameDataEditorToolkit, Log, TEXT("Loading address '%s' in embedded WebBrowser."), *EditorProcess->StartUrl);
 			break;
 		case EGameDataEditorLaunchStatus::Cancelled: Browser->LoadString(CancelledHtml, EditorProcess->StartUrl);
 			break;
@@ -303,14 +314,15 @@ void FGameDataEditorToolkit::LaunchCharonProcess()
 void FGameDataEditorToolkit::OpenCharonWebsite() const
 {
 	if (!CanDisconnect()) { return; }
+	if (!Browser) { return; } // tab is closed
 
 	const auto ProjectId = GameData->AssetImportData->ProjectId;
 	const auto ProjectName = GameData->AssetImportData->ProjectName;
 	const auto BranchId = GameData->AssetImportData->BranchId;
 	const auto ServerAddress = GameData->AssetImportData->ServerAddress;
-	const auto ServerApiClient = FServerApiClient(ServerAddress);
+	auto ServerApiClient = FServerApiClient(ServerAddress);
 
-	const auto BranchAddress = ServerApiClient.GetGameDataUrl(ProjectId, BranchId);
+	FString BranchAddress = ServerApiClient.GetGameDataUrl(ProjectId, BranchId);
 
 	if (BranchAddress.IsEmpty())
 	{
@@ -322,9 +334,14 @@ void FGameDataEditorToolkit::OpenCharonWebsite() const
 	if (!FApiKeyStorage::LoadApiKey(ServerAddress, ProjectId, ApiKey))
 	{
 		BroadcastMissingApiKey(FText::FromString(ProjectName));
+		Browser->LoadURL(BranchAddress);
+		UE_LOG(LogFGameDataEditorToolkit, Log, TEXT("Loading address '%s' in embedded WebBrowser."), *BranchAddress);
 	}
-
-	Browser->LoadURL(BranchAddress);
+	else
+	{
+		ServerApiClient.GetLoginCode(ApiKey, OnGetLoginCodeResponse::CreateSP(
+			this, &FGameDataEditorToolkit::OnGetLoginCodeResponse, BranchAddress));
+	}
 }
 
 bool FGameDataEditorToolkit::CanGenerateSourceCode() const
@@ -435,8 +452,6 @@ void FGameDataEditorToolkit::OnConnectFinished(FConnectGameDataParameters Parame
 	const auto ServerApiClient = FServerApiClient(Parameters.ServerAddress);
 	const auto BranchAddress = ServerApiClient.GetGameDataUrl(Parameters.Project->Id, Parameters.Branch->Id);
 
-	Browser->LoadURL(BranchAddress);
-
 	if (Parameters.InitialSyncDirection > 0)
 	{
 		const auto GameDataFilePath = GameData->AssetImportData->GetNormalizedGameDataPath();
@@ -452,7 +467,8 @@ void FGameDataEditorToolkit::OnConnectFinished(FConnectGameDataParameters Parame
 		);
 
 		Command->OnSucceed().AddSP(this, &FGameDataEditorToolkit::Sync_Execute);
-
+		Command->OnSucceed().AddSP(this, &FGameDataEditorToolkit::OpenCharonWebsite);
+		
 		Command->Start(/* event dispatch thread */ ENamedThreads::GameThread);
 
 		CurrentRunningCommand = Command; // prevent destruction of this command
@@ -460,6 +476,7 @@ void FGameDataEditorToolkit::OnConnectFinished(FConnectGameDataParameters Parame
 	else
 	{
 		Sync_Execute();
+		OpenCharonWebsite();
 	}
 }
 
@@ -481,6 +498,25 @@ void FGameDataEditorToolkit::ReplaceGameDataFile(FString GameDataPath, FString R
 	PlatformFile.DeleteFile(*GameDataPath);
 	PlatformFile.MoveFile(*GameDataPath, *ReplacementGameDataPath);
 	PlatformFile.SetTimeStamp(*GameDataPath, FDateTime::Now());
+}
+
+void FGameDataEditorToolkit::OnGetLoginCodeResponse(FAuthenticationFlowStageResponse AuthenticationFlowStageResponse, FString BranchAddress) const
+{
+	const auto OriginalPath = FGenericPlatformHttp::GetUrlPath(BranchAddress, /* bIncludeQueryString */ true, /* bIncludeFragment */ false);
+	const auto AuthorizationCode = AuthenticationFlowStageResponse.Result.AuthorizationCode;
+	const auto LoginParameters = FString::Format(TEXT("?loginCode={0}&returnUrl={1}"), {
+		FGenericPlatformHttp::UrlEncode(AuthorizationCode),
+		FGenericPlatformHttp::UrlEncode(OriginalPath)
+	});
+
+	const auto SignInPath = TEXT("/view/sign-in") + LoginParameters;
+	const auto BaseDomainAndPort = FGenericPlatformHttp::GetUrlDomainAndPort(BranchAddress);
+	const FString LoginAddress = BranchAddress.Mid(0, BranchAddress.Find(BaseDomainAndPort) + BaseDomainAndPort.Len()) + SignInPath;
+
+	if (!Browser) { return; } // tab is closed
+	
+	Browser->LoadURL(LoginAddress);
+	UE_LOG(LogFGameDataEditorToolkit, Log, TEXT("Loading address '%s' in embedded WebBrowser."), *LoginAddress);
 }
 
 bool FGameDataEditorToolkit::CanDisconnect() const
@@ -522,7 +558,7 @@ void FGameDataEditorToolkit::OnSetApiKeyFinished(FString ApiKey) const
 	FApiKeyStorage::SaveApiKey(ServerAddress, ProjectId, ApiKey);
 }
 
-void FGameDataEditorToolkit::Disconnect_Execute() const
+void FGameDataEditorToolkit::Disconnect_Execute()
 {
 	const FText Message = INVTEXT("Do you want to disonnect from online project. Do you want to proceed?");
 	const FText Title = INVTEXT("Disconnect confirmation");
@@ -537,6 +573,8 @@ void FGameDataEditorToolkit::Disconnect_Execute() const
 	}
 	GameData->AssetImportData->Disconnect();
 	auto _ = GameData->MarkPackageDirty();
+
+	LaunchCharonProcess();
 }
 
 void FGameDataEditorToolkit::Sync_Execute()
