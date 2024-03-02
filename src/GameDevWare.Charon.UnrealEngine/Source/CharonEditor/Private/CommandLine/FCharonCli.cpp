@@ -127,6 +127,51 @@ TSharedRef<TCharonCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::FindDocument(
 	return MakeShared<TCharonCliCommand<TSharedPtr<FJsonObject>>>(CommandRunner, INVTEXT("DATA FIND"), TempOutputFile);
 }
 
+TSharedRef<TCharonCliCommand<TArray<TSharedPtr<FJsonValue>>>> FCharonCli::ListDocuments(
+	const FString& GameDataUrl,
+	const FString& ApiKey,
+	const FString& SchemaNameOrId,
+	const TArray<FDocumentFilter>& Filters,
+	const TArray<FDocumentSorter>& Sorters,
+	const TOptional<FString>& Path,
+	const TOptional<uint32>& Skip,
+	const TOptional<uint32>& Take,
+	ECharonLogLevel LogsVerbosity
+)
+{
+	TArray<FString> FiltersParam;
+	for (auto Filter : Filters)
+	{
+		FiltersParam.Add(Filter.PropertyName);	
+		FiltersParam.Add(Filter.GetOperationName());	
+		FiltersParam.Add(Filter.GetValueQuoted());	
+	}
+	TArray<FString> SortersParam;
+	for (auto Sorter : Sorters)
+	{
+		SortersParam.Add(Sorter.PropertyName);	
+		SortersParam.Add(Sorter.GetDirectionName());	
+	}
+	
+	const FString TempOutputFile = PrepareTempOutputFile();
+	const FString Params = FString::Format(TEXT("DATA LIST --dataBase \"{0}\" --schemas {1} {2} {3} {4} {5} {6} --output {7} --outputFormat json {8}"), {
+		GameDataUrl,
+		SchemaNameOrId,
+		FiltersParam.Num() > 0 ? TEXT("--filters ") + FString::Join(FiltersParam, TEXT(" ")) : TEXT(""),
+		SortersParam.Num() > 0 ? TEXT("--sorters ") + FString::Join(SortersParam, TEXT(" ")) : TEXT(""),
+		Path.IsSet() ? TEXT("--path ") + Path.GetValue() : TEXT(""),
+		Skip.IsSet() ? FString::Format(TEXT("--skip {0}"), { Skip.GetValue() }) : TEXT(""),
+		Take.IsSet() ? FString::Format(TEXT("--take {0}"), { Take.GetValue() }) : TEXT(""),
+		TempOutputFile,
+		GetLogOptions(LogsVerbosity)
+	});
+	
+	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
+	CommandRunner->SetApiKey(ApiKey);
+	CommandRunner->AttachTemporaryFile(TempOutputFile);
+	return MakeShared<TCharonCliCommand<TArray<TSharedPtr<FJsonValue>>>>(CommandRunner, INVTEXT("DATA LIST"), TempOutputFile);
+}
+
 TSharedRef<TCharonCliCommand<>> FCharonCli::Import(
 	const FString& GameDataUrl,
 	const FString& ApiKey,

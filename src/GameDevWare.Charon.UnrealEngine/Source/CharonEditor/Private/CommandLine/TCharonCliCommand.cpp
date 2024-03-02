@@ -183,6 +183,37 @@ bool TCharonCliCommand<InResultType>::TryReadResult(const FString& Output, int32
 }
 
 template <typename InResultType>
+bool TCharonCliCommand<InResultType>::TryReadResult(const FString& Output, int32 ExitCode, TArray<TSharedPtr<FJsonValue>>& OutResult)
+{
+	if (ExitCode != 0)
+	{
+		return false;
+	}
+	
+	const auto JsonReader = TJsonReaderFactory<>::Create(Output);
+	TSharedPtr<FJsonValue> OutValue;
+	
+	if (!FJsonSerializer::Deserialize(JsonReader, OutValue) || !OutValue.IsValid())
+	{
+		UE_LOG(LogTCharonCliCommand, Warning, TEXT("Failed to read command's output as JSON. Output is not a valid JSON. Output: "));
+		UE_LOG(LogTCharonCliCommand, Warning, TEXT("%s"), *Output);
+		return false;
+	}
+
+	TArray<TSharedPtr<FJsonValue>>* OutArray = nullptr;
+	if (!OutValue->TryGetArray(OutArray) || OutArray == nullptr)
+	{
+		UE_LOG(LogTCharonCliCommand, Warning, TEXT("Failed to read command's output as JSON. Result value is not a JSON array."));
+		return false;
+	}
+
+	check(OutArray);
+	
+	OutResult = *OutArray;
+	return true;
+}
+
+template <typename InResultType>
 bool TCharonCliCommand<InResultType>::TryReadResult(const FString& Output, int32 ExitCode, int32& OutResult)
 {
 	if (ExitCode != 0)

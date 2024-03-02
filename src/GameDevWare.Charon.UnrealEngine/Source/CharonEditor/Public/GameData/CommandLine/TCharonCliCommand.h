@@ -113,6 +113,7 @@ private:
 	void OnProcessOutput(FString Output);
 
 	static bool TryReadResult(const FString& Output, int32 ExitCode, TSharedPtr<FJsonObject>& OutResult);
+	static bool TryReadResult(const FString& Output, int32 ExitCode, TArray<TSharedPtr<FJsonValue>>& OutResult);
 	static bool TryReadResult(const FString& Output, int32 ExitCode, int32& OutResult);
 	static bool TryReadResult(const FString& Output, int32 ExitCode, FString& OutResult);
 	static bool TryReadResult(const FString& Output, int32 ExitCode, FValidationReport& OutResult);

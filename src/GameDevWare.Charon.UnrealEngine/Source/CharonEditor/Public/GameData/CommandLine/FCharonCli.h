@@ -9,6 +9,8 @@
 #include "ESourceCodeIndentation.h"
 #include "ESourceCodeLineEndings.h"
 #include "EValidationOption.h"
+#include "FDocumentFilter.h"
+#include "FDocumentSorter.h"
 #include "FValidationReport.h"
 #include "TCharonCliCommand.h"
 
@@ -121,6 +123,33 @@ public:
 		const FString& ApiKey,
 		const FString& SchemaNameOrId,
 		const FString& Id,
+		ECharonLogLevel LogsVerbosity = ECharonLogLevel::Normal
+	);
+
+	/**
+	 * List a documents in the specified GameData URL.
+	 *
+	 * @param GameDataUrl The URL of the GameData file or server.
+	 * @param ApiKey Authentication credentials if GameDataUrl is a server, otherwise empty.
+	 * @param SchemaNameOrId The schema name or ID of the document.
+	 * @param Filters Filters for documents to list.
+	 * @param Sorters Sorters for documents to list.
+	 * @param Path Limit search only to embedded documents with specified path.
+	 * @param Skip Number of documents to skip before writing to output.
+	 * @param Take Number of documents to take after 'skip' for output.
+	 * @param LogsVerbosity The verbosity level of logs. Defaults to ECharonLogLevel::Normal.
+	 * @return A shared reference to a TCharonCliCommand representing the find operation. 
+	 *         The command, upon completion, provides the found document.
+	 */
+	static TSharedRef<TCharonCliCommand<TArray<TSharedPtr<FJsonValue>>>> ListDocuments(
+		const FString& GameDataUrl,
+		const FString& ApiKey,
+		const FString& SchemaNameOrId,
+		const TArray<FDocumentFilter>& Filters,
+		const TArray<FDocumentSorter>& Sorters,
+		const TOptional<FString>& Path,
+		const TOptional<uint32>& Skip,
+		const TOptional<uint32>& Take,
 		ECharonLogLevel LogsVerbosity = ECharonLogLevel::Normal
 	);
 

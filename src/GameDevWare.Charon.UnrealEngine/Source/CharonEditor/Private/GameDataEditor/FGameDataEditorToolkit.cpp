@@ -331,16 +331,13 @@ void FGameDataEditorToolkit::OpenCharonWebsite() const
 	}
 
 	FString ApiKey;
-	if (!FApiKeyStorage::LoadApiKey(ServerAddress, ProjectId, ApiKey))
+	if (!FApiKeyStorage::LoadApiKey(ServerAddress, ProjectId, ApiKey) ||
+		!ServerApiClient.GetLoginCode(ApiKey, OnGetLoginCodeResponse::CreateSP(
+			this, &FGameDataEditorToolkit::OnGetLoginCodeResponse, BranchAddress)))
 	{
 		BroadcastMissingApiKey(FText::FromString(ProjectName));
 		Browser->LoadURL(BranchAddress);
 		UE_LOG(LogFGameDataEditorToolkit, Log, TEXT("Loading address '%s' in embedded WebBrowser."), *BranchAddress);
-	}
-	else
-	{
-		ServerApiClient.GetLoginCode(ApiKey, OnGetLoginCodeResponse::CreateSP(
-			this, &FGameDataEditorToolkit::OnGetLoginCodeResponse, BranchAddress));
 	}
 }
 
@@ -500,23 +497,32 @@ void FGameDataEditorToolkit::ReplaceGameDataFile(FString GameDataPath, FString R
 	PlatformFile.SetTimeStamp(*GameDataPath, FDateTime::Now());
 }
 
-void FGameDataEditorToolkit::OnGetLoginCodeResponse(FAuthenticationFlowStageResponse AuthenticationFlowStageResponse, FString BranchAddress) const
+void FGameDataEditorToolkit::OnGetLoginCodeResponse(FAuthenticationFlowStageResponse AuthenticationFlowStageResponse, FString AddressToOpen) const
 {
-	const auto OriginalPath = FGenericPlatformHttp::GetUrlPath(BranchAddress, /* bIncludeQueryString */ true, /* bIncludeFragment */ false);
+	if (AuthenticationFlowStageResponse.Errors.Num() > 0)
+	{
+		const auto [Message, Code] = AuthenticationFlowStageResponse.Errors[0];
+		UE_LOG(LogFGameDataEditorToolkit, Error, TEXT("Failed to authenticate with API Key due to an error: [%s] %s."), *Code, *Message);
+	}
+	
 	const auto AuthorizationCode = AuthenticationFlowStageResponse.Result.AuthorizationCode;
-	const auto LoginParameters = FString::Format(TEXT("?loginCode={0}&returnUrl={1}"), {
-		FGenericPlatformHttp::UrlEncode(AuthorizationCode),
-		FGenericPlatformHttp::UrlEncode(OriginalPath)
-	});
+	if (!AuthorizationCode.IsEmpty())
+	{
+		const auto OriginalPath = FGenericPlatformHttp::GetUrlPath(AddressToOpen, /* bIncludeQueryString */ true, /* bIncludeFragment */ false);
+		const auto LoginParameters = FString::Format(TEXT("?loginCode={0}&returnUrl={1}"), {
+			FGenericPlatformHttp::UrlEncode(AuthorizationCode),
+			FGenericPlatformHttp::UrlEncode(OriginalPath)
+		});
 
-	const auto SignInPath = TEXT("/view/sign-in") + LoginParameters;
-	const auto BaseDomainAndPort = FGenericPlatformHttp::GetUrlDomainAndPort(BranchAddress);
-	const FString LoginAddress = BranchAddress.Mid(0, BranchAddress.Find(BaseDomainAndPort) + BaseDomainAndPort.Len()) + SignInPath;
+		const auto SignInPath = TEXT("/view/sign-in") + LoginParameters;
+		const auto BaseDomainAndPort = FGenericPlatformHttp::GetUrlDomainAndPort(AddressToOpen);
+		AddressToOpen = AddressToOpen.Mid(0, AddressToOpen.Find(BaseDomainAndPort) + BaseDomainAndPort.Len()) + SignInPath;
+	}
 
 	if (!Browser) { return; } // tab is closed
 	
-	Browser->LoadURL(LoginAddress);
-	UE_LOG(LogFGameDataEditorToolkit, Log, TEXT("Loading address '%s' in embedded WebBrowser."), *LoginAddress);
+	Browser->LoadURL(AddressToOpen);
+	UE_LOG(LogFGameDataEditorToolkit, Log, TEXT("Loading address '%s' in embedded WebBrowser."), *AddressToOpen);
 }
 
 bool FGameDataEditorToolkit::CanDisconnect() const

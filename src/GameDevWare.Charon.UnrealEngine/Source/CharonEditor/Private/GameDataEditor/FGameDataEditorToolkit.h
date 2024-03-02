@@ -47,7 +47,7 @@ protected:
 	void OnSetApiKeyFinished(FString String) const;
 	void OnConnectFinished(FConnectGameDataParameters Parameters);
 	void ReplaceGameDataFile(FString String, FString String1) const;
-	void OnGetLoginCodeResponse(FAuthenticationFlowStageResponse AuthenticationFlowStageResponse, FString BranchAddress) const;
+	void OnGetLoginCodeResponse(FAuthenticationFlowStageResponse AuthenticationFlowStageResponse, FString AddressToOpen) const;
 
 	static void BroadcastCommandRunning(const TSharedRef<ICharonTask>& Command, FSlateIcon Icon,
 	                                    FText CommandPendingText, FText CommandSucceedText, FText CommandFailedText,
