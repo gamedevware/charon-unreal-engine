@@ -10,40 +10,35 @@
 	"DocsURL": "https://gamedevware.github.io/charon/",
 	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/b4231a79707e491ba96b9842d971e6f4",
 	"SupportURL": "https://www.gamedevware.com/",
-	"EngineVersion": "5.3.0",
+	"EngineVersion": "5.1.0",
 	"CanContainContent": true,
 	"IsBetaVersion": true,
-	"Installed": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
 	"Modules": [
 		{
 			"Name": "Charon",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
-			"PlatformAllowList": [
-				"Win64",
-				"Mac",
-				"Linux"
-			]
+			"PlatformAllowList": [ "Win64", "Mac", "Linux" ]
 		},
 		{
 			"Name": "CharonEditor",
 			"Type": "Editor",
 			"LoadingPhase": "Default",
-			"PlatformAllowList": [
-				"Win64",
-				"Mac",
-				"Linux"
-			]
+			"PlatformAllowList": [ "Win64", "Mac", "Linux" ]
 		}
 	],
 	"Plugins": [
 		{
 			"Name": "EditorScriptingUtilities",
-			"Enabled": true
+			"Enabled": true,
+			"Optional": false
 		},
 		{
 			"Name": "WebBrowserWidget",
-			"Enabled": true
+			"Enabled": true,
+			"Optional": false
 		}
 	]
 }

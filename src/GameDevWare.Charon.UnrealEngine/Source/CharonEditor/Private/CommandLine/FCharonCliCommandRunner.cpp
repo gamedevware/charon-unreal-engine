@@ -3,6 +3,7 @@
 #pragma once
 
 #include "GameData/CommandLine/FCharonCliCommandRunner.h"
+#include "Interfaces/IPluginManager.h"
 
 #include "FChmodProcess.h"
 
@@ -72,17 +73,35 @@ void FCharonCliCommandRunner::AttachTemporaryFile(const FString& InFilePath)
 
 FString FCharonCliCommandRunner::GetOrCreateCharonIntermediateDirectory()
 {
-	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-	const FString PluginScriptsDirectory = FPaths::ConvertRelativePathToFull(
-		FPaths::ProjectDir() / TEXT("Plugins/Charon/Resources/Scripts"));
 	const FString CharonIntermediateDirectory = FPaths::ConvertRelativePathToFull(
 		FPaths::ProjectIntermediateDir() / "Charon");
+
+	const auto PluginName = TEXT("Charon");
+	const TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(PluginName);
+	if(!Plugin.IsValid())
+	{
+		UE_LOG(LogFCharonCliCommandRunner, Error,
+			   TEXT("Unable to find installed '%s' plugin in IPluginManager."), PluginName);
+		return CharonIntermediateDirectory;
+	}
+	
+	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+	const FString PluginScriptsDirectory = FPaths::ConvertRelativePathToFull(
+		Plugin->GetBaseDir() / TEXT("Resources/Scripts"));
+
+	if (!PlatformFile.DirectoryExists(*PluginScriptsDirectory))
+	{
+		UE_LOG(LogFCharonCliCommandRunner, Error,
+			   TEXT("Missing resource directory for '%s' plugin at '%s'."), PluginName, *PluginScriptsDirectory);
+		return CharonIntermediateDirectory;	
+	}
+	
 	if (!PlatformFile.DirectoryExists(*CharonIntermediateDirectory))
 	{
 		if (!PlatformFile.CreateDirectory(*CharonIntermediateDirectory))
 		{
-			UE_LOG(LogFCharonCliCommandRunner, Warning,
-			       TEXT("Create directory '%s' in Project's intermediate directory."), *CharonIntermediateDirectory);
+			UE_LOG(LogFCharonCliCommandRunner, Error,
+			       TEXT("Unable to create directory '%s' in Project's intermediate directory."), *CharonIntermediateDirectory);
 			return CharonIntermediateDirectory;
 		}
 		bScriptsCopied = false;
