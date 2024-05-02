@@ -19,7 +19,11 @@ FCharonCliCommandRunner::FCharonCliCommandRunner(FString InParameters)
 	RunScriptPath = CharonIntermediateDirectory / TEXT("RunCharon.bat");
 	URL = TEXT("cmd.exe");
 	Params = FString::Printf(TEXT("/c \"\"%s\" %s\""), *RunScriptPath, *InParameters);
-#elif PLATFORM_MAC || PLATFORM_LINUX
+#elif PLATFORM_MAC
+	RunScriptPath = CharonIntermediateDirectory / TEXT("RunCharon.sh");
+	URL = TEXT("/bin/bash");
+	Params = FString::Printf(TEXT("--login -- \"%s\" %s"), *RunScriptPath, *InParameters);
+#else
 	RunScriptPath = CharonIntermediateDirectory / TEXT("RunCharon.sh");
 	URL = TEXT("/usr/bin/env");
 	Params = FString::Printf(TEXT(" -- \"%s\" %s"), *RunScriptPath, *InParameters);

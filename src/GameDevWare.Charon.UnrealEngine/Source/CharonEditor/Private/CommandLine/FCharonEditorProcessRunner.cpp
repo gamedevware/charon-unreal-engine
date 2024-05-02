@@ -28,14 +28,19 @@ FCharonEditorProcessRunner::FCharonEditorProcessRunner(const FString& InDataBase
 	const FString CharonIntermediateDirectory = FCharonCliCommandRunner::GetOrCreateCharonIntermediateDirectory();
 	
 #if PLATFORM_WINDOWS
-	this->RunScriptPath = CharonIntermediateDirectory / TEXT("RunCharon.bat");
+	RunScriptPath = CharonIntermediateDirectory / TEXT("RunCharon.bat");
 	FString URL = TEXT("cmd.exe");
 	FString Params = FString::Printf(TEXT("/c \"\"%s\" %s\""), *RunScriptPath, *RunParameters);
-#elif PLATFORM_MAC || PLATFORM_LINUX
+#elif PLATFORM_MAC 
+	RunScriptPath = CharonIntermediateDirectory / TEXT("RunCharon.sh");
+	FString URL = TEXT("/bin/bash");
+	FString Params = FString::Printf(TEXT("--login -- \"%s\" %s"), *RunScriptPath, *RunParameters);
+#else
 	RunScriptPath = CharonIntermediateDirectory / TEXT("RunCharon.sh");
 	FString URL = TEXT("/usr/bin/env");
 	FString Params = FString::Printf(TEXT(" -- \"%s\" %s"), *RunScriptPath, *RunParameters);
 #endif
+	
 	this->ExecutableName = FPaths::GetCleanFilename(RunScriptPath);
 	bool bInHidden = true;
 	bool bInCreatePipes = true;
