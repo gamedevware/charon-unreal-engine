@@ -13,7 +13,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogFCharonCliCommandRunner, Log, All);
  * environment variables, API keys, and temporary files. It encapsulates the setup and execution logic
  * required to run Charon.exe commands effectively.
  */
-class CHARONEDITOR_API FCharonCliCommandRunner final : public TSharedFromThis<FCharonCliCommandRunner>, public FMonitoredProcess
+class FCharonCliCommandRunner final : public TSharedFromThis<FCharonCliCommandRunner>, public FMonitoredProcess
 {
 private:
 	inline static bool bScriptsCopied = false;

@@ -17,7 +17,7 @@ DECLARE_DELEGATE_OneParam(FGameDataEditorProcessRunnerLaunchResult, EGameDataEdi
  * of game data. It configures and starts an instance of Charon.exe, making the editing UI
  * available at a specified URL.
  */
-class CHARONEDITOR_API FCharonEditorProcessRunner final : public TSharedFromThis<FCharonEditorProcessRunner>
+class FCharonEditorProcessRunner final : public TSharedFromThis<FCharonEditorProcessRunner>
 {
 private:
 	TSharedPtr<FMonitoredProcess> Process;

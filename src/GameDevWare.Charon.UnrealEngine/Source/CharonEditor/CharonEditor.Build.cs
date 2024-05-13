@@ -26,7 +26,7 @@ public class CharonEditor: ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core",  "Charon",
+				"Core",  "Charon"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -37,11 +37,10 @@ public class CharonEditor: ModuleRules
 			{
 				"CoreUObject", "Engine", "Slate", "SlateCore",
 				"InputCore", "ToolWidgets", "AppFramework",
-				"UnrealEd",
+				"UnrealEd", "Json",
 				"AssetTools",
 				"PropertyEditor",
 				"JsonUtilities", 
-				"Json",
 				"ClassViewer",
 				"EditorStyle",
 				"WebBrowser",

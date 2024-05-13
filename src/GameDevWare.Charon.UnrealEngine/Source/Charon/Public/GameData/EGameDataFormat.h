@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "EGameDataFormat.generated.h"
+
 UENUM(BlueprintType)
 /*
  * List of serialization formats supported by UGameDataBase-derived classes.

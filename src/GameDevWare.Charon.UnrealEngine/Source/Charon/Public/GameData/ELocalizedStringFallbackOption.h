@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "ELocalizedStringFallbackOption.generated.h"
+
 UENUM(BlueprintType)
 /**
  * When to fallback to alternative localization text.

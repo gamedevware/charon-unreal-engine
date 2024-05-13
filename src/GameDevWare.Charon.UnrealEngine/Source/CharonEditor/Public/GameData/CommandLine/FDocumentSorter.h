@@ -8,7 +8,7 @@ enum class EDocumentSortDirection
 	Descending,
 };
 
-struct FDocumentSorter
+struct CHARONEDITOR_API FDocumentSorter
 {
 public:
 	FString PropertyName;

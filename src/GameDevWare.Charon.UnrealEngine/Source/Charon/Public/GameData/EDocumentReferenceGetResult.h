@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "EDocumentReferenceGetResult.generated.h"
+
 UENUM(BlueprintType)
 /*
  * List of possible branches of GetXXXDocument function

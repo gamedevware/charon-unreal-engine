@@ -14,7 +14,7 @@ enum class EDocumentFilterOperation
 	In
 };
 
-struct FDocumentFilter
+struct CHARONEDITOR_API FDocumentFilter
 {
 public:
 	FString PropertyName;

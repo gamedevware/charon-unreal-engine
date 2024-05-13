@@ -14,7 +14,7 @@
  * Additional function for Blueprints related to game data.
  */
 UCLASS()
-class UGameDataLibrary : public UBlueprintFunctionLibrary
+class CHARON_API UGameDataLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 

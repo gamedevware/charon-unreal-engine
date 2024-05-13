@@ -1,7 +1,9 @@
 // Copyright GameDevWare, Denis Zykov 2024
 
 #pragma once
+
 #include "ETaskFailureHandling.h"
+#include "Async/Async.h"
 
 /**
  * @class ICharonTask

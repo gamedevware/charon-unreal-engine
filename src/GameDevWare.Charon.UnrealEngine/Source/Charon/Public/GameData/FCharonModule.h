@@ -8,7 +8,7 @@
 /*
  * Charon-related module with base classes related to game data loading and formatting and formulas functionality.
  */
-class FCharonModule : public IModuleInterface
+class CHARON_API FCharonModule : public IModuleInterface
 {
 public:
 
