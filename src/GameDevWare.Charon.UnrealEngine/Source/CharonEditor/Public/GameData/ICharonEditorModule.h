@@ -6,7 +6,7 @@
 #include "Styling/SlateStyle.h"
 #include "GameData/ICharonTask.h"
 
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCharonGameDataAction, UGameDataBase* /* GameDataAsset */, TArray<TSharedRef<ICharonTask>>& /* Tasks */);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCharonGameDataAction, UGameDataBase* /* GameDataAsset */, TSharedRef<TArray<TSharedRef<ICharonTask>>> /* Tasks */);
 
 /**
  * @class ICharonEditorModule

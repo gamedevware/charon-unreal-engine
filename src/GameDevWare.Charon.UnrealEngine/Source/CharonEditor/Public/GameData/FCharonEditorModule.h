@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameDataAssetActions/FGameDataAssetTypeActions.h"
-#include "GameDataAssetActions/FGameDataReimportHandler.h"
+#include "GameData/GameDataAssetActions/FGameDataAssetTypeActions.h"
+#include "GameData/GameDataAssetActions/FGameDataReimportHandler.h"
 #include "ICharonEditorModule.h"
 #include "Modules/ModuleManager.h"
 
