@@ -45,6 +45,11 @@ void FCharonEditorModule::StartupModule()
 	StyleSet->Set("Cpp128", new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Cpp128"), TEXT(".png")), Icon128));
 	StyleSet->Set("Icon128", new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Icon128"), TEXT(".png")), Icon128));
 	FSlateStyleRegistry::RegisterSlateStyle(*StyleSet.Get());
+
+	FEditorDelegates::OnEditorInitialized.AddLambda([](double _)
+	{
+		FDeferredGameDataImporter::ContinueDeferredImports();	
+	});
 }
 
 void FCharonEditorModule::ShutdownModule()

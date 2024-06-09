@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameData/GameDataAssetActions/FGameDataAssetTypeActions.h"
 #include "GameData/GameDataAssetActions/FGameDataReimportHandler.h"
+#include "GameData/FDeferredGameDataImporter.h"
 #include "ICharonEditorModule.h"
 #include "Modules/ModuleManager.h"
 

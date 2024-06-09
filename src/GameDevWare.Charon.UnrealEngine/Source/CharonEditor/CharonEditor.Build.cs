@@ -37,7 +37,7 @@ public class CharonEditor: ModuleRules
 			{
 				"CoreUObject", "Engine", "Slate", "SlateCore",
 				"InputCore", "ToolWidgets", "AppFramework",
-				"UnrealEd", "Json",
+				"UnrealEd", "Json", "DesktopPlatform",
 				"AssetTools",
 				"PropertyEditor",
 				"JsonUtilities", 

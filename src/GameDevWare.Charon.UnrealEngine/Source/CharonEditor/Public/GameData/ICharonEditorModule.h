@@ -25,7 +25,7 @@ public:
 	 * @return A shared pointer to the FSlateStyleSet of the module.
 	 */
 	virtual TSharedPtr<FSlateStyleSet> GetStyleSet() { return nullptr; }
-
+	
 	/**
 	 * Provides a point of registration for extensions to the game data editor's menu.
 	 *

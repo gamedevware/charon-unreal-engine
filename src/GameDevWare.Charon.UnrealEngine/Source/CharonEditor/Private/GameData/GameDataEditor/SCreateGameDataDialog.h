@@ -24,6 +24,7 @@ private:
 	FText GenerationProgressText;
 	float GenerationProgress = 0;
 	bool bIsFinished = false;
+	bool bRestartRequired = false;
 	
 public:
 	SLATE_BEGIN_ARGS(SCreateGameDataDialog)	{}
@@ -36,6 +37,8 @@ public:
 
 	void ShowModal();
 	void Show();
+	
+	static void FixCppCode(const FString ModuleDirectory);
 
 private:
 	EVisibility GetErrorLabelVisibility() const;
@@ -49,11 +52,13 @@ private:
 	void CodeGenerationCompleted();
 	void CodeGenerationFailed();
 	FText GetFurtherStepsText() const { return FurtherStepsText; }
-	
+
 	void AddModuleToProjectFile(const FName ModuleName) const;
 	void UpdateCodeProjectFiles() const;
-	void CompileModule(FName Name) const;
-	
+	void CompileModule(FName ModuleName) const;
+	void TryImportGameData(FName ModuleName, FString GameDataPath);
+
+	FText GetFinishText() const;
 	bool CanFinish() const;
 	void GoToDocumentation();
 	

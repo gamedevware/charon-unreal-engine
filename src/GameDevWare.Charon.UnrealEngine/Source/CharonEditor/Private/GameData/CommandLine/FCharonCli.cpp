@@ -31,7 +31,7 @@ TSharedRef<TCharonCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::CreateDocumen
 	CommandRunner->SetApiKey(ApiKey);
 	CommandRunner->AttachTemporaryFile(TempInputFile);
 	CommandRunner->AttachTemporaryFile(TempOutputFile);
-	return MakeShared<TCharonCliCommand<TSharedPtr<FJsonObject>>>(CommandRunner, INVTEXT("DATA CREATE"), TempOutputFile);
+	return MakeShared<TCharonCliCommand<TSharedPtr<FJsonObject>>>(CommandRunner, INVTEXT("Creating document"), TempOutputFile);
 }
 
 TSharedRef<TCharonCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::UpdateDocument(
@@ -57,7 +57,7 @@ TSharedRef<TCharonCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::UpdateDocumen
 	CommandRunner->SetApiKey(ApiKey);
 	CommandRunner->AttachTemporaryFile(TempInputFile);
 	CommandRunner->AttachTemporaryFile(TempOutputFile);
-	return MakeShared<TCharonCliCommand<TSharedPtr<FJsonObject>>>(CommandRunner, INVTEXT("DATA UPDATE"), TempOutputFile);
+	return MakeShared<TCharonCliCommand<TSharedPtr<FJsonObject>>>(CommandRunner, INVTEXT("Updating document"), TempOutputFile);
 }
 
 TSharedRef<TCharonCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::DeleteDocument(
@@ -81,7 +81,7 @@ TSharedRef<TCharonCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::DeleteDocumen
 	CommandRunner->SetApiKey(ApiKey);
 	CommandRunner->AttachTemporaryFile(TempInputFile);
 	CommandRunner->AttachTemporaryFile(TempOutputFile);
-	return MakeShared<TCharonCliCommand<TSharedPtr<FJsonObject>>>(CommandRunner, INVTEXT("DATA DELETE"), TempOutputFile);
+	return MakeShared<TCharonCliCommand<TSharedPtr<FJsonObject>>>(CommandRunner, INVTEXT("Deleting document"), TempOutputFile);
 }
 
 TSharedRef<TCharonCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::DeleteDocument(
@@ -103,7 +103,7 @@ TSharedRef<TCharonCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::DeleteDocumen
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
 	CommandRunner->AttachTemporaryFile(TempOutputFile);
-	return MakeShared<TCharonCliCommand<TSharedPtr<FJsonObject>>>(CommandRunner, INVTEXT("DATA DELETE"), TempOutputFile);
+	return MakeShared<TCharonCliCommand<TSharedPtr<FJsonObject>>>(CommandRunner, INVTEXT("Deleting document"), TempOutputFile);
 }
 
 TSharedRef<TCharonCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::FindDocument(
@@ -125,7 +125,7 @@ TSharedRef<TCharonCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::FindDocument(
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
 	CommandRunner->AttachTemporaryFile(TempOutputFile);
-	return MakeShared<TCharonCliCommand<TSharedPtr<FJsonObject>>>(CommandRunner, INVTEXT("DATA FIND"), TempOutputFile);
+	return MakeShared<TCharonCliCommand<TSharedPtr<FJsonObject>>>(CommandRunner, INVTEXT("Finding document"), TempOutputFile);
 }
 
 TSharedRef<TCharonCliCommand<TArray<TSharedPtr<FJsonValue>>>> FCharonCli::ListDocuments(
@@ -170,7 +170,7 @@ TSharedRef<TCharonCliCommand<TArray<TSharedPtr<FJsonValue>>>> FCharonCli::ListDo
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
 	CommandRunner->AttachTemporaryFile(TempOutputFile);
-	return MakeShared<TCharonCliCommand<TArray<TSharedPtr<FJsonValue>>>>(CommandRunner, INVTEXT("DATA LIST"), TempOutputFile);
+	return MakeShared<TCharonCliCommand<TArray<TSharedPtr<FJsonValue>>>>(CommandRunner, INVTEXT("Listing documents"), TempOutputFile);
 }
 
 TSharedRef<TCharonCliCommand<>> FCharonCli::Import(
@@ -216,7 +216,7 @@ TSharedRef<TCharonCliCommand<>> FCharonCli::Import(
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
 	CommandRunner->AttachTemporaryFile(TempInputFile);
-	return MakeShared<TCharonCliCommand<>>(CommandRunner, INVTEXT("DATA IMPORT"));
+	return MakeShared<TCharonCliCommand<>>(CommandRunner, INVTEXT("Importing documents"));
 }
 
 TSharedRef<TCharonCliCommand<>> FCharonCli::ImportFromFile(
@@ -262,7 +262,7 @@ TSharedRef<TCharonCliCommand<>> FCharonCli::ImportFromFile(
 	
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
-	return MakeShared<TCharonCliCommand<>>(CommandRunner, INVTEXT("DATA IMPORT"));
+	return MakeShared<TCharonCliCommand<>>(CommandRunner, INVTEXT("Importing documents"));
 }
 
 TSharedRef<TCharonCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::Export(
@@ -306,7 +306,7 @@ TSharedRef<TCharonCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::Export(
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
 	CommandRunner->AttachTemporaryFile(TempOutputFile);
-	return MakeShared<TCharonCliCommand<TSharedPtr<FJsonObject>>>(CommandRunner, INVTEXT("DATA EXPORT"), TempOutputFile);
+	return MakeShared<TCharonCliCommand<TSharedPtr<FJsonObject>>>(CommandRunner, INVTEXT("Exporting documents"), TempOutputFile);
 }
 
 TSharedRef<TCharonCliCommand<>> FCharonCli::ExportToFile(
@@ -351,7 +351,7 @@ TSharedRef<TCharonCliCommand<>> FCharonCli::ExportToFile(
 	
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
-	return MakeShared<TCharonCliCommand<>>(CommandRunner, INVTEXT("DATA EXPORT"));
+	return MakeShared<TCharonCliCommand<>>(CommandRunner, INVTEXT("Exporting documents"));
 }
 
 TSharedRef<TCharonCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::CreatePatch(
@@ -372,7 +372,7 @@ TSharedRef<TCharonCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::CreatePatch(
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
 	CommandRunner->AttachTemporaryFile(TempOutputFile);
-	return MakeShared<TCharonCliCommand<TSharedPtr<FJsonObject>>>(CommandRunner, INVTEXT("DATA CREATEPATCH"), TempOutputFile);
+	return MakeShared<TCharonCliCommand<TSharedPtr<FJsonObject>>>(CommandRunner, INVTEXT("Creating a patch"), TempOutputFile);
 }
 
 TSharedRef<TCharonCliCommand<>> FCharonCli::ApplyPatch(
@@ -391,7 +391,7 @@ TSharedRef<TCharonCliCommand<>> FCharonCli::ApplyPatch(
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
 	CommandRunner->AttachTemporaryFile(TempInputFile);
-	return MakeShared<TCharonCliCommand<>>(CommandRunner, INVTEXT("DATA APPLYPATCH"));
+	return MakeShared<TCharonCliCommand<>>(CommandRunner, INVTEXT("Applying a patch"));
 }
 
 TSharedRef<TCharonCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::Backup(
@@ -430,7 +430,7 @@ TSharedRef<TCharonCliCommand<>> FCharonCli::BackupToFile(
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
 	CommandRunner->AttachTemporaryFile(TempOutputFile);
-	return MakeShared<TCharonCliCommand<>>(CommandRunner, INVTEXT("DATA BACKUP"), TempOutputFile);
+	return MakeShared<TCharonCliCommand<>>(CommandRunner, INVTEXT("Making backup"), TempOutputFile);
 }
 
 TSharedRef<TCharonCliCommand<>> FCharonCli::Restore(
@@ -449,7 +449,7 @@ TSharedRef<TCharonCliCommand<>> FCharonCli::Restore(
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
 	CommandRunner->AttachTemporaryFile(TempInputFile);
-	return MakeShared<TCharonCliCommand<>>(CommandRunner, INVTEXT("DATA RESTORE"));
+	return MakeShared<TCharonCliCommand<>>(CommandRunner, INVTEXT("Restoring backup"));
 }
 
 TSharedRef<TCharonCliCommand<>> FCharonCli::RestoreFromFile(
@@ -468,7 +468,7 @@ TSharedRef<TCharonCliCommand<>> FCharonCli::RestoreFromFile(
 	
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
-	return MakeShared<TCharonCliCommand<>>(CommandRunner, INVTEXT("DATA RESTORE"));
+	return MakeShared<TCharonCliCommand<>>(CommandRunner, INVTEXT("Restoring backup"));
 }
 
 TSharedRef<TCharonCliCommand<FValidationReport>> FCharonCli::Validate(
@@ -508,7 +508,7 @@ TSharedRef<TCharonCliCommand<FValidationReport>> FCharonCli::Validate(
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
 	CommandRunner->AttachTemporaryFile(TempOutputFile);
-	return MakeShared<TCharonCliCommand<FValidationReport>>(CommandRunner, INVTEXT("DATA VALIDATE"), TempOutputFile);
+	return MakeShared<TCharonCliCommand<FValidationReport>>(CommandRunner, INVTEXT("Validating documents"), TempOutputFile);
 }
 
 
@@ -572,7 +572,7 @@ TSharedRef<TCharonCliCommand<>> FCharonCli::GenerateUnrealEngineSourceCode(
 	
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
-	return MakeShared<TCharonCliCommand<>>(CommandRunner, INVTEXT("GENERATE UECPPCODE"));
+	return MakeShared<TCharonCliCommand<>>(CommandRunner, INVTEXT("Generating C++ code"));
 }
 
 TSharedRef<TCharonCliCommand<>> FCharonCli::DumpTemplates(FString OutputDirectory)
@@ -602,7 +602,7 @@ TSharedRef<TCharonCliCommand<FString>> FCharonCli::GetGameDataVersion(const FStr
 	
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
-	return MakeShared<TCharonCliCommand<FString>>(CommandRunner, INVTEXT("DATA VERSION"));
+	return MakeShared<TCharonCliCommand<FString>>(CommandRunner, INVTEXT("Getting game data version"));
 }
 
 FString FCharonCli::GetLogOptions(ECharonLogLevel LogsVerbosity)

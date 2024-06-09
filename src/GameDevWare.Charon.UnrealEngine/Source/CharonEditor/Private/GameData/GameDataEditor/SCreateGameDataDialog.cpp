@@ -5,6 +5,7 @@
 
 #include "SCreateGameDataDialog.h"
 
+#include "GameData/FDeferredGameDataImporter.h"
 #include "GameProjectGenerationModule.h"
 #include "IHotReload.h"
 #include "ProjectDescriptor.h"
@@ -16,7 +17,12 @@
 #include "Framework/Docking/TabManager.h"
 #include "Framework/Application/SlateApplication.h"
 #include "SWarningOrErrorBox.h"
+#include "UnrealEdGlobals.h"
+#include "AutoReimport/AutoReimportManager.h"
 #include "Dom/JsonObject.h"
+#include "Editor/UnrealEdEngine.h"
+#include "GameData/FRenamedCharonTask.h"
+#include "GameData/ICharonEditorModule.h"
 #include "GameData/ICharonTask.h"
 #include "GameData/CommandLine/FCharonCli.h"
 #include "Interfaces/IProjectManager.h"
@@ -30,7 +36,8 @@ void SCreateGameDataDialog::Construct(const FArguments& InArgs)
 	Name = FPaths::GetCleanFilename(InArgs._AssetPath);
 	AssetPath = InArgs._AssetPath;
 	Extension = TEXT(".gdjs");
-	
+	bRestartRequired = false;
+
 	OnNameChanges(FText::FromString(Name));
 
 	if (AssetPath.IsEmpty())
@@ -40,44 +47,45 @@ void SCreateGameDataDialog::Construct(const FArguments& InArgs)
 	}
 
 	SWindow::Construct(SWindow::FArguments()
-		.Title(InArgs._Title)
-		.SizingRule(ESizingRule::Autosized)
-		.AutoCenter(EAutoCenter::PreferredWorkArea)
-		.IsTopmostWindow(true)
-		.FocusWhenFirstShown(true)
-		.SaneWindowPlacement(true)
-		.SupportsMaximize(false)
-		.SupportsMinimize(false)
-		.MaxWidth(1600)
-		.Content()
+	                   .Title(InArgs._Title)
+	                   .SizingRule(ESizingRule::Autosized)
+	                   .AutoCenter(EAutoCenter::PreferredWorkArea)
+	                   .IsTopmostWindow(true)
+	                   .FocusWhenFirstShown(true)
+	                   .SaneWindowPlacement(true)
+	                   .SupportsMaximize(false)
+	                   .SupportsMinimize(false)
+	                   .MaxWidth(1600)
+	                   .Content()
 		[
 			SNew(SBorder)
 			.Padding(18)
-			.BorderImage( FAppStyle::GetBrush("Docking.Tab.ContentAreaBrush") )
+			.BorderImage(FAppStyle::GetBrush("Docking.Tab.ContentAreaBrush"))
 			[
 				SNew(SVerticalBox)
-				+SVerticalBox::Slot()
+				+ SVerticalBox::Slot()
 				[
 					SAssignNew(MainWizard, SWizard)
 					.ShowPageList(false)
+					.FinishButtonText(this, &SCreateGameDataDialog::GetFinishText)
 					.CanFinish(this, &SCreateGameDataDialog::CanFinish)
 					.OnCanceled(this, &SCreateGameDataDialog::CancelClicked)
 					.OnFinished(this, &SCreateGameDataDialog::FinishClicked)
 					.InitialPageIndex(0)
 
 					// Enter Game Data Name
-					+SWizard::Page()
+					+ SWizard::Page()
 					[
 						SNew(SVerticalBox)
 
 						// Title
-						+SVerticalBox::Slot()
+						+ SVerticalBox::Slot()
 						.AutoHeight()
 						.Padding(0)
 						[
 							SNew(STextBlock)
 							.Font(FAppStyle::Get().GetFontStyle("HeadingExtraSmall"))
-							.Text( INVTEXT("Enter Name For Game Data" ) )
+							.Text(INVTEXT("Enter Name For Game Data"))
 							.TransformPolicy(ETextTransformPolicy::ToUpper)
 						]
 
@@ -87,17 +95,17 @@ void SCreateGameDataDialog::Construct(const FArguments& InArgs)
 						.AutoHeight()
 						[
 							SNew(SEditableTextBox)
-								.HintText(INVTEXT("MyGameData"))
-								.Text(FText::FromString(Name))
-								.OnTextChanged(this, &SCreateGameDataDialog::OnNameChanges)
+							.HintText(INVTEXT("MyGameData"))
+							.Text(FText::FromString(Name))
+							.OnTextChanged(this, &SCreateGameDataDialog::OnNameChanges)
 						]
-						
+
 						+ SVerticalBox::Slot()
 						.AutoHeight()
 						[
 							SNew(SHorizontalBox)
 
-							+SHorizontalBox::Slot()
+							+ SHorizontalBox::Slot()
 							.HAlign(HAlign_Left)
 							[
 								SNew(SHyperlink)
@@ -107,7 +115,7 @@ void SCreateGameDataDialog::Construct(const FArguments& InArgs)
 						]
 
 						// Name Error Label
-						+SVerticalBox::Slot()
+						+ SVerticalBox::Slot()
 						.AutoHeight()
 						.Padding(0, 5)
 						[
@@ -119,20 +127,20 @@ void SCreateGameDataDialog::Construct(const FArguments& InArgs)
 					]
 
 					// Generating Data
-					+SWizard::Page()
+					+ SWizard::Page()
 					.CanShow(this, &SCreateGameDataDialog::CanGenerateCodeAndAssets)
 					.OnEnter(this, &SCreateGameDataDialog::OnGenerateCodeAndAssets)
 					[
 						SNew(SVerticalBox)
 
 						// Title
-						+SVerticalBox::Slot()
+						+ SVerticalBox::Slot()
 						.AutoHeight()
 						.Padding(0)
 						[
 							SNew(STextBlock)
 							.Font(FAppStyle::Get().GetFontStyle("HeadingExtraSmall"))
-							.Text( INVTEXT("Generating Code and Assets" ) )
+							.Text(INVTEXT("Generating Code and Assets"))
 							.TransformPolicy(ETextTransformPolicy::ToUpper)
 						]
 
@@ -142,18 +150,18 @@ void SCreateGameDataDialog::Construct(const FArguments& InArgs)
 						.AutoHeight()
 						[
 							SNew(STextBlock)
-								.Text(this, &SCreateGameDataDialog::GetGenerationProgressText)
+							.Text(this, &SCreateGameDataDialog::GetGenerationProgressText)
 						]
-						
+
 						+ SVerticalBox::Slot()
 						.AutoHeight()
 						[
 							SNew(SProgressBar)
-								.Percent(this, &SCreateGameDataDialog::GetGenerationProgress)
+							.Percent(this, &SCreateGameDataDialog::GetGenerationProgress)
 						]
 
 						// Generation Error Label
-						+SVerticalBox::Slot()
+						+ SVerticalBox::Slot()
 						.AutoHeight()
 						.Padding(0, 5)
 						[
@@ -163,21 +171,21 @@ void SCreateGameDataDialog::Construct(const FArguments& InArgs)
 							.Message(this, &SCreateGameDataDialog::GetErrorLabelText)
 						]
 					]
-					
+
 					// Summary
-					+SWizard::Page()
+					+ SWizard::Page()
 					.CanShow(this, &SCreateGameDataDialog::CanFinish)
 					[
 						SNew(SVerticalBox)
 
 						// Title
-						+SVerticalBox::Slot()
+						+ SVerticalBox::Slot()
 						.AutoHeight()
 						.Padding(0)
 						[
 							SNew(STextBlock)
 							.Font(FAppStyle::Get().GetFontStyle("HeadingExtraSmall"))
-							.Text(INVTEXT("Further steps" ))
+							.Text(INVTEXT("Further steps"))
 							.TransformPolicy(ETextTransformPolicy::ToUpper)
 						]
 
@@ -187,7 +195,7 @@ void SCreateGameDataDialog::Construct(const FArguments& InArgs)
 						.AutoHeight()
 						[
 							SNew(STextBlock)
-								.Text(this, &SCreateGameDataDialog::GetFurtherStepsText)
+							.Text(this, &SCreateGameDataDialog::GetFurtherStepsText)
 						]
 
 						+ SVerticalBox::Slot()
@@ -195,7 +203,7 @@ void SCreateGameDataDialog::Construct(const FArguments& InArgs)
 						[
 							SNew(SHorizontalBox)
 
-							+SHorizontalBox::Slot()
+							+ SHorizontalBox::Slot()
 							.HAlign(HAlign_Left)
 							[
 								SNew(SHyperlink)
@@ -203,9 +211,9 @@ void SCreateGameDataDialog::Construct(const FArguments& InArgs)
 								.Text(INVTEXT("Guide: How to Create Game Data File."))
 							]
 						]
-						
+
 						// Generation Error Label
-						+SVerticalBox::Slot()
+						+ SVerticalBox::Slot()
 						.AutoHeight()
 						.Padding(0, 5)
 						[
@@ -243,7 +251,7 @@ void SCreateGameDataDialog::OnNameChanges(const FText& Text)
 	{
 		return;
 	}
-	
+
 	const FString FileName = Text.ToString();
 	bool bFileNameIsValid = true;
 	for (const auto FileNameChar : FileName)
@@ -260,7 +268,7 @@ void SCreateGameDataDialog::OnNameChanges(const FText& Text)
 		return;
 	}
 
-	
+
 	const FName ModuleName = FName(FileName);
 	if (FModuleManager::Get().GetModule(ModuleName) != nullptr)
 	{
@@ -291,8 +299,11 @@ void SCreateGameDataDialog::OnGenerateCodeAndAssets()
 	FString ModuleDirectory = FPaths::ProjectDir() / TEXT("Source") / Name;
 	const FName ModuleName = FName(Name);
 
-	ModuleDirectory = FPaths::ConvertRelativePathToFull(ModuleDirectory);
-	GameDataFilePath = FPaths::ConvertRelativePathToFull(GameDataFilePath);
+	ModuleDirectory = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), ModuleDirectory);
+	GameDataFilePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), GameDataFilePath);
+
+	GUnrealEd->AutoReimportManager->IgnoreNewFile(GameDataFilePath);
+	GUnrealEd->AutoReimportManager->IgnoreFileModification(GameDataFilePath);
 	
 	const FString EmptyGameData;
 	if (!PlatformFile.FileExists(*GameDataFilePath) && !FFileHelper::SaveStringToFile(EmptyGameData, *GameDataFilePath))
@@ -314,7 +325,8 @@ void SCreateGameDataDialog::OnGenerateCodeAndAssets()
 			ProjectSettingsDocument,
 			TEXT("049bc0604c363a980b000088")
 		);
-		Tasks.Add(CreateNewGameDataClassTask);
+
+		Tasks.Add(MakeShared<FRenamedCharonTask>(CreateNewGameDataClassTask, INVTEXT("Initializing Game Data File...")));
 	}
 
 	const auto GenerateCppCodeTask = FCharonCli::GenerateUnrealEngineSourceCode(
@@ -325,6 +337,12 @@ void SCreateGameDataDialog::OnGenerateCodeAndAssets()
 		TEXT("U") + Name
 	);
 	Tasks.Add(GenerateCppCodeTask);
+
+	// remove when templates stops producing broken C++ code for UE 5.4
+	Tasks.Add(ICharonTask::FromSimpleDelegate(
+		FSimpleDelegate::CreateStatic(&SCreateGameDataDialog::FixCppCode, ModuleDirectory),
+		INVTEXT("Fixing C++ code...")));
+	//
 
 	Tasks.Add(ICharonTask::FromSimpleDelegate(
 		FSimpleDelegate::CreateSP(this, &SCreateGameDataDialog::AddModuleToProjectFile, ModuleName),
@@ -337,7 +355,11 @@ void SCreateGameDataDialog::OnGenerateCodeAndAssets()
 	Tasks.Add(ICharonTask::FromSimpleDelegate(
 		FSimpleDelegate::CreateSP(this, &SCreateGameDataDialog::CompileModule, ModuleName),
 		FText::Format(INVTEXT("Compiling '{0}' module..."), FText::FromString(Name))));
-	
+
+	Tasks.Add(ICharonTask::FromSimpleDelegate(
+		FSimpleDelegate::CreateSP(this, &SCreateGameDataDialog::TryImportGameData, ModuleName, GameDataFilePath),
+		FText::Format(INVTEXT("Trying to import '{0}' ..."), FText::FromString(Name))));
+
 	GenerateTask = ICharonTask::AsSequentialRunner(Tasks, ETaskFailureHandling::FailOnFirstError);
 
 	const int32 TaskNum = Tasks.Num();
@@ -350,10 +372,10 @@ void SCreateGameDataDialog::OnGenerateCodeAndAssets()
 			TaskIndex++;
 		}
 	}
-	
+
 	GenerateTask->OnSucceed().AddSP(this, &SCreateGameDataDialog::CodeGenerationCompleted);
 	GenerateTask->OnFailed().AddSP(this, &SCreateGameDataDialog::CodeGenerationFailed);
-	
+
 	GenerateTask->Start(ENamedThreads::GameThread);
 }
 
@@ -371,15 +393,16 @@ void SCreateGameDataDialog::CodeGenerationCompleted()
 	MainWizard->AdvanceToPage(2); // Summary
 
 	BringToFront(/*bForce*/ true);
-	
+
 	FString GameDataFilePath = FPaths::GetPath(AssetPath) / Name + Extension;
 	FPaths::MakePathRelativeTo(GameDataFilePath, *FPaths::ProjectDir());
-	
+
 	FurtherStepsText = FText::Format(
-		INVTEXT("Following steps are completed:\r\n\t ✅ Created game data file - {0}\r\n\t ✅ Generated C++ code module - {1}\r\n\t ✅ Added module to current .uproject file\r\n\t ✅ Added module to .Target.cs files.\r\n\r\nFollow these steps:\r\n\t 1) Ensure module '{1}' is included in your project and compiling correctly.\r\n\t 2) Go to the '{2}' directory in Content Drawer and click the 'Import' button in the UI or 'Import to' in the context menu.\r\n\t 3) Select the '{0}' game data file.\r\n\t 4) Choose the 'U{1}' class for this file."),
+		INVTEXT("The following steps are completed:\r\n\t ✅ Created game data file - {0}.\r\n\t ✅ Generated C++ code module - {1}.\r\n\t ✅ Added module to the current .uproject file.\r\n\t ✅ Added module to .Target.cs files.\r\n\t {2} Imported game data file into '.uasset'.\r\n\r\n{3}"),
 		FText::FromString(GameDataFilePath),
 		FText::FromString(Name),
-		FText::FromString(FPaths::GetPath(GameDataFilePath))
+		FText::FromString(bRestartRequired ? TEXT("❌") : TEXT("✅")),
+		FText::FromString(bRestartRequired ? TEXT("Game data will be automatically imported after Unreal Editor restarts.") : TEXT(""))
 	);
 }
 
@@ -389,6 +412,40 @@ void SCreateGameDataDialog::CodeGenerationFailed()
 	GenerationProgress = 1.0;
 
 	ErrorText = INVTEXT("The source code generation process encountered errors and did not complete successfully. Please consult the Output Log for specific error details, address these issues, and attempt the generation process again. Note that there may have been partial changes made to the project files; it's advisable to review these modifications in your Source Control system and consider discarding them if necessary.");
+}
+
+void SCreateGameDataDialog::FixCppCode(const FString ModuleDirectory)
+{
+	struct FixCppVisitor : public IPlatformFile::FDirectoryVisitor
+	{
+		virtual bool Visit(const TCHAR* FilenameOrDirectory, bool bIsDirectory) override
+		{
+			auto ERROR_LINE = TEXT("throw std::runtime_error(\"Unknown/Unsupported data format specified.\");");
+
+			if (!bIsDirectory)
+			{
+				FString CppFilename(FilenameOrDirectory);
+				if (FPaths::GetExtension(CppFilename).Equals(TEXT("cpp"), ESearchCase::IgnoreCase))
+				{
+					FString FileContent;
+					FFileHelper::LoadFileToString(FileContent, FilenameOrDirectory);
+					if (FileContent.Contains(ERROR_LINE))
+					{
+						auto REPLACEMENT_LINE = TEXT("return FGameDataReaderFactory::CreateJsonReader(GameDataStream);");
+
+						FileContent.ReplaceInline(ERROR_LINE, REPLACEMENT_LINE);
+						FFileHelper::SaveStringToFile(FileContent, FilenameOrDirectory);
+					}
+				}
+			}
+			return true;
+		}
+	};
+
+	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+
+	FixCppVisitor Visitor;
+	PlatformFile.IterateDirectoryRecursively(*ModuleDirectory, Visitor);
 }
 
 void SCreateGameDataDialog::AddModuleToProjectFile(const FName ModuleName) const
@@ -479,6 +536,25 @@ void SCreateGameDataDialog::CompileModule(FName ModuleName) const
 	}
 }
 
+void SCreateGameDataDialog::TryImportGameData(FName ModuleName, FString GameDataFile)
+{
+	FPaths::MakePathRelativeTo(GameDataFile, *FPaths::ProjectDir());
+
+	if (!FDeferredGameDataImporter::TryToImportGameData(GameDataFile, ModuleName.ToString(), ModuleName.ToString()))
+	{
+		bRestartRequired = true;
+
+		UE_LOG(LogSCreateGameDataDialog, Warning, TEXT("Failed to auto-import game data file '%s'. Unreal Editor restart is required."), *GameDataFile);
+
+		FDeferredGameDataImporter::RegisterGameDataToImport(GameDataFile, ModuleName.ToString(), ModuleName.ToString());
+	}
+}
+
+FText SCreateGameDataDialog::GetFinishText() const
+{
+	return bRestartRequired ? INVTEXT("Restart Editor") : INVTEXT("Finish");
+}
+
 bool SCreateGameDataDialog::CanFinish() const
 {
 	return bIsFinished;
@@ -495,7 +571,7 @@ void SCreateGameDataDialog::GoToDocumentation()
 void SCreateGameDataDialog::CloseWindow()
 {
 	const auto ContainingWindow = FSlateApplication::Get().FindWidgetWindow(AsShared());
-	if ( ContainingWindow.IsValid() )
+	if (ContainingWindow.IsValid())
 	{
 		ContainingWindow->RequestDestroyWindow();
 	}
@@ -503,12 +579,20 @@ void SCreateGameDataDialog::CloseWindow()
 
 void SCreateGameDataDialog::CancelClicked()
 {
-	auto _= this->OnFinished.ExecuteIfBound(false);
+	auto _ = this->OnFinished.ExecuteIfBound(false);
 	CloseWindow();
 }
 
 void SCreateGameDataDialog::FinishClicked()
 {
-	auto _= this->OnFinished.ExecuteIfBound(true);
-	CloseWindow();
+	auto _ = this->OnFinished.ExecuteIfBound(true);
+	if (this->bRestartRequired)
+	{
+		const bool bWarn = false;
+		FUnrealEdMisc::Get().RestartEditor(bWarn);;
+	}
+	else
+	{
+		CloseWindow();
+	}
 }

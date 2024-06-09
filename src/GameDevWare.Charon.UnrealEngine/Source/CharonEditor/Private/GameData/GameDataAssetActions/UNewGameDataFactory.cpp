@@ -52,6 +52,12 @@ UObject* UNewGameDataFactory::FactoryCreateNew(UClass* InClass, UObject* InParen
 		return nullptr;
 	}
 
+	if (IsAutomatedImport())
+	{
+		Warn->Logf(ELogVerbosity::Error, TEXT("Unable to create a game data file in automated import mode because it require user interaction. Use UImportGameDataFactory instead."));
+		return nullptr;
+	}
+
 	PackageFilePath = FPaths::ConvertRelativePathToFull(PackageFilePath);
 	
 	const auto CreateGameDataDialog = SNew(SCreateGameDataDialog)

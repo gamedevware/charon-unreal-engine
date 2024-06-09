@@ -6,8 +6,10 @@
 #include "GameData/ServerApi/FApiKeyStorage.h"
 #include "GameData/CommandLine/FCharonCli.h"
 #include "FGameDataEditorCommands.h"
+#include "IWebBrowserDialog.h"
 #include "GameData/ICharonEditorModule.h"
 #include "SConnectGameDataDialog.h"
+#include "SCreateGameDataDialog.h"
 #include "SourceCodeNavigation.h"
 #include "SWebBrowser.h"
 #include "Dialogs/Dialogs.h"
@@ -233,6 +235,7 @@ void FGameDataEditorToolkit::RegisterTabSpawners(const TSharedRef<FTabManager>& 
 						.BrowserFrameRate(60)
 						.SupportsTransparency(false)
 						.BackgroundColor(FColor::White)
+			            .PopupMenuMethod(EPopupMethod::UseCurrentWindow)
 						.InitialURL(TEXT("about:blank"))
 		            ];
 	            }))
@@ -401,6 +404,13 @@ void FGameDataEditorToolkit::GenerateSourceCode_Execute()
 	TArray<TSharedRef<ICharonTask>> AllTasks;
 	auto PreTasks = MakeShared<TArray<TSharedRef<ICharonTask>>>();
 	auto PostTasks = MakeShared<TArray<TSharedRef<ICharonTask>>>();
+
+	// remove when templates stops producing broken C++ code for UE 5.4
+	PostTasks->Add(ICharonTask::FromSimpleDelegate(
+		FSimpleDelegate::CreateStatic(&SCreateGameDataDialog::FixCppCode, SourceCodePath),
+		INVTEXT("Fixing C++ code...")));
+	//
+	
 	CharonEditorModule.OnGameDataPreSourceCodeGeneration().Broadcast(GameData, PreTasks);
 	CharonEditorModule.OnGameDataPostSourceCodeGeneration().Broadcast(GameData, PostTasks);
 

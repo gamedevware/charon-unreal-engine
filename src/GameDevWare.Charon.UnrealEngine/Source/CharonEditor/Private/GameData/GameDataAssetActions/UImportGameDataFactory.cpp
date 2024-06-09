@@ -134,6 +134,12 @@ UObject* UImportGameDataFactory::FactoryCreateBinary
 		return nullptr;
 	}
 
+	if (GameDataClass == nullptr && IsAutomatedImport())
+	{
+		Warn->Logf(ELogVerbosity::Error, TEXT("Import failed because game data class is unknown and import is not interactive."));
+		return  nullptr;
+	}
+	
 	if (GameDataClass == nullptr && !PickClass())
 	{
 		Warn->Logf(ELogVerbosity::Error, TEXT("Import failed because class picking was cancelled by the user."));
@@ -174,7 +180,6 @@ UObject* UImportGameDataFactory::FactoryCreateBinary
 }
 
 bool UImportGameDataFactory::FactoryCanImport(const FString& Filename)
-
 {
 	FString Extension = FPaths::GetExtension(Filename);
 
