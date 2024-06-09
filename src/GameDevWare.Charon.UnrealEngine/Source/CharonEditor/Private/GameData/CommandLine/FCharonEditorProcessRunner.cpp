@@ -113,6 +113,11 @@ bool FCharonEditorProcessRunner::Launch()
 	});
 	
 	this->LaunchTimeoutTime = FDateTime::Now() + this->LaunchTimeout; 
+
+	if (!FCharonCliCommandRunner::CheckUpdates())
+	{
+		FPlatformMisc::SetEnvironmentVar(TEXT("SKIP_CHARON_UPDATES"), TEXT("1"));
+	}
 	
 	const bool bLaunched = this->Process->Launch();
 	if (!bLaunched)

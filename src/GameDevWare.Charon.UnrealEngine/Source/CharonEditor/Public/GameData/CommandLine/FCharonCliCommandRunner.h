@@ -5,6 +5,7 @@
 #include "Misc/MonitoredProcess.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogFCharonCliCommandRunner, Log, All);
+
 /**
  * @class FCharonCliCommandRunner
  * @brief Extends FMonitoredProcess with a more convenient interface for executing Charon.exe commands.
@@ -17,9 +18,11 @@ class FCharonCliCommandRunner final : public TSharedFromThis<FCharonCliCommandRu
 {
 private:
 	inline static bool bScriptsCopied = false;
-	
+	inline static bool bUpdatesAreChecked = false;
+
 	TArray<FString> FileCleanupList;
 	FString RunScriptPath;
+
 public:
 	/**
 	 * @brief List of environment variables to pass to the running process.
@@ -64,4 +67,19 @@ public:
 	 * For internal use only.
 	 */
 	static FString GetOrCreateCharonIntermediateDirectory();
+	/**
+	 * For internal use only.
+	 */
+	static bool CheckUpdates()
+	{
+		if (!bUpdatesAreChecked)
+		{
+			bUpdatesAreChecked = true;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 };

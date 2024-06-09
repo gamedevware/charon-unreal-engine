@@ -28,6 +28,10 @@ FCharonCliCommandRunner::FCharonCliCommandRunner(FString InParameters)
 	URL = TEXT("/usr/bin/env");
 	Params = FString::Printf(TEXT(" -- \"%s\" %s"), *RunScriptPath, *InParameters);
 #endif
+	if (!FCharonCliCommandRunner::CheckUpdates())
+	{
+		EnvironmentVariables.Add(TEXT("SKIP_CHARON_UPDATES"), TEXT("1"));
+	}
 }
 
 FCharonCliCommandRunner::~FCharonCliCommandRunner()
