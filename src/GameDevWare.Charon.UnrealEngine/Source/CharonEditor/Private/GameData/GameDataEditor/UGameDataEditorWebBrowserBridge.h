@@ -18,5 +18,8 @@ public:
 	
 	UFUNCTION()
 	bool GenerateSourceCode();
+
+	UFUNCTION()
+	bool Download(FString FileName, FString ContentBase64);
 };
 
