@@ -111,15 +111,16 @@ bool FJsonObjectGameDataReader::ReadNext()
 	if (Frames.Num() == 0 && !FinishedReadingRootObject)
 	{
 		Notation = EJsonNotation::ObjectStart;
-		this->Frames.Push(FJsonObjectReaderFrame(JsonObject));
+		Frames.Push(FJsonObjectReaderFrame(JsonObject));
 
 		return true;
 	}
 
-	while (Frames.Num() >= 0)
+	while (Frames.Num() > 0)
 	{
 		FJsonObjectReaderFrame& TopFrame = Frames.Top();
-		switch (TopFrame.GetNextJsonToken())
+		CurrentToken = TopFrame.GetNextJsonToken();
+		switch (CurrentToken)
 		{
 		case EJsonToken::CurlyOpen:
 			{
