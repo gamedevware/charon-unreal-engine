@@ -1,5 +1,5 @@
 ﻿// Copyright GameDevWare, Denis Zykov 2024
-
+#pragma optimize( "", off )
 #pragma once
 
 #include "GameData/Formatters/FMessagePackGameDataReader.h"
@@ -104,20 +104,40 @@ bool FMessagePackGameDataReader::ReadNext()
 	if (!ErrorMessage.IsEmpty())
 	{
 		Notation = EJsonNotation::Error;
+		CurrentToken = EJsonToken::None;
 		return false;
 	}
 
 	if (Stream == nullptr)
 	{
 		Notation = EJsonNotation::Error;
+		CurrentToken = EJsonToken::None;
 		SetErrorMessage(TEXT("Null Stream"));
 		return true;
 	}
 
+	// reset state
+	Notation = EJsonNotation::Null;
+	CurrentToken = EJsonToken::None;
+	ErrorMessage.Empty();
+	StringValue.Empty();
+	NumberValue = 0;
+	BoolValue = false;
+	//
+		
 	if (ParseState.Num() > 0 && ParseState.Top().Value == 0)
 	{
 		Notation = ParseState.Pop().Key;
-
+		switch (Notation)
+		{
+		case EJsonNotation::ObjectEnd: CurrentToken = EJsonToken::CurlyClose; break;
+		case EJsonNotation::ArrayEnd: CurrentToken = EJsonToken::SquareClose; break;
+		default:
+			Notation = EJsonNotation::Error;
+			CurrentToken = EJsonToken::None;
+			SetErrorMessage(TEXT("Unexpected closing notation for object/array."));
+			break;
+		}
 		DecrementClosingTokenCounter();
 
 		if (ParseState.Num() == 0)
@@ -129,16 +149,18 @@ bool FMessagePackGameDataReader::ReadNext()
 	}
 
 	const bool AtEndOfStream = Stream->AtEnd();
-	if (AtEndOfStream && FinishedReadingRootObject)
+	if (AtEndOfStream && !FinishedReadingRootObject)
 	{
 		Notation = EJsonNotation::Error;
+		CurrentToken = EJsonToken::None;
 		SetErrorMessage(TEXT("Improperly formatted."));
 		return true;
 	}
 
-	if (!AtEndOfStream && !FinishedReadingRootObject)
+	if (!AtEndOfStream && FinishedReadingRootObject)
 	{
 		Notation = EJsonNotation::Error;
+		CurrentToken = EJsonToken::None;
 		SetErrorMessage(TEXT("Unexpected additional input found."));
 		return true;
 	}
@@ -153,20 +175,21 @@ bool FMessagePackGameDataReader::ReadNext()
 		Identifier.Empty();
 	}
 
-	uint8 FormatValue;
-	Stream->Serialize(&FormatValue, 1);
-
+	uint8 FormatValue = ReadUInt8();
 	if (FormatValue >= static_cast<uint8>(EMessagePackType::FixArrayStart) && FormatValue <= static_cast<uint8>(EMessagePackType::FixArrayEnd))
 	{
-		const auto ArraySize = FormatValue - static_cast<uint8>(EMessagePackType::FixArrayStart);
+		const auto ArraySize = static_cast<int>(FormatValue) - static_cast<int>(EMessagePackType::FixArrayStart);
 		PushClosingTokenCounter(EJsonNotation::ArrayEnd, ArraySize + 1);
 		Notation = EJsonNotation::ArrayStart;
+		CurrentToken = EJsonToken::SquareOpen;
 	}
 	else if (FormatValue >= static_cast<uint8>(EMessagePackType::FixStrStart) && FormatValue <= static_cast<uint8>(EMessagePackType::FixStrEnd))
 	{
-		const auto Utf8StringSize = FormatValue - static_cast<uint8>(EMessagePackType::FixStrStart);
+		const auto Utf8StringSize = static_cast<int>(FormatValue) - static_cast<int>(EMessagePackType::FixStrStart);
 		TArray<uint8> Utf8StringBytes;
 		ReadBytes(Utf8StringBytes, Utf8StringSize);
+		Utf8StringBytes.Add(0);
+		
 		auto Utf8String = FString(UTF8_TO_TCHAR(Utf8StringBytes.GetData()));
 
 		if (PeekParseMapState() == EMessagePackParseMemberState::MemberNameExpected)
@@ -180,23 +203,27 @@ bool FMessagePackGameDataReader::ReadNext()
 
 		StringValue = Utf8String;
 		Notation = EJsonNotation::String;
+		CurrentToken = EJsonToken::String;
 	}
 	else if (FormatValue >= static_cast<uint8>(EMessagePackType::FixMapStart) && FormatValue <= static_cast<uint8>(EMessagePackType::FixMapEnd))
 	{
-		const auto MapSize = FormatValue - static_cast<uint8>(EMessagePackType::FixMapStart);
+		const auto MapSize = static_cast<int>(FormatValue) - static_cast<int>(EMessagePackType::FixMapStart);
 
 		PushClosingTokenCounter(EJsonNotation::ObjectEnd, MapSize * 2 + 1);
 		Notation = EJsonNotation::ObjectStart;
+		CurrentToken = EJsonToken::CurlyOpen;
 	}
 	else if (FormatValue >= static_cast<uint8>(EMessagePackType::NegativeFixIntStart))
 	{
 		NumberValue = static_cast<int8>(FormatValue);
 		Notation = EJsonNotation::Number;
+		CurrentToken = EJsonToken::Number;
 	}
 	else if (FormatValue <= static_cast<uint8>(EMessagePackType::PositiveFixIntEnd))
 	{
 		NumberValue = FormatValue;
 		Notation = EJsonNotation::Number;
+		CurrentToken = EJsonToken::Number;
 	}
 	else
 	{
@@ -204,6 +231,7 @@ bool FMessagePackGameDataReader::ReadNext()
 		{
 		case EMessagePackType::Null:
 			Notation = EJsonNotation::Null;
+			CurrentToken = EJsonToken::Null;
 			break;
 		case EMessagePackType::Array16:
 		case EMessagePackType::Array32:
@@ -211,18 +239,17 @@ bool FMessagePackGameDataReader::ReadNext()
 				uint32 ArraySize = 0;
 				if (FormatValue == static_cast<uint8>(EMessagePackType::Array16))
 				{
-					uint16 SmallArraySize;
-					Stream->Serialize(&SmallArraySize, 2);
-					ArraySize = SmallArraySize;
+					ArraySize = ReadBeUInt16();
 				}
 				else if (FormatValue == static_cast<uint8>(EMessagePackType::Array32))
 				{
-					Stream->Serialize(&ArraySize, 4);
+					ArraySize = ReadBeUInt32();
 				}
 
 				PushClosingTokenCounter(EJsonNotation::ArrayEnd, ArraySize + 1);
 
 				Notation = EJsonNotation::ArrayStart;
+				CurrentToken = EJsonToken::SquareOpen;
 				break;
 			}
 		case EMessagePackType::Map16:
@@ -231,18 +258,17 @@ bool FMessagePackGameDataReader::ReadNext()
 				uint32 MapSize = 0;
 				if (FormatValue == static_cast<uint8>(EMessagePackType::Map16))
 				{
-					uint16 SmallMapSize;
-					Stream->Serialize(&SmallMapSize, 2);
-					MapSize = SmallMapSize;
+					MapSize = ReadBeUInt16();
 				}
 				else if (FormatValue == static_cast<uint8>(EMessagePackType::Map32))
 				{
-					Stream->Serialize(&MapSize, 4);
+					MapSize = ReadBeUInt32();
 				}
 
 				PushClosingTokenCounter(EJsonNotation::ObjectEnd, MapSize * 2 + 1);
 
 				Notation = EJsonNotation::ObjectStart;
+				CurrentToken = EJsonToken::CurlyOpen;
 				break;
 			}
 		case EMessagePackType::Str16:
@@ -252,30 +278,28 @@ bool FMessagePackGameDataReader::ReadNext()
 				auto Utf8StringSize = 0L;
 				if (FormatValue == static_cast<uint8>(EMessagePackType::Str8))
 				{
-					uint8 TinyStringSize = 0;
-					Stream->Serialize(&TinyStringSize, 1);
-					Utf8StringSize = TinyStringSize;
+					Utf8StringSize = ReadUInt8();
 				}
 				else if (FormatValue == static_cast<uint8>(EMessagePackType::Str16))
 				{
-					uint16 SmallStringSize = 0;
-					Stream->Serialize(&SmallStringSize, 2);
-					Utf8StringSize = SmallStringSize;
+					Utf8StringSize = ReadBeUInt16();
 				}
 				else if (FormatValue == static_cast<uint8>(EMessagePackType::Str32))
 				{
-					Stream->Serialize(&Utf8StringSize, 4);
+					Utf8StringSize = ReadBeUInt32();
 				}
 
 				if (Utf8StringSize > MAX_BINARY_LENGTH)
 				{
 					Notation = EJsonNotation::Error;
+					CurrentToken = EJsonToken::None;
 					SetErrorMessage(TEXT("Binary data is too long."));
 					return true;
 				}
 
 				TArray<uint8> Utf8StringBytes;
 				ReadBytes(Utf8StringBytes, Utf8StringSize);
+				Utf8StringBytes.Add(0);
 				auto Utf8String = FString(UTF8_TO_TCHAR(Utf8StringBytes.GetData()));
 
 				if (PeekParseMapState() == EMessagePackParseMemberState::MemberNameExpected)
@@ -289,6 +313,7 @@ bool FMessagePackGameDataReader::ReadNext()
 
 				StringValue = Utf8String;
 				Notation = EJsonNotation::String;
+				CurrentToken = EJsonToken::String;
 			}
 		case EMessagePackType::Bin32:
 		case EMessagePackType::Bin16:
@@ -297,24 +322,21 @@ bool FMessagePackGameDataReader::ReadNext()
 				auto BinarySize = 0L;
 				if (FormatValue == static_cast<uint8>(EMessagePackType::Bin8))
 				{
-					uint8 TinyBinarySize = 0;
-					Stream->Serialize(&TinyBinarySize, 1);
-					BinarySize = TinyBinarySize;
+					BinarySize = ReadUInt8();
 				}
 				else if (FormatValue == static_cast<uint8>(EMessagePackType::Bin16))
 				{
-					uint16 SmallBinarySize = 0;
-					Stream->Serialize(&SmallBinarySize, 2);
-					BinarySize = SmallBinarySize;
+					BinarySize = ReadBeUInt16();
 				}
 				else if (FormatValue == static_cast<uint8>(EMessagePackType::Bin32))
 				{
-					Stream->Serialize(&BinarySize, 4);
+					BinarySize = ReadBeUInt32();
 				}
 
 				if (BinarySize > MAX_BINARY_LENGTH)
 				{
 					Notation = EJsonNotation::Error;
+					CurrentToken = EJsonToken::None;
 					SetErrorMessage(TEXT("Binary data is too long."));
 					return true;
 				}
@@ -325,6 +347,7 @@ bool FMessagePackGameDataReader::ReadNext()
 
 				StringValue = BinaryBase64;
 				Notation = EJsonNotation::String;
+				CurrentToken = EJsonToken::String;
 				break;
 			}
 		case EMessagePackType::FixExt1:
@@ -359,24 +382,21 @@ bool FMessagePackGameDataReader::ReadNext()
 				}
 				if (FormatValue == static_cast<uint8>(EMessagePackType::Ext8))
 				{
-					uint8 TinyExtSize;
-					Stream->Serialize(&TinyExtSize, 1);
-					ExtSize = TinyExtSize;
+					ExtSize = ReadUInt8();
 				}
 				else if (FormatValue == static_cast<uint8>(EMessagePackType::Ext16))
 				{
-					uint16 SmallExtSize;
-					Stream->Serialize(&SmallExtSize, 2);
-					ExtSize = SmallExtSize;
+					ExtSize = ReadBeUInt16();
 				}
 				else if (FormatValue == static_cast<uint8>(EMessagePackType::Ext32))
 				{
-					Stream->Serialize(&ExtSize, 4);
+					ExtSize = ReadBeUInt32();
 				}
 
 				if (ExtSize > MAX_BINARY_LENGTH)
 				{
 					Notation = EJsonNotation::Error;
+					CurrentToken = EJsonToken::None;
 					SetErrorMessage(TEXT("Extension data is too long."));
 					return true;
 				}
@@ -387,105 +407,100 @@ bool FMessagePackGameDataReader::ReadNext()
 
 				StringValue = ExtBase64;
 				Notation = EJsonNotation::String;
+				CurrentToken = EJsonToken::String;
 				break;
 			}
 		case EMessagePackType::False:
 			BoolValue = false;
 			Notation = EJsonNotation::Boolean;
+			CurrentToken = EJsonToken::False;
 			break;
 		case EMessagePackType::True:
 			BoolValue = true;
 			Notation = EJsonNotation::Boolean;
+			CurrentToken = EJsonToken::True;
 			break;
 		case EMessagePackType::Float32:
-			{
-				float Float32Value;
-				Stream->Serialize(&Float32Value, 4);
-				NumberValue = Float32Value;
-				Notation = EJsonNotation::Number;
-				break;
-			}
-		case EMessagePackType::Float64:
-			Stream->Serialize(&NumberValue, 8);
+			NumberValue = ReadBeFloat32();
 			Notation = EJsonNotation::Number;
+			CurrentToken = EJsonToken::Number;
+			break;
+		case EMessagePackType::Float64:
+			NumberValue = ReadFloat64();
+			Notation = EJsonNotation::Number;
+			CurrentToken = EJsonToken::Number;
 			break;
 		case EMessagePackType::Int8:
-			{
-				int8 Int8Value;
-				Stream->Serialize(&Int8Value, 1);
-				NumberValue = Int8Value;
-				Notation = EJsonNotation::Number;
-				break;
-			}
+			NumberValue = ReadInt8();
+			Notation = EJsonNotation::Number;
+			CurrentToken = EJsonToken::Number;
+			break;
 		case EMessagePackType::Int16:
 			{
-				int16 Int16Value;
-				Stream->Serialize(&Int16Value, 2);
-				NumberValue = Int16Value;
+				NumberValue = ReadBeInt16();
 				Notation = EJsonNotation::Number;
+				CurrentToken = EJsonToken::Number;
 				break;
 			}
 		case EMessagePackType::Int32:
 			{
-				int32 Int32Value;
-				Stream->Serialize(&Int32Value, 4);
-				NumberValue = Int32Value;
+				NumberValue = ReadBeInt32();
 				Notation = EJsonNotation::Number;
+				CurrentToken = EJsonToken::Number;
 				break;
 			}
 		case EMessagePackType::Int64:
 			{
-				int64 Int64Value;
-				Stream->Serialize(&Int64Value, 8);
+				int64 Int64Value = ReadBeInt64();
 				if (Int64Value >= INT32_MAX || Int64Value <= INT32_MIN)
 				{
 					StringValue = FString::Printf(TEXT("%lld"), Int64Value);
 					Notation = EJsonNotation::String;
+					CurrentToken = EJsonToken::String;
 				}
 				else
 				{
 					NumberValue = Int64Value;
 					Notation = EJsonNotation::Number;
+					CurrentToken = EJsonToken::Number;
 				}
 				break;
 			}
 		case EMessagePackType::UInt8:
 			{
-				uint8 UInt8Value;
-				Stream->Serialize(&UInt8Value, 1);
-				NumberValue = UInt8Value;
+				NumberValue = ReadUInt8();
 				Notation = EJsonNotation::Number;
+				CurrentToken = EJsonToken::Number;
 				break;
 			}
 		case EMessagePackType::UInt16:
 			{
-				uint16 UInt16Value;
-				Stream->Serialize(&UInt16Value, 2);
-				NumberValue = UInt16Value;
+				NumberValue = ReadBeUInt16();
 				Notation = EJsonNotation::Number;
+				CurrentToken = EJsonToken::Number;
 				break;
 			}
 		case EMessagePackType::UInt32:
 			{
-				uint32 UInt32Value;
-				Stream->Serialize(&UInt32Value, 4);
-				NumberValue = UInt32Value;
+				NumberValue = ReadBeUInt32();
 				Notation = EJsonNotation::Number;
+				CurrentToken = EJsonToken::Number;
 				break;
 			}
 		case EMessagePackType::UInt64:
 			{
-				uint64 UInt64Value;
-				Stream->Serialize(&UInt64Value, 8);
+				uint64 UInt64Value = ReadBeUInt64();
 				if (UInt64Value >= INT32_MAX)
 				{
 					StringValue = FString::Printf(TEXT("%lld"), UInt64Value);
 					Notation = EJsonNotation::String;
+					CurrentToken = EJsonToken::String;
 				}
 				else
 				{
 					NumberValue = UInt64Value;
 					Notation = EJsonNotation::Number;
+					CurrentToken = EJsonToken::Number;
 				}
 				break;
 			}
@@ -502,6 +517,7 @@ bool FMessagePackGameDataReader::ReadNext()
 		case EMessagePackType::NegativeFixIntEnd:
 		default:
 			Notation = EJsonNotation::Error;
+			CurrentToken = EJsonToken::None;
 			SetErrorMessage(TEXT("Unexpected Message Pack notation."));
 			return true;
 		}
@@ -582,4 +598,92 @@ uint8 FMessagePackGameDataReader::PeekParseMapState()
 	{
 		return EMessagePackParseMemberState::ValueExpected;
 	}
+}
+
+int8 FMessagePackGameDataReader::ReadInt8() const
+{
+	uint8 leValue = 0;
+	Stream->Serialize(&leValue, 1);
+	return leValue;
+}
+
+uint8 FMessagePackGameDataReader::ReadUInt8() const
+{
+	uint8 leValue = 0;
+	Stream->Serialize(&leValue, 1);
+	return leValue;
+}
+
+int16 FMessagePackGameDataReader::ReadBeInt16() const
+{
+	int16 leValue = 0;
+	Stream->Serialize(&leValue, 2);
+	return (leValue << 8) | (leValue >> 8);
+}
+
+uint16 FMessagePackGameDataReader::ReadBeUInt16() const
+{
+	uint16 leValue = 0;
+	Stream->Serialize(&leValue, 2);
+	return (leValue << 8) | (leValue >> 8);
+}
+
+int32 FMessagePackGameDataReader::ReadBeInt32() const
+{
+	int32 leValue = 0;
+	Stream->Serialize(&leValue, 4);
+	return ((leValue >> 24) & 0x000000FF) |
+		   ((leValue >>  8) & 0x0000FF00) |
+		   ((leValue <<  8) & 0x00FF0000) |
+		   ((leValue << 24) & 0xFF000000);
+}
+
+uint32 FMessagePackGameDataReader::ReadBeUInt32() const
+{
+	uint32 leValue = 0;
+	Stream->Serialize(&leValue, 4);
+	return ((leValue >> 24) & 0x000000FF) |
+		   ((leValue >>  8) & 0x0000FF00) |
+		   ((leValue <<  8) & 0x00FF0000) |
+		   ((leValue << 24) & 0xFF000000);
+}
+
+int64 FMessagePackGameDataReader::ReadBeInt64() const
+{
+	int64 leValue = 0;
+	Stream->Serialize(&leValue, 8);
+	return ((leValue >> 56) & 0x00000000000000FF) |
+		   ((leValue >> 40) & 0x000000000000FF00) |
+		   ((leValue >> 24) & 0x0000000000FF0000) |
+		   ((leValue >>  8) & 0x00000000FF000000) |
+		   ((leValue <<  8) & 0x000000FF00000000) |
+		   ((leValue << 24) & 0x0000FF0000000000) |
+		   ((leValue << 40) & 0x00FF000000000000) |
+		   ((leValue << 56) & 0xFF00000000000000);
+}
+
+uint64 FMessagePackGameDataReader::ReadBeUInt64() const
+{
+	uint64 leValue = 0;
+	Stream->Serialize(&leValue, 8);
+	return ((leValue >> 56) & 0x00000000000000FF) |
+		   ((leValue >> 40) & 0x000000000000FF00) |
+		   ((leValue >> 24) & 0x0000000000FF0000) |
+		   ((leValue >>  8) & 0x00000000FF000000) |
+		   ((leValue <<  8) & 0x000000FF00000000) |
+		   ((leValue << 24) & 0x0000FF0000000000) |
+		   ((leValue << 40) & 0x00FF000000000000) |
+		   ((leValue << 56) & 0xFF00000000000000);
+}
+
+float FMessagePackGameDataReader::ReadBeFloat32() const
+{
+	uint32 beValue = ReadBeUInt32();
+	return *reinterpret_cast<float*>(&beValue);
+}
+
+double FMessagePackGameDataReader::ReadFloat64() const
+{
+	uint64 beValue = ReadBeUInt64();
+    return *reinterpret_cast<double*>(&beValue);
 }

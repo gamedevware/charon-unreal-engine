@@ -37,6 +37,19 @@ private:
 	void SetErrorMessage(const FString& Message);
 	uint8 PeekParseMapState();
 
+	int8 ReadInt8() const;
+	int16 ReadBeInt16() const;
+	int32 ReadBeInt32() const;
+	int64 ReadBeInt64() const;
+
+	uint8 ReadUInt8() const;
+	uint16 ReadBeUInt16() const;
+	uint32 ReadBeUInt32() const;
+	uint64 ReadBeUInt64() const;
+	
+	float ReadBeFloat32() const;
+	double ReadFloat64() const;
+
 public:
 	static constexpr size_t MAX_BINARY_LENGTH = 10 * 1024 * 1024; // 10 Mib
 	static constexpr size_t MAX_STRING_LENGTH = 1 * 1024 * 1024; // 1 Mib

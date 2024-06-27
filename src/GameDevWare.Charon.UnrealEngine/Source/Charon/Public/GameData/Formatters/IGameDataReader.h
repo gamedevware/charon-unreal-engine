@@ -45,6 +45,11 @@ public:
 		{
 			return false;
 		}
+
+		if (JsonObject == nullptr)
+		{
+			JsonObject = MakeShared<FJsonObject>();
+		}
 		while (GetNotation() != EJsonNotation::ObjectEnd)
 		{
 			auto MemberName = ReadMember();
@@ -53,15 +58,17 @@ public:
 			{
 				return false;
 			}
-			if (JsonObject == nullptr)
-			{
-				JsonObject = MakeShared<FJsonObject>();
-			}
 			JsonObject->SetField(MemberName, MemberValue);
 		}
-		ReadObjectEnd(NextToken);
+
+		if (!ReadObjectEnd(NextToken))
+		{
+			return false;
+		}
+
 		return true;
 	}
+
 	bool ReadArray(TArray<TSharedPtr<FJsonValue>>& JsonArray, const bool NextToken = true)
 	{
 		ReadArrayBegin();
@@ -69,6 +76,7 @@ public:
 		{
 			return false;
 		}
+		
 		while (GetNotation() != EJsonNotation::ArrayEnd)
 		{
 			TSharedPtr<FJsonValue> Item;
@@ -78,50 +86,55 @@ public:
 			}
 			JsonArray.Add(Item);
 		}
-		ReadArrayEnd(NextToken);
+
+		if (!ReadArrayEnd(NextToken))
+		{
+			return false;
+		}
 		return true;
 	}
+
 	bool ReadAny(TSharedPtr<FJsonValue>& JsonValue, const bool NextToken = true)
 	{
 		switch (GetNotation())
 		{
-			case EJsonNotation::ArrayStart:
+		case EJsonNotation::ArrayStart:
+			{
+				TArray<TSharedPtr<FJsonValue>> JsonArray;
+				if (!ReadArray(JsonArray, /* NextToken */ false))
 				{
-					TArray<TSharedPtr<FJsonValue>> JsonArray;
-					if (!ReadArray(JsonArray, false))
-					{
-						return false;
-					}
-					JsonValue = MakeShared<FJsonValueArray>(JsonArray);
-					break;
+					return false;
 				}
-			case EJsonNotation::ObjectStart:
+				JsonValue = MakeShared<FJsonValueArray>(JsonArray);
+				break;
+			}
+		case EJsonNotation::ObjectStart:
+			{
+				TSharedPtr<FJsonObject> JsonObject;
+				if (!ReadObject(JsonObject, /* NextToken */ false))
 				{
-					TSharedPtr<FJsonObject> JsonObject;
-					if (!ReadObject(JsonObject, false))
-					{
-						return false;
-					}
-					JsonValue = MakeShared<FJsonValueObject>(JsonObject);
-					break;
+					return false;
 				}
-			case EJsonNotation::Null:
-				JsonValue = MakeShared<FJsonValueNull>();
+				JsonValue = MakeShared<FJsonValueObject>(JsonObject);
 				break;
-			case EJsonNotation::String:
-				JsonValue = MakeShared<FJsonValueString>(GetValueAsString());
-				break;
-			case EJsonNotation::Number:
-				JsonValue = MakeShared<FJsonValueNumber>(GetValueAsNumber());
-				break;
-			case EJsonNotation::Boolean:
-				JsonValue = MakeShared<FJsonValueBoolean>(GetValueAsBoolean());
-				break;
-			case EJsonNotation::Error:
-				return false;
-			default:
-				SetErrorState("Unexpected notation.");
-				return false;
+			}
+		case EJsonNotation::Null:
+			JsonValue = MakeShared<FJsonValueNull>();
+			break;
+		case EJsonNotation::String:
+			JsonValue = MakeShared<FJsonValueString>(GetValueAsString());
+			break;
+		case EJsonNotation::Number:
+			JsonValue = MakeShared<FJsonValueNumber>(GetValueAsNumber());
+			break;
+		case EJsonNotation::Boolean:
+			JsonValue = MakeShared<FJsonValueBoolean>(GetValueAsBoolean());
+			break;
+		case EJsonNotation::Error:
+			return false;
+		default:
+			SetErrorState("Unexpected notation.");
+			return false;
 		}
 
 		if (NextToken)
@@ -152,6 +165,7 @@ public:
 
 		return true;
 	}
+
 	bool ReadArrayEnd(const bool NextToken = true)
 	{
 		if (IsError())
@@ -171,6 +185,7 @@ public:
 
 		return true;
 	}
+
 	bool ReadObjectBegin(const bool NextToken = true)
 	{
 		if (IsError())
@@ -190,6 +205,7 @@ public:
 
 		return true;
 	}
+
 	bool ReadObjectEnd(const bool NextToken = true)
 	{
 		if (IsError())
@@ -214,6 +230,7 @@ public:
 	{
 		return GetNotation() == EJsonNotation::Null;
 	}
+
 	bool IsError()
 	{
 		return GetNotation() == EJsonNotation::Error;
@@ -226,9 +243,11 @@ public:
 		// ReSharper disable once CppIncompleteSwitchStatement, CppDefaultCaseNotHandledInSwitchStatement
 		switch (GetNotation())
 		{
-			case EJsonNotation::ArrayEnd: SetErrorState("Unexpected end of array when object's member is expected."); return MemberName;
-			case EJsonNotation::ObjectEnd: SetErrorState("Unexpected end of object when object's member is expected."); return MemberName;
-			case EJsonNotation::Error: return MemberName;
+		case EJsonNotation::ArrayEnd: SetErrorState("Unexpected end of array when object's member is expected.");
+			return MemberName;
+		case EJsonNotation::ObjectEnd: SetErrorState("Unexpected end of object when object's member is expected.");
+			return MemberName;
+		case EJsonNotation::Error: return MemberName;
 		}
 
 		if (MemberName.IsEmpty())
@@ -243,156 +262,165 @@ public:
 	{
 		switch (GetNotation())
 		{
-			case EJsonNotation::String:
-				Value = static_cast<uint8>(FCString::Atoi(*GetValueAsString()));
-				return true;
-			case EJsonNotation::Number:
-				Value = static_cast<uint8>(GetValueAsNumber());
-				return true;
-			case EJsonNotation::Null:
-				Value = 0;
-				return true;
-			default:
-				return false;
+		case EJsonNotation::String:
+			Value = static_cast<uint8>(FCString::Atoi(*GetValueAsString()));
+			return true;
+		case EJsonNotation::Number:
+			Value = static_cast<uint8>(GetValueAsNumber());
+			return true;
+		case EJsonNotation::Null:
+			Value = 0;
+			return true;
+		default:
+			return false;
 		}
 	}
+
 	bool ReadValue(int32& Value)
 	{
 		switch (GetNotation())
 		{
-			case EJsonNotation::String:
-				Value = FCString::Atoi(*GetValueAsString());
-				return true;
-			case EJsonNotation::Number:
-				Value = static_cast<int32>(GetValueAsNumber());
-				return true;
-			case EJsonNotation::Null:
-				Value = 0;
-				return true;
-			default:
-				return false;
+		case EJsonNotation::String:
+			Value = FCString::Atoi(*GetValueAsString());
+			return true;
+		case EJsonNotation::Number:
+			Value = static_cast<int32>(GetValueAsNumber());
+			return true;
+		case EJsonNotation::Null:
+			Value = 0;
+			return true;
+		default:
+			return false;
 		}
 	}
+
 	bool ReadValue(int64& Value)
 	{
 		switch (GetNotation())
 		{
-			case EJsonNotation::String:
-				Value = FCString::Atoi64(*GetValueAsString());
-				return true;
-			case EJsonNotation::Number:
-				Value = static_cast<int64>(GetValueAsNumber());
-				return true;
-			case EJsonNotation::Null:
-				Value = 0;
-				return true;
-			default:
-				return false;
+		case EJsonNotation::String:
+			Value = FCString::Atoi64(*GetValueAsString());
+			return true;
+		case EJsonNotation::Number:
+			Value = static_cast<int64>(GetValueAsNumber());
+			return true;
+		case EJsonNotation::Null:
+			Value = 0;
+			return true;
+		default:
+			return false;
 		}
 	}
+
 	bool ReadValue(float& Value)
 	{
 		switch (GetNotation())
 		{
-			case EJsonNotation::String:
-				Value = FCString::Atof(*GetValueAsString());
-				return true;
-			case EJsonNotation::Number:
-				Value = static_cast<float>(GetValueAsNumber());
-				return true;
-			case EJsonNotation::Null:
-				Value = 0;
-				return true;
-			default:
-				return false;
+		case EJsonNotation::String:
+			Value = FCString::Atof(*GetValueAsString());
+			return true;
+		case EJsonNotation::Number:
+			Value = static_cast<float>(GetValueAsNumber());
+			return true;
+		case EJsonNotation::Null:
+			Value = 0;
+			return true;
+		default:
+			return false;
 		}
 	}
+
 	bool ReadValue(double& Value)
 	{
 		switch (GetNotation())
 		{
-			case EJsonNotation::String:
-				Value = FCString::Atod(*GetValueAsString());
-				return true;
-			case EJsonNotation::Number:
-				Value = GetValueAsNumber();
-				return true;
-			case EJsonNotation::Null:
-				Value = 0;
-				return true;
-			default:
-				return false;
+		case EJsonNotation::String:
+			Value = FCString::Atod(*GetValueAsString());
+			return true;
+		case EJsonNotation::Number:
+			Value = GetValueAsNumber();
+			return true;
+		case EJsonNotation::Null:
+			Value = 0;
+			return true;
+		default:
+			return false;
 		}
 	}
+
 	bool ReadValue(bool& Value)
 	{
 		switch (GetNotation())
 		{
-			case EJsonNotation::String:
-				Value = GetValueAsString().Equals("true", ESearchCase::IgnoreCase);
-				return true;
-			case EJsonNotation::Number:
-				Value = GetValueAsNumber() > 0;
-				return true;
-			case EJsonNotation::Boolean:
-				Value = GetValueAsBoolean();
-				return true;
-			case EJsonNotation::Null:
-				Value = false;
-				return true;
-			default:
-				return false;
+		case EJsonNotation::String:
+			Value = GetValueAsString().Equals("true", ESearchCase::IgnoreCase);
+			return true;
+		case EJsonNotation::Number:
+			Value = GetValueAsNumber() > 0;
+			return true;
+		case EJsonNotation::Boolean:
+			Value = GetValueAsBoolean();
+			return true;
+		case EJsonNotation::Null:
+			Value = false;
+			return true;
+		default:
+			return false;
 		}
 	}
+
 	bool ReadValue(FString& Value)
 	{
 		switch (GetNotation())
 		{
-			case EJsonNotation::String:
-				Value = GetValueAsString();
-				return true;
-			case EJsonNotation::Number:
-				Value = FString::SanitizeFloat(GetValueAsNumber());
-				return true;
-			case EJsonNotation::Boolean:
-				Value = GetValueAsBoolean() ? "True" : "False";
-				return true;
-			case EJsonNotation::Null:
-				Value.Empty();
-				return true;
-			default:
-				return false;
+		case EJsonNotation::String:
+			Value = GetValueAsString();
+			return true;
+		case EJsonNotation::Number:
+			Value = FString::SanitizeFloat(GetValueAsNumber());
+			return true;
+		case EJsonNotation::Boolean:
+			Value = GetValueAsBoolean() ? "True" : "False";
+			return true;
+		case EJsonNotation::Null:
+			Value.Empty();
+			return true;
+		default:
+			return false;
 		}
 	}
+
 	bool ReadValue(FTimespan& Value)
 	{
 		switch (GetNotation())
 		{
-			case EJsonNotation::String:
-				return FTimespan::Parse(GetValueAsString(), Value);
-			case EJsonNotation::Number:
-				Value = FTimespan(static_cast<int64>(GetValueAsNumber()));
-				return true;
-			case EJsonNotation::Null:
-				Value = FTimespan(0);
-				return true;
-			default:
-				return false;
+		case EJsonNotation::String:
+			return FTimespan::Parse(GetValueAsString(), Value);
+		case EJsonNotation::Number:
+			Value = FTimespan(static_cast<int64>(GetValueAsNumber()));
+			return true;
+		case EJsonNotation::Null:
+			Value = FTimespan(0);
+			return true;
+		default:
+			return false;
 		}
 	}
+
 	bool ReadValue(FDateTime& Value)
 	{
 		switch (GetNotation())
 		{
-			case EJsonNotation::String:
-				return FDateTime::ParseIso8601(*GetValueAsString(), Value);
-			case EJsonNotation::Null:
-				Value = FDateTime();
-				return true;
-			default:
-				return false;
+		case EJsonNotation::String:
+			return FDateTime::ParseIso8601(*GetValueAsString(), Value);
+		case EJsonNotation::Null:
+			Value = FDateTime();
+			return true;
+		default:
+			return false;
 		}
 	}
+
 	bool ReadValue(FVariant& Value)
 	{
 		switch (GetNotation())
@@ -413,29 +441,31 @@ public:
 			return false;
 		}
 	}
+
 	bool ReadValue(FText& Value)
 	{
 		switch (GetNotation())
 		{
-			case EJsonNotation::String:
-				Value = FText::FromStringView(GetValueAsString());
-				return true;
-			case EJsonNotation::Number:
-				Value = FText::FromStringView(FString::SanitizeFloat(GetValueAsNumber()));
-				return true;
-			case EJsonNotation::Boolean:
-				Value = FText::FromString(GetValueAsBoolean() ? "True" : "False");
-				return true;
-			case EJsonNotation::Null:
-				Value = FText::GetEmpty();
-				return true;
-			default:
-				return false;
+		case EJsonNotation::String:
+			Value = FText::FromStringView(GetValueAsString());
+			return true;
+		case EJsonNotation::Number:
+			Value = FText::FromStringView(FString::SanitizeFloat(GetValueAsNumber()));
+			return true;
+		case EJsonNotation::Boolean:
+			Value = FText::FromString(GetValueAsBoolean() ? "True" : "False");
+			return true;
+		case EJsonNotation::Null:
+			Value = FText::GetEmpty();
+			return true;
+		default:
+			return false;
 		}
 	}
 
-	template<typename T>
-	bool ReadValue(TOptional<T>& Optional) {
+	template <typename T>
+	bool ReadValue(TOptional<T>& Optional)
+	{
 		T Value;
 		if (ReadValue(Value))
 		{
@@ -445,8 +475,9 @@ public:
 		return false;
 	}
 
-	template<typename EnumType, typename = std::enable_if_t<std::is_enum_v<EnumType>>>
-	bool ReadValue(EnumType& EnumValue) {
+	template <typename EnumType, typename = std::enable_if_t<std::is_enum_v<EnumType>>>
+	bool ReadValue(EnumType& EnumValue)
+	{
 		std::underlying_type_t<EnumType> Value;
 		if (ReadValue(Value))
 		{
@@ -456,8 +487,9 @@ public:
 		return false;
 	}
 
-	template<typename E>
-	constexpr auto ReadEnumValue(TOptional<E>& OptionalEnumValue) -> bool {
+	template <typename E>
+	constexpr auto ReadEnumValue(TOptional<E>& OptionalEnumValue) -> bool
+	{
 		static_assert(std::is_enum_v<E>, "E must be an enum type");
 		TOptional<std::underlying_type_t<E>> OptionalValue;
 		if (ReadValue(OptionalValue) && OptionalValue.IsSet())
