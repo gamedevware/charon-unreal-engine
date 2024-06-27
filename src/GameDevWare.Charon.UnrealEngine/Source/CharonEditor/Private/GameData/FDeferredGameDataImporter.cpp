@@ -46,7 +46,7 @@ bool FDeferredGameDataImporter::TryToImportGameData(const FString& FileName, con
 
 	FAssetToolsModule& AssetToolsModule = FModuleManager::LoadModuleChecked<FAssetToolsModule>("AssetTools");
 	IModuleInterface* _ = FModuleManager::Get().LoadModule(FName(ModuleName), ELoadModuleFlags::LogFailures);
-	UClass* GameDataClass = FindObject<UClass>(ANY_PACKAGE, *ClassName);
+	UClass* GameDataClass = FindFirstObjectSafe<UClass>(*ClassName);
 	if (!GameDataClass)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Failed to import game data at '%s' because class '%s' from module '%s' is not found."), *FileName, *ClassName, *ModuleName);
