@@ -522,6 +522,7 @@ TSharedRef<TCharonCliCommand<>> FCharonCli::GenerateUnrealEngineSourceCode(
 	TArray<ESourceCodeGenerationOptimizations> SourceCodeGenerationOptimizations,
 	ESourceCodeIndentation SourceCodeIndentation,
 	ESourceCodeLineEndings SourceCodeLineEndings,
+	bool ClearOutputDirectory,
 	ECharonLogLevel LogsVerbosity)
 {
 	FString SourceCodeIndentationName;
@@ -554,11 +555,11 @@ TSharedRef<TCharonCliCommand<>> FCharonCli::GenerateUnrealEngineSourceCode(
 			case ESourceCodeGenerationOptimizations::DisableJsonSerialization: SourceCodeGenerationOptimizationNames.Add(TEXT("DisableJsonSerialization")); break;
 			case ESourceCodeGenerationOptimizations::DisableMessagePackSerialization: SourceCodeGenerationOptimizationNames.Add(TEXT("DisableMessagePackSerialization")); break;
 			case ESourceCodeGenerationOptimizations::DisablePatching: SourceCodeGenerationOptimizationNames.Add(TEXT("DisablePatching")); break;
-			case ESourceCodeGenerationOptimizations::DisableFormulaCompilation: SourceCodeGenerationOptimizationNames.Add(TEXT("DisableFormulaCompilation")); break;
+			case ESourceCodeGenerationOptimizations::DisableDocumentIdEnums: SourceCodeGenerationOptimizationNames.Add(TEXT("DisableDocumentIdEnums")); break;
 		}
 	}
 	
-	const FString Params = FString::Format(TEXT("GENERATE UECPPCODE --dataBase \"{0}\" --outputDirectory \"{1}\" --documentClassName \"{2}\" --gameDataClassName \"{3}\" --defineConstants \"{4}\" --indentation \"{5}\" --lineEndings \"{6}\" --splitFiles --optimizations {7} {8}"), {
+	const FString Params = FString::Format(TEXT("GENERATE UECPPCODE --dataBase \"{0}\" --outputDirectory \"{1}\" --documentClassName \"{2}\" --gameDataClassName \"{3}\" --defineConstants \"{4}\" --indentation \"{5}\" --lineEndings \"{6}\" --splitFiles {7} --optimizations {8} {9}"), {
 		GameDataUrl,
 		OutputDirectory,
 		DocumentClassName,
@@ -566,6 +567,7 @@ TSharedRef<TCharonCliCommand<>> FCharonCli::GenerateUnrealEngineSourceCode(
 		DefineConstants,
 		SourceCodeIndentationName,
 		SourceCodeLineEndingsName,
+		ClearOutputDirectory ? TEXT("--clearOutputDirectory") : TEXT(""),
 		SourceCodeGenerationOptimizationNames.IsEmpty() ? "" : FString::Join(SourceCodeGenerationOptimizationNames, TEXT(" ")),
 		GetLogOptions(LogsVerbosity)
 	});

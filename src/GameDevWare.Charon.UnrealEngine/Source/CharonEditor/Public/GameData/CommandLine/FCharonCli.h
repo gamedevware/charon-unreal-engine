@@ -386,6 +386,7 @@ public:
 #else
 		ESourceCodeLineEndings SourceCodeLineEndings = ESourceCodeLineEndings::Unix,
 #endif
+		bool ClearOutputDirectory = true,
 		ECharonLogLevel LogsVerbosity = ECharonLogLevel::Normal
 	);
 

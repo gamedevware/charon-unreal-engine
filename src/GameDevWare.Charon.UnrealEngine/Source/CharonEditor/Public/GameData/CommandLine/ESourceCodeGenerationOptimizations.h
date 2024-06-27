@@ -70,12 +70,11 @@ enum class ESourceCodeGenerationOptimizations
      * where patches are applied to game data at runtime.
      */
     DisablePatching = 6,
-
-    /**
-     * @brief Disables ahead-of-time compilation of formulas, opting to interpret them instead.
+     /**
+     * @brief Disables generation of enums with known document IDs.
      *
-     * This optimization changes how formulas are handled, moving away from compiling them
-     * from text into machine or JIT code, to interpreting them at runtime.
+     * This removes a significant portion of code that contains listings of IDs for
+     * documents known at the moment of code generation, which improves compilation time.
      */
-    DisableFormulaCompilation = 7,
+    DisableDocumentIdEnums = 8,
 };
