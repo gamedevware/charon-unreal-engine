@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "GameData/FLocalizedString.h"
+#include "GameData/FLocalizedText.h"
 
-FLocalizedString::FLocalizedString
+FLocalizedText::FLocalizedText
 (
 ) : CurrentValueLanguageId()
     , Current(FText::GetEmpty())
@@ -13,9 +13,9 @@ FLocalizedString::FLocalizedString
 {
 }
 
-FLocalizedString::FLocalizedString
+FLocalizedText::FLocalizedText
 (
-	const FLocalizedString& Other
+	const FLocalizedText& Other
 ) : CurrentValueLanguageId(Other.CurrentValueLanguageId)
     , Current(Other.Current)
     , LanguageSwitcher(Other.LanguageSwitcher)
@@ -23,7 +23,7 @@ FLocalizedString::FLocalizedString
 {
 }
 
-FLocalizedString::FLocalizedString
+FLocalizedText::FLocalizedText
 (
 	const TMap<FString, FText>& TextByLanguageId,
 	ULanguageSwitcher* LanguageSwitcher
@@ -34,7 +34,7 @@ FLocalizedString::FLocalizedString
 {
 }
 
-FText FLocalizedString::GetCurrent()
+FText FLocalizedText::GetCurrent()
 {
 	if (LanguageSwitcher == nullptr)
 	{

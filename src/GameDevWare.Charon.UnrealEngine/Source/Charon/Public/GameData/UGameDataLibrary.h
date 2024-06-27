@@ -4,7 +4,7 @@
 
 #include "FGameDataDocumentReference.h"
 #include "EDocumentReferenceGetResult.h"
-#include "FLocalizedString.h"
+#include "FLocalizedText.h"
 #include "UGameDataDocument.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 
@@ -40,7 +40,7 @@ class CHARON_API UGameDataLibrary : public UBlueprintFunctionLibrary
 	 * Get current text specified in internal ULanguageSwitcher of selected LocalizedString.
 	 */
 	UFUNCTION(BlueprintCallable, Category="Game Data Localization")
-	static FText GetCurrentText(FLocalizedString LocalizedString)
+	static FText GetCurrentText(FLocalizedText LocalizedString)
 	{
 		return LocalizedString.GetCurrent();
 	}

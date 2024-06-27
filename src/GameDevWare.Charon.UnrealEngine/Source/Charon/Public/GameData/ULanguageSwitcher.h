@@ -36,6 +36,6 @@ public:
 	 *  When to fallback to `FallbackLanguageId` localization text.
 	 */
 	UPROPERTY(BlueprintReadOnly, Category="Game Data")
-	ELocalizedStringFallbackOption FallbackOption = ELocalizedStringFallbackOption::OnNull;
+	ELocalizedTextFallbackOption FallbackOption = ELocalizedTextFallbackOption::OnNull;
 };
 
