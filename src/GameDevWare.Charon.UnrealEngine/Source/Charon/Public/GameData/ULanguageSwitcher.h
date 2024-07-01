@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreTypes.h"
-#include "ELocalizedStringFallbackOption.h"
+#include "ELocalizedTextFallbackOption.h"
 #include "UObject/Class.h"
 
 #include "ULanguageSwitcher.generated.h"

@@ -1,10 +1,10 @@
 ﻿// Copyright GameDevWare, Denis Zykov 2024
-#pragma optimize( "", off )
-#include "MathUtil.h"
-#include "GameData/Formatters/FMessagePackGameDataReader.h"
+
 #if WITH_TESTS
 
 #include "Tests/TestHarnessAdapter.h"
+#include "Misc/Base64.h"
+#include "GameData/Formatters/FMessagePackGameDataReader.h"
 
 TEST_CASE_NAMED(FMessagePackGameDataReaderTest, "Charon::FMessagePackGameDataReaderTest", "[Core]")
 {
