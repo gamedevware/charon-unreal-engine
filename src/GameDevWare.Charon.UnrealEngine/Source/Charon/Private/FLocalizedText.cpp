@@ -50,8 +50,8 @@ FText FLocalizedText::GetCurrent()
 	const FText* FoundText;
 	switch (LanguageSwitcher->FallbackOption)
 	{
-	case ELocalizedStringFallbackOption::OnNull:
-	case ELocalizedStringFallbackOption::OnNotDefined:
+	case ELocalizedTextFallbackOption::OnNull:
+	case ELocalizedTextFallbackOption::OnNotDefined:
 		FoundText = TextByLanguageId.Find(LanguageSwitcher->CurrentLanguageId);
 		if (FoundText != nullptr)
 		{
@@ -73,7 +73,7 @@ FText FLocalizedText::GetCurrent()
 		Current = FText::GetEmpty();
 		break;
 	default:
-	case ELocalizedStringFallbackOption::OnEmpty:
+	case ELocalizedTextFallbackOption::OnEmpty:
 		CurrentValueLanguageId = CurrentLanguageId;
 		FoundText = TextByLanguageId.Find(LanguageSwitcher->CurrentLanguageId);
 		if (FoundText != nullptr && !FoundText->IsEmpty())

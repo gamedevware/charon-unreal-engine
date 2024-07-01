@@ -1,5 +1,4 @@
 ﻿// Copyright GameDevWare, Denis Zykov 2024
-#pragma optimize( "", off )
 #pragma once
 
 #include "GameData/Formatters/FMessagePackGameDataReader.h"
@@ -215,7 +214,7 @@ bool FMessagePackGameDataReader::ReadNext()
 	}
 	else if (FormatValue >= static_cast<uint8>(EMessagePackType::NegativeFixIntStart))
 	{
-		NumberValue = static_cast<int8>(FormatValue);
+		NumberValue = *reinterpret_cast<int8*>(&FormatValue);
 		Notation = EJsonNotation::Number;
 		CurrentToken = EJsonToken::Number;
 	}
@@ -492,7 +491,7 @@ bool FMessagePackGameDataReader::ReadNext()
 				uint64 UInt64Value = ReadBeUInt64();
 				if (UInt64Value >= INT32_MAX)
 				{
-					StringValue = FString::Printf(TEXT("%lld"), UInt64Value);
+					StringValue = FString::Format(TEXT("{0}"), { UInt64Value });
 					Notation = EJsonNotation::String;
 					CurrentToken = EJsonToken::String;
 				}
@@ -602,7 +601,7 @@ uint8 FMessagePackGameDataReader::PeekParseMapState()
 
 int8 FMessagePackGameDataReader::ReadInt8() const
 {
-	uint8 leValue = 0;
+	int8 leValue = 0;
 	Stream->Serialize(&leValue, 1);
 	return leValue;
 }
@@ -616,9 +615,8 @@ uint8 FMessagePackGameDataReader::ReadUInt8() const
 
 int16 FMessagePackGameDataReader::ReadBeInt16() const
 {
-	int16 leValue = 0;
-	Stream->Serialize(&leValue, 2);
-	return (leValue << 8) | (leValue >> 8);
+	uint16 beValue = this->ReadBeUInt16();
+	return *reinterpret_cast<int16*>(&beValue);
 }
 
 uint16 FMessagePackGameDataReader::ReadBeUInt16() const
@@ -630,12 +628,8 @@ uint16 FMessagePackGameDataReader::ReadBeUInt16() const
 
 int32 FMessagePackGameDataReader::ReadBeInt32() const
 {
-	int32 leValue = 0;
-	Stream->Serialize(&leValue, 4);
-	return ((leValue >> 24) & 0x000000FF) |
-		   ((leValue >>  8) & 0x0000FF00) |
-		   ((leValue <<  8) & 0x00FF0000) |
-		   ((leValue << 24) & 0xFF000000);
+	uint32 beValue = this->ReadBeUInt32();
+	return *reinterpret_cast<int32*>(&beValue);
 }
 
 uint32 FMessagePackGameDataReader::ReadBeUInt32() const
@@ -650,16 +644,8 @@ uint32 FMessagePackGameDataReader::ReadBeUInt32() const
 
 int64 FMessagePackGameDataReader::ReadBeInt64() const
 {
-	int64 leValue = 0;
-	Stream->Serialize(&leValue, 8);
-	return ((leValue >> 56) & 0x00000000000000FF) |
-		   ((leValue >> 40) & 0x000000000000FF00) |
-		   ((leValue >> 24) & 0x0000000000FF0000) |
-		   ((leValue >>  8) & 0x00000000FF000000) |
-		   ((leValue <<  8) & 0x000000FF00000000) |
-		   ((leValue << 24) & 0x0000FF0000000000) |
-		   ((leValue << 40) & 0x00FF000000000000) |
-		   ((leValue << 56) & 0xFF00000000000000);
+	uint64 beValue = this->ReadBeUInt64();
+	return *reinterpret_cast<int64*>(&beValue);
 }
 
 uint64 FMessagePackGameDataReader::ReadBeUInt64() const
