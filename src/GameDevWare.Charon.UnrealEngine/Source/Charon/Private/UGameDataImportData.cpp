@@ -29,7 +29,7 @@ FString UGameDataImportData::GetNormalizedGameDataPath() const
 	{
 		return GameDataFilePath;
 	}
-	GameDataFilePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), GameDataFilePath);
+	GameDataFilePath = FPaths::ConvertRelativePathToFull(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), GameDataFilePath));
 	FPaths::NormalizeFilename(GameDataFilePath);
 	FPaths::CollapseRelativeDirectories(GameDataFilePath);
 	return GameDataFilePath;

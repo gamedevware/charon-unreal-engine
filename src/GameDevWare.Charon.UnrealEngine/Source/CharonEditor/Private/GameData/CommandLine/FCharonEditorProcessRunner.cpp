@@ -33,8 +33,8 @@ FCharonEditorProcessRunner::FCharonEditorProcessRunner(const FString& InDataBase
 	FString Params = FString::Printf(TEXT("/c \"\"%s\" %s\""), *RunScriptPath, *RunParameters);
 #elif PLATFORM_MAC 
 	RunScriptPath = CharonIntermediateDirectory / TEXT("RunCharon.sh");
-	FString URL = TEXT("/bin/bash");
-	FString Params = FString::Printf(TEXT("--login -- \"%s\" %s"), *RunScriptPath, *RunParameters);
+	FString URL = TEXT("/usr/bin/env");
+	FString Params = FString::Printf(TEXT(" -- \"%s\" %s"), *RunScriptPath, *RunParameters);
 #else
 	RunScriptPath = CharonIntermediateDirectory / TEXT("RunCharon.sh");
 	FString URL = TEXT("/usr/bin/env");

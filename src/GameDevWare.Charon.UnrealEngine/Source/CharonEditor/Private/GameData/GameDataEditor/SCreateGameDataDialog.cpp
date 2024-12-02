@@ -299,8 +299,8 @@ void SCreateGameDataDialog::OnGenerateCodeAndAssets()
 	FString ModuleDirectory = FPaths::ProjectDir() / TEXT("Source") / Name;
 	const FName ModuleName = FName(Name);
 
-	ModuleDirectory = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), ModuleDirectory);
-	GameDataFilePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), GameDataFilePath);
+	ModuleDirectory = FPaths::ConvertRelativePathToFull(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), ModuleDirectory));
+	GameDataFilePath = FPaths::ConvertRelativePathToFull(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), GameDataFilePath));
 
 	GUnrealEd->AutoReimportManager->IgnoreNewFile(GameDataFilePath);
 	GUnrealEd->AutoReimportManager->IgnoreFileModification(GameDataFilePath);

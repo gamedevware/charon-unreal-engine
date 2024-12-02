@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
-	"Version": 9,
-	"VersionName": "2024.2.18",
+	"Version": 10,
+	"VersionName": "2024.2.23",
 	"FriendlyName": "Charon",
 	"Description": "Charon game data editor plugin for Unreal Engine editor.",
 	"Category": "Other",
