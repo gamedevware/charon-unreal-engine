@@ -277,7 +277,8 @@ void SCreateGameDataDialog::OnNameChanges(const FText& Text)
 	}
 
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-	const FString ModuleDirectory = FPaths::ProjectDir() / TEXT("Source") / FileName;
+	const FString ModuleDirectory = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("Source") / FileName);
+	
 	if (PlatformFile.DirectoryExists(*ModuleDirectory))
 	{
 		ErrorText = FText::Format(INVTEXT("Invalid name '{0}'. A module directory with the same name '{1}' already exists."), FText::FromString(FileName), FText::FromString(ModuleDirectory));
@@ -296,7 +297,7 @@ void SCreateGameDataDialog::OnGenerateCodeAndAssets()
 {
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 	FString GameDataFilePath = FPaths::GetPath(AssetPath) / Name + Extension;
-	FString ModuleDirectory = FPaths::ProjectDir() / TEXT("Source") / Name;
+	FString ModuleDirectory = TEXT("Source") / Name;
 	const FName ModuleName = FName(Name);
 
 	ModuleDirectory = FPaths::ConvertRelativePathToFull(FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), ModuleDirectory));
@@ -467,7 +468,7 @@ void SCreateGameDataDialog::AddModuleToProjectFile(const FName ModuleName) const
 	}
 
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-	const FString TargetFileDirectory = FPaths::Combine(FPaths::ProjectDir(), TEXT("Source"));
+	const FString TargetFileDirectory = FPaths::ConvertRelativePathToFull(FPaths::Combine(FPaths::ProjectDir(), TEXT("Source")));
 
 	TArray<FString> FoundTargetFiles;
 	PlatformFile.FindFiles(FoundTargetFiles, *TargetFileDirectory, TEXT(".cs"));

@@ -72,6 +72,8 @@ run_executable() {
 exit_failure_wrong_or_missing_mono() {
     EXIT_CODE=-3
     echo "Wrong or missing installation of 'mono' framework. Ensure that the 'mono' v5+ is installed and available in the 'PATH'. Check https://www.mono-project.com/download/stable/ for the installer." >&2
+    echo "Error: 'mono' not found in the following directories:" >&2
+    echo "$PATH" | tr ':' '\n' >&2
     exit_failure
 }
 
