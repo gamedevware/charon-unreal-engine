@@ -12,6 +12,8 @@ void FGameDataEditorCommands::RegisterCommands()
 
 	UI_COMMAND(BrowserForward, "Forward", "Forward to next page in browser.", EUserInterfaceActionType::Button, FInputChord(EModifierKey::Control, EKeys::Right));
 	UI_COMMAND(BrowserReload, "Reload", "Reloads current page in browser.", EUserInterfaceActionType::Button, FInputChord(EModifierKey::Control, EKeys::F5));
+	
+	UI_COMMAND(BrowserOpenExternal, "Open In Browser...", "Open current page in OS default browser.", EUserInterfaceActionType::Button, FInputChord());
 
 	UI_COMMAND(GenerateSourceCode, "Generate Source Code", "Regenerate C++ Source for this game data asset.", EUserInterfaceActionType::Button, FInputChord());
 	UI_COMMAND(Reimport, "Reimport", "Reimport this game data asset and update it from an online source if available.", EUserInterfaceActionType::Button, FInputChord());

@@ -35,6 +35,7 @@ private:
 	void ExtendMenu();
 
 protected:
+	void OpenInBrowser_Execute() const;
 	void GenerateSourceCode_Execute();
 	bool CanConnect() const;
 	bool CanGenerateSourceCode() const;

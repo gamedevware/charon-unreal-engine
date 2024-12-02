@@ -106,6 +106,11 @@ void FGameDataEditorToolkit::BindCommands()
 		FCanExecuteAction::CreateLambda([this] { return Browser != nullptr; }));
 
 	UICommandList->MapAction(
+		FGameDataEditorCommands::Get().BrowserOpenExternal,
+		FExecuteAction::CreateSP(this, &FGameDataEditorToolkit::OpenInBrowser_Execute),
+		FCanExecuteAction::CreateLambda([this] { return Browser != nullptr; }));
+	
+	UICommandList->MapAction(
 		FGameDataEditorCommands::Get().Reimport,
 		FExecuteAction::CreateSP(this, &FGameDataEditorToolkit::Sync_Execute),
 		FCanExecuteAction::CreateSP(this, &FGameDataEditorToolkit::CanReimport));
@@ -163,6 +168,11 @@ void FGameDataEditorToolkit::ExtendToolbar()
 					NAME_None, FText(), TAttribute<FText>(),
 					FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Refresh")
 				);
+				ToolbarBuilder.AddToolBarButton(
+					FGameDataEditorCommands::Get().BrowserOpenExternal,
+					NAME_None, FText(), TAttribute<FText>(),
+					FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Link")
+				);
 				ToolbarBuilder.AddSeparator();
 
 				ToolbarBuilder.AddToolBarButton(FGameDataEditorCommands::Get().Reimport,
@@ -216,6 +226,22 @@ void FGameDataEditorToolkit::ExtendMenu()
 	ICharonEditorModule* CharonEditorModule = &FModuleManager::LoadModuleChecked<ICharonEditorModule>(
 		"CharonEditor");
 	AddMenuExtender(CharonEditorModule->GetGameDataEditorMenuExtensibilityManager()->GetAllExtenders());
+}
+
+void FGameDataEditorToolkit::OpenInBrowser_Execute() const
+{
+	const auto CurrentUrl = Browser->GetUrl(); 
+	if(!Browser || !CurrentUrl.StartsWith("http"))
+	{
+		return;
+	}
+
+	FString Error;
+	FPlatformProcess::LaunchURL(*CurrentUrl, nullptr, &Error);
+	if (!Error.IsEmpty())
+	{
+		UE_LOG(LogSConnectGameDataDialog, Error, TEXT("Failed to open the URL '%s' in the OS browser due to an error. %s"), *CurrentUrl, *Error);
+	}
 }
 
 void FGameDataEditorToolkit::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)

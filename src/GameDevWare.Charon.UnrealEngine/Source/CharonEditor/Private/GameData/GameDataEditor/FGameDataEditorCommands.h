@@ -22,6 +22,7 @@ public:
 	TSharedPtr<FUICommandInfo> BrowserBack;
 	TSharedPtr<FUICommandInfo> BrowserForward;
 	TSharedPtr<FUICommandInfo> BrowserReload;
+	TSharedPtr<FUICommandInfo> BrowserOpenExternal;
 	
 	TSharedPtr<FUICommandInfo> GenerateSourceCode;
 	TSharedPtr<FUICommandInfo> Reimport;
