@@ -563,6 +563,18 @@ public:
 	);
 
 	/**
+	 * @brief Init the specified GameData file.
+	 *
+	 * @param GameDataPath The path of the GameData file.
+	 * @param LogsVerbosity The verbosity level of logs. Defaults to ECharonLogLevel::Normal.
+	 * @return A shared reference to a TPreparedCliCommand containing the version number as a string.
+	 */
+	static TSharedRef<TPreparedCliCommand<>> InitGameData(
+		const FString& GameDataPath,
+		const ECharonLogLevel LogsVerbosity = ECharonLogLevel::Normal
+	);
+
+	/**
 	 * @brief Run specified command with charon tool.
 	 *
 	 * @param CommandsAndOptions List of commands and options to pass to charon tool.

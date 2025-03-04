@@ -849,6 +849,20 @@ TSharedRef<TPreparedCliCommand<FString>> FCharonCli::GetGameDataVersion(
 	return MakeShared<TPreparedCliCommand<FString>>(CommandRunner, INVTEXT("Getting game data version"));
 }
 
+TSharedRef<TPreparedCliCommand<>> FCharonCli::InitGameData(
+	const FString& GameDataPath,
+	const ECharonLogLevel LogsVerbosity)
+{
+	const FString Params = FString::Format(
+	TEXT("INIT \"{0}\" {1}"), {
+	   GameDataPath,
+	   GetLogOptions(LogsVerbosity)
+   });
+
+	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
+	return MakeShared<TPreparedCliCommand<>>(CommandRunner, INVTEXT("Initializing game data file"));
+}
+
 template <typename InResultType>
 TSharedRef<TPreparedCliCommand<InResultType>> FCharonCli::RunCharon(
 	const TArray<FString>& CommandsAndOptions,
@@ -857,7 +871,7 @@ TSharedRef<TPreparedCliCommand<InResultType>> FCharonCli::RunCharon(
 	const FString Params = FString::Join(CommandsAndOptions, TEXT(" "));
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
-	return MakeShared<TPreparedCliCommand<FString>>(CommandRunner, INVTEXT("Custom command"));
+	return MakeShared<TPreparedCliCommand<FString>>(CommandRunner, INVTEXT("Running custom command"));
 }
 
 template <typename InResultType>
