@@ -16,8 +16,8 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogTCharonCliCommand, Log, All);
 
 /**
- * @class TCharonCliCommand
- * @brief Represents a prepared command from FCharonCli, with customizable result type.
+ * @class TPreparedCliCommand
+ * @brief Represents a prepared command for CLI application, with customizable result type.
  *
  * This class encapsulates a command that can be executed via FCharonCli. It is templated to allow
  * specifying the type of result the command should produce. By default, it uses an int32 to represent
@@ -26,7 +26,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogTCharonCliCommand, Log, All);
  * @tparam InResultType The type of the result produced by the command. Defaults to int32.
  */
 template<typename InResultType = int32>
-class TCharonCliCommand final : public TSharedFromThis<TCharonCliCommand<InResultType>>, public ICharonTask
+class TPreparedCliCommand final : public TSharedFromThis<TPreparedCliCommand<InResultType>>, public ICharonTask
 {
 public:
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnCommandSucceed, InResultType)
@@ -98,7 +98,7 @@ public:
 	 * @param DisplayName The display name of the command for logging purposes.
 	 * @param OutputFilePath Optional file path where Charon.exe process will output results to be read into InResultType.
 	 */
-	TCharonCliCommand(const TSharedRef<FMonitoredProcess>& Process, const FText& DisplayName, const FString& OutputFilePath = FString());
+	TPreparedCliCommand(const TSharedRef<FMonitoredProcess>& Process, const FText& DisplayName, const FString& OutputFilePath = FString());
 
 	/**
 	 * Starts the command execution.
@@ -130,7 +130,7 @@ private:
 inline DEFINE_LOG_CATEGORY(LogTCharonCliCommand);
 
 template <typename InResultType>
-TCharonCliCommand<InResultType>::TCharonCliCommand(
+TPreparedCliCommand<InResultType>::TPreparedCliCommand(
 	const TSharedRef<FMonitoredProcess>& Process,
 	const FText& DisplayName,
 	const FString& OutputFilePath)
@@ -142,7 +142,7 @@ TCharonCliCommand<InResultType>::TCharonCliCommand(
 }
 
 template <typename InResultType>
-bool TCharonCliCommand<InResultType>::Start(ENamedThreads::Type EventDispatchThread)
+bool TPreparedCliCommand<InResultType>::Start(ENamedThreads::Type EventDispatchThread)
 {
 	ERunStatus ExpectedReadyToRun = ERunStatus::ReadyToRun;
 	if (!RunStatus.compare_exchange_strong(ExpectedReadyToRun, ERunStatus::Running))
@@ -157,8 +157,8 @@ bool TCharonCliCommand<InResultType>::Start(ENamedThreads::Type EventDispatchThr
 	
 	if (EventThread == ENamedThreads::AnyThread)
 	{
-		Process->OnCompleted().BindSP(this, &TCharonCliCommand::OnProcessCompleted);
-		Process->OnCanceled().BindSP(this, &TCharonCliCommand::OnProcessCancelled);
+		Process->OnCompleted().BindSP(this, &TPreparedCliCommand::OnProcessCompleted);
+		Process->OnCanceled().BindSP(this, &TPreparedCliCommand::OnProcessCancelled);
 	}
 	else
 	{
@@ -183,7 +183,7 @@ bool TCharonCliCommand<InResultType>::Start(ENamedThreads::Type EventDispatchThr
 			});
 		});
 	}
-	Process->OnOutput().BindSP(this, &TCharonCliCommand::OnProcessOutput);
+	Process->OnOutput().BindSP(this, &TPreparedCliCommand::OnProcessOutput);
 	
 	const bool bRunSuccess = Process->Launch();
 	if(!bRunSuccess)
@@ -194,7 +194,7 @@ bool TCharonCliCommand<InResultType>::Start(ENamedThreads::Type EventDispatchThr
 }
 
 template <typename InResultType>
-void TCharonCliCommand<InResultType>::OnProcessCompleted(int32 ExitCode)
+void TPreparedCliCommand<InResultType>::OnProcessCompleted(int32 ExitCode)
 {
 	ERunStatus ExpectedRunning = RunStatus.load();
 	if (ExpectedRunning != ERunStatus::Running)
@@ -232,7 +232,7 @@ void TCharonCliCommand<InResultType>::OnProcessCompleted(int32 ExitCode)
 }
 
 template <typename InResultType>
-void TCharonCliCommand<InResultType>::OnProcessCancelled()
+void TPreparedCliCommand<InResultType>::OnProcessCancelled()
 {
 	ERunStatus ExpectedRunning = ERunStatus::Running;
 	if (!RunStatus.compare_exchange_strong(ExpectedRunning, ERunStatus::Stopped))
@@ -246,7 +246,7 @@ void TCharonCliCommand<InResultType>::OnProcessCancelled()
 }
 
 template <typename InResultType>
-void TCharonCliCommand<InResultType>::OnProcessOutput(FString Output)
+void TPreparedCliCommand<InResultType>::OnProcessOutput(FString Output)
 {
 	auto SharedOutputRef = MakeShared<FString>(Output);
 	const auto WeakThisPtr = this->AsWeak();
@@ -270,7 +270,7 @@ void TCharonCliCommand<InResultType>::OnProcessOutput(FString Output)
 }
 
 template <typename InResultType>
-bool TCharonCliCommand<InResultType>::TryReadResult(const FString& Output, int32 ExitCode, TSharedPtr<FJsonObject>& OutResult)
+bool TPreparedCliCommand<InResultType>::TryReadResult(const FString& Output, int32 ExitCode, TSharedPtr<FJsonObject>& OutResult)
 {
 	if (ExitCode != 0)
 	{
@@ -300,7 +300,7 @@ bool TCharonCliCommand<InResultType>::TryReadResult(const FString& Output, int32
 }
 
 template <typename InResultType>
-bool TCharonCliCommand<InResultType>::TryReadResult(const FString& Output, int32 ExitCode, TArray<TSharedPtr<FJsonValue>>& OutResult)
+bool TPreparedCliCommand<InResultType>::TryReadResult(const FString& Output, int32 ExitCode, TArray<TSharedPtr<FJsonValue>>& OutResult)
 {
 	if (ExitCode != 0)
 	{
@@ -331,7 +331,7 @@ bool TCharonCliCommand<InResultType>::TryReadResult(const FString& Output, int32
 }
 
 template <typename InResultType>
-bool TCharonCliCommand<InResultType>::TryReadResult(const FString& Output, int32 ExitCode, int32& OutResult)
+bool TPreparedCliCommand<InResultType>::TryReadResult(const FString& Output, int32 ExitCode, int32& OutResult)
 {
 	if (ExitCode != 0)
 	{
@@ -343,7 +343,7 @@ bool TCharonCliCommand<InResultType>::TryReadResult(const FString& Output, int32
 }
 
 template <typename InResultType>
-bool TCharonCliCommand<InResultType>::TryReadResult(const FString& Output, int32 ExitCode, FString& OutResult)
+bool TPreparedCliCommand<InResultType>::TryReadResult(const FString& Output, int32 ExitCode, FString& OutResult)
 {
 	if (ExitCode != 0)
 	{
@@ -355,7 +355,7 @@ bool TCharonCliCommand<InResultType>::TryReadResult(const FString& Output, int32
 }
 
 template <typename InResultType>
-bool TCharonCliCommand<InResultType>::TryReadResult(const FString& Output, int32 ExitCode, FValidationReport& OutResult)
+bool TPreparedCliCommand<InResultType>::TryReadResult(const FString& Output, int32 ExitCode, FValidationReport& OutResult)
 {
 	TSharedPtr<FJsonObject> Object;
 	if (!TryReadResult(Output, ExitCode, Object))
@@ -375,7 +375,7 @@ bool TCharonCliCommand<InResultType>::TryReadResult(const FString& Output, int32
 }
 
 template <typename InResultType>
-bool TCharonCliCommand<InResultType>::TryReadResult(const FString& Output, int32 ExitCode, FImportReport& OutResult)
+bool TPreparedCliCommand<InResultType>::TryReadResult(const FString& Output, int32 ExitCode, FImportReport& OutResult)
 {
 	TSharedRef<FJsonObject> Object;
 	if (!TryReadResult(Output, ExitCode, Object))
@@ -393,7 +393,7 @@ bool TCharonCliCommand<InResultType>::TryReadResult(const FString& Output, int32
 }
 
 template <typename InResultType>
-void TCharonCliCommand<InResultType>::Stop()
+void TPreparedCliCommand<InResultType>::Stop()
 {
 	Process->Stop();
 }

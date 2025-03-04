@@ -4,21 +4,19 @@
 
 #include "Misc/MonitoredProcess.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(LogFCharonCliCommandRunner, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogFT4CommandRunner, Log, All);
 
 /**
- * @class FCharonCliCommandRunner
+ * @class FT4CommandRunner
  * @brief Extends FMonitoredProcess with a more convenient interface for executing Charon.exe commands.
  *
  * This class is designed to simplify the execution of Charon.exe by managing command line parameters,
  * environment variables, API keys, and temporary files. It encapsulates the setup and execution logic
  * required to run Charon.exe commands effectively.
  */
-class FCharonCliCommandRunner final : public TSharedFromThis<FCharonCliCommandRunner>, public FMonitoredProcess
+class FT4CommandRunner final : public TSharedFromThis<FT4CommandRunner>, public FMonitoredProcess
 {
 private:
-	inline static bool bScriptsCopied = false;
-
 	TArray<FString> FileCleanupList;
 	FString RunScriptPath;
 
@@ -32,15 +30,15 @@ public:
 	TMap<FString, FString> EnvironmentVariables;
 
 	/**
-	 * Constructs an FCharonCliCommandRunner with specific command line parameters.
+	 * Constructs an FT4CommandRunner with specific command line parameters.
 	 *
 	 * @param InParameters The command line parameters to pass to Charon.exe.
 	 */
-	explicit FCharonCliCommandRunner(FString InParameters);
+	explicit FT4CommandRunner(FString InParameters);
 	/**
-	 * Destructor for FCharonCliCommandRunner.
+	 * Destructor for FT4CommandRunner.
 	 */
-	virtual ~FCharonCliCommandRunner() override;
+	virtual ~FT4CommandRunner() override;
 
 	/**
 	 * Launches the Charon.exe process with the specified parameters and environment.
@@ -48,22 +46,11 @@ public:
 	 * @return true if the process was successfully launched, false otherwise.
 	 */
 	virtual bool Launch() override;
-
-	/**
-	 * Sets the API key required for commands that require authentication.
-	 *
-	 * @param InApiKey The API key to use for authentication.
-	 */
-	void SetApiKey(const FString& InApiKey);
+	
 	/**
 	 * Attaches the filename of a temporary file for deletion after the command completes or fails.
 	 *
 	 * @param InFilePath The path of the temporary file to be managed.
 	 */
 	void AttachTemporaryFile(const FString& InFilePath);
-
-	/**
-	 * For internal use only.
-	 */
-	static FString GetOrCreateCharonIntermediateDirectory();
 };

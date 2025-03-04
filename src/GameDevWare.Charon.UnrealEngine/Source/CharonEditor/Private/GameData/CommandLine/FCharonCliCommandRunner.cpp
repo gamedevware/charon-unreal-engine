@@ -19,19 +19,11 @@ FCharonCliCommandRunner::FCharonCliCommandRunner(FString InParameters)
 	RunScriptPath = CharonIntermediateDirectory / TEXT("RunCharon.bat");
 	URL = TEXT("cmd.exe");
 	Params = FString::Printf(TEXT("/c \"\"%s\" %s\""), *RunScriptPath, *InParameters);
-#elif PLATFORM_MAC
-	RunScriptPath = CharonIntermediateDirectory / TEXT("RunCharon.sh");
-	URL = TEXT("/usr/bin/env");
-	Params = FString::Printf(TEXT(" -- \"%s\" %s"), *RunScriptPath, *InParameters);
 #else
 	RunScriptPath = CharonIntermediateDirectory / TEXT("RunCharon.sh");
 	URL = TEXT("/usr/bin/env");
 	Params = FString::Printf(TEXT(" -- \"%s\" %s"), *RunScriptPath, *InParameters);
 #endif
-	if (!FCharonCliCommandRunner::CheckUpdates())
-	{
-		EnvironmentVariables.Add(TEXT("SKIP_CHARON_UPDATES"), TEXT("1"));
-	}
 }
 
 FCharonCliCommandRunner::~FCharonCliCommandRunner()
@@ -117,7 +109,6 @@ FString FCharonCliCommandRunner::GetOrCreateCharonIntermediateDirectory()
 
 	if (!bScriptsCopied)
 	{
-		bScriptsCopied = true;
 
 		TArray<FString> FoundFiles;
 		PlatformFile.FindFiles(FoundFiles, *PluginScriptsDirectory, nullptr);
@@ -128,6 +119,7 @@ FString FCharonCliCommandRunner::GetOrCreateCharonIntermediateDirectory()
 			{
 				continue;
 			}*/
+			
 			if (!PlatformFile.CopyFile(*TargetFileName, *SourceFilePath))
 			{
 				UE_LOG(LogFCharonCliCommandRunner, Warning,
@@ -135,8 +127,7 @@ FString FCharonCliCommandRunner::GetOrCreateCharonIntermediateDirectory()
 			}
 
 #if PLATFORM_UNIX || PLATFORM_MAC || PLATFORM_LINUX
-			if (FPaths::GetExtension(TargetFileName) == TEXT("sh") ||
-				FPaths::GetExtension(TargetFileName) == TEXT("command"))
+			if (FPaths::GetExtension(TargetFileName) == TEXT("sh"))
 			{
 				UE_LOG(LogFCharonCliCommandRunner, Log, TEXT("Running chmod +x for a script file '%s'."), *SourceFilePath);
 				FChmodProcess ChmodProcess(TargetFileName, "+x");
@@ -156,6 +147,8 @@ FString FCharonCliCommandRunner::GetOrCreateCharonIntermediateDirectory()
 			}
 #endif
 		}
+		
+		bScriptsCopied = true;
 	}
 
 	return CharonIntermediateDirectory;

@@ -21,7 +21,7 @@ enum class EExportMode
 	 * This mode is suitable for purposes where the exported data is intended to be imported back
 	 * after modifications. It maintains the integrity and relationships between documents.
 	 */
-	Default = 0,
+	Normal = 0,
 
 	/**
 	 * @brief Exports documents similar to Default but trims any extra data.
@@ -41,11 +41,7 @@ enum class EExportMode
 	Localization = 2,
 
 	/**
-	 * @brief Exports only documents in selected schemas without extra data for references.
-	 *
-	 * Extraction mode is designed for one-way exports from the game data. It omits extra data that would
-	 * otherwise keep references valid, making it suitable for exports where the data is not intended to
-	 * be re-imported, as fragmental data importation might cause errors.
+	 * @brief Deprecated option, same as Normal
 	 */
 	Extraction = 3
 };

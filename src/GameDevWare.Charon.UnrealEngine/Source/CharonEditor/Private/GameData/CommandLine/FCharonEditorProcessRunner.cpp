@@ -31,10 +31,6 @@ FCharonEditorProcessRunner::FCharonEditorProcessRunner(const FString& InDataBase
 	RunScriptPath = CharonIntermediateDirectory / TEXT("RunCharon.bat");
 	FString URL = TEXT("cmd.exe");
 	FString Params = FString::Printf(TEXT("/c \"\"%s\" %s\""), *RunScriptPath, *RunParameters);
-#elif PLATFORM_MAC 
-	RunScriptPath = CharonIntermediateDirectory / TEXT("RunCharon.sh");
-	FString URL = TEXT("/usr/bin/env");
-	FString Params = FString::Printf(TEXT(" -- \"%s\" %s"), *RunScriptPath, *RunParameters);
 #else
 	RunScriptPath = CharonIntermediateDirectory / TEXT("RunCharon.sh");
 	FString URL = TEXT("/usr/bin/env");
@@ -113,11 +109,6 @@ bool FCharonEditorProcessRunner::Launch()
 	});
 	
 	this->LaunchTimeoutTime = FDateTime::Now() + this->LaunchTimeout; 
-
-	if (!FCharonCliCommandRunner::CheckUpdates())
-	{
-		FPlatformMisc::SetEnvironmentVar(TEXT("SKIP_CHARON_UPDATES"), TEXT("1"));
-	}
 	
 	const bool bLaunched = this->Process->Launch();
 	if (!bLaunched)
