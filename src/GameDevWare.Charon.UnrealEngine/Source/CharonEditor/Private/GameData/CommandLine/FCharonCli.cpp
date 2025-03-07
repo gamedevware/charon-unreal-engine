@@ -348,7 +348,7 @@ TSharedRef<TPreparedCliCommand<>> FCharonCli::ExportToFile(
 	{
 	default:
 	case EExportMode::Normal:
-		ExportModeName = TEXT("Default");
+		ExportModeName = TEXT("Normal");
 		break;
 	case EExportMode::Publication:
 		ExportModeName = TEXT("Publication");
@@ -739,11 +739,14 @@ TSharedRef<TPreparedCliCommand<>> FCharonCli::GenerateUnrealEngineSourceCode(
 	switch (SourceCodeIndentation)
 	{
 	default:
-	case ESourceCodeIndentation::Tabs: SourceCodeIndentationName = TEXT("Tabs");
+	case ESourceCodeIndentation::Tabs:
+		SourceCodeIndentationName = TEXT("Tabs");
 		break;
-	case ESourceCodeIndentation::TwoSpaces: SourceCodeIndentationName = TEXT("TwoSpaces");
+	case ESourceCodeIndentation::TwoSpaces:
+		SourceCodeIndentationName = TEXT("TwoSpaces");
 		break;
-	case ESourceCodeIndentation::FourSpaces: SourceCodeIndentationName = TEXT("FourSpaces");
+	case ESourceCodeIndentation::FourSpaces:
+		SourceCodeIndentationName = TEXT("FourSpaces");
 		break;
 	}
 
@@ -751,9 +754,18 @@ TSharedRef<TPreparedCliCommand<>> FCharonCli::GenerateUnrealEngineSourceCode(
 	switch (SourceCodeLineEndings)
 	{
 	default:
-	case ESourceCodeLineEndings::Windows: SourceCodeLineEndingsName = TEXT("Windows");
+	case ESourceCodeLineEndings::Windows:
+		SourceCodeLineEndingsName = TEXT("Windows");
 		break;
-	case ESourceCodeLineEndings::Unix: SourceCodeLineEndingsName = TEXT("Unix");
+	case ESourceCodeLineEndings::Unix:
+		SourceCodeLineEndingsName = TEXT("Unix");
+		break;
+	case ESourceCodeLineEndings::OsDefault: 
+#if PLATFORM_WINDOWS
+		SourceCodeLineEndingsName = TEXT("Windows");
+#else
+		SourceCodeLineEndingsName = TEXT("Unix");
+#endif
 		break;
 	}
 
@@ -863,8 +875,7 @@ TSharedRef<TPreparedCliCommand<>> FCharonCli::InitGameData(
 	return MakeShared<TPreparedCliCommand<>>(CommandRunner, INVTEXT("Initializing game data file"));
 }
 
-template <typename InResultType>
-TSharedRef<TPreparedCliCommand<InResultType>> FCharonCli::RunCharon(
+TSharedRef<TPreparedCliCommand<FString>> FCharonCli::RunCharon(
 	const TArray<FString>& CommandsAndOptions,
 	const FString& ApiKey)
 {
@@ -874,25 +885,18 @@ TSharedRef<TPreparedCliCommand<InResultType>> FCharonCli::RunCharon(
 	return MakeShared<TPreparedCliCommand<FString>>(CommandRunner, INVTEXT("Running custom command"));
 }
 
-template <typename InResultType>
-TSharedRef<TPreparedCliCommand<InResultType>> FCharonCli::RunT4(
+TSharedRef<TPreparedCliCommand<FString>> FCharonCli::RunT4(
 	const FString& TemplateFile,
-	const FString& OutputFile,
 	const TArray<FString>& ReferencedAssemblies,
 	const TArray<FString>& Usings,
 	const TArray<FString>& IncludeDirectories,
 	const TArray<FString>& AssemblyLookupDirectories,
-	const FString& TemplateClassName,
 	const TArray<TPair<FString, FString>>& Parameters,
 	const bool bUseRelativeLinePragmas,
 	const bool bDebugMode,
 	const bool bVerboseLogs)
 {
 	FString Params = FString();
-	if (OutputFile.IsEmpty())
-	{
-		Params += TEXT(" \"--out=") + OutputFile + "\"";
-	}
 	for (auto ReferencedAssembly : ReferencedAssemblies)
 	{
 		Params += TEXT(" \"-r=") + ReferencedAssembly + "\"";
@@ -908,10 +912,6 @@ TSharedRef<TPreparedCliCommand<InResultType>> FCharonCli::RunT4(
 	for (auto AssemblyLookupDirectory : AssemblyLookupDirectories)
 	{
 		Params += TEXT(" \"-P=") + AssemblyLookupDirectory + "\"";
-	}
-	if (TemplateClassName.IsEmpty())
-	{
-		Params += TEXT(" \"-c=") + TemplateClassName + "\"";
 	}
 	for (auto ParameterTuple : Parameters)
 	{
@@ -930,12 +930,52 @@ TSharedRef<TPreparedCliCommand<InResultType>> FCharonCli::RunT4(
 		Params += TEXT(" --verbose");
 	}
 
-	Params += TEXT(" ") + TemplateFile;
+	Params += TEXT(" \"") + TemplateFile + TEXT("\"");
 
 	const TSharedRef<FT4CommandRunner> CommandRunner = MakeShared<FT4CommandRunner>(Params);
 	return MakeShared<TPreparedCliCommand<FString>>(CommandRunner, INVTEXT("Custom command"));
 }
 
+TSharedRef<TPreparedCliCommand<FString>> FCharonCli::PreprocessT4(
+	const FString& TemplateFile,
+	const FString& OutputFile,
+	const FString& TemplateClassName,
+	const TArray<FString>& Usings,
+	const bool bUseRelativeLinePragmas,
+	const bool bDebugMode,
+	const bool bVerboseLogs)
+{
+	FString Params = FString();
+	if (!OutputFile.IsEmpty())
+	{
+		Params += TEXT(" \"--out=") + OutputFile + "\"";
+	}
+	for (auto UsingStatement : Usings)
+	{
+		Params += TEXT(" \"-u=") + UsingStatement + "\"";
+	}
+	if (!TemplateClassName.IsEmpty())
+	{
+		Params += TEXT(" \"-c=") + TemplateClassName + "\"";
+	}
+	if (bUseRelativeLinePragmas)
+	{
+		Params += TEXT(" -l");
+	}
+	if (bDebugMode)
+	{
+		Params += TEXT(" --debug");
+	}
+	if (bVerboseLogs)
+	{
+		Params += TEXT(" --verbose");
+	}
+
+	Params += TEXT(" \"") + TemplateFile + TEXT("\"");
+
+	const TSharedRef<FT4CommandRunner> CommandRunner = MakeShared<FT4CommandRunner>(Params);
+	return MakeShared<TPreparedCliCommand<FString>>(CommandRunner, INVTEXT("Custom command"));
+}
 
 FString FCharonCli::GetLogOptions(const ECharonLogLevel LogsVerbosity)
 {

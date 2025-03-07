@@ -20,4 +20,8 @@ enum class ESourceCodeLineEndings
 	 * @brief Uses Unix-style line endings (LF) in the generated source code.
 	 */
 	Unix = 1,
+	/**
+	 * @brief Uses current operating system default line endings in the generated source code.
+	 */
+	OsDefault = 2,
 };

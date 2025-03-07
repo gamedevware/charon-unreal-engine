@@ -13,6 +13,41 @@ class CHARON_API UGameDataImportData : public UAssetImportData
 public:
 #if WITH_EDITORONLY_DATA
 	/*
+	 * Name of game data class. By default, it is source file name and "U" prefix.
+	 */
+	UPROPERTY(BlueprintReadOnly, Category="Game Data")
+	FString GameDataClassName;
+	/*
+	 * Name of document class. By default, it is a "UDocument".
+	 */
+	UPROPERTY(BlueprintReadOnly, Category="Game Data")
+	FString GameDataDocumentClassName;
+	/*
+	 * List of pre-processor defines which will be defined in each source file. Separated by comma.
+	 */
+	UPROPERTY(BlueprintReadOnly, Category="Game Data")
+	FString DefineConstants;
+	/*
+	 * List of languages to used to import into .uasset file during import/synchronization.
+	 */
+	UPROPERTY(BlueprintReadOnly, Category="Game Data")
+	TArray<FString> PublishLanguages;
+	/*
+	 * Source code optimizations enabled for generated source code.
+	 */
+	UPROPERTY(BlueprintReadOnly, Category="Game Data")
+	int Optimizations;
+	/*
+	 * Source code indentation.
+	 */
+	UPROPERTY(BlueprintReadOnly, Category="Game Data")
+	int Indentation;
+	/*
+	 * Source code line ending style.
+	 */
+	UPROPERTY(BlueprintReadOnly, Category="Game Data")
+	int LineEnding;
+	/*
 	 * Address of game data server to which this asset is connected. 
 	 */
 	UPROPERTY(BlueprintReadOnly, Category="Game Data")

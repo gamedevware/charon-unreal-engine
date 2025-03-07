@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "FGameDataAssetTypeActions.h"
-
+#include "GameData/FGameDataAssetTypeActions.h"
 #include "GameData/ICharonEditorModule.h"
 #include "GameData/GameDataEditor/FGameDataEditorToolkit.h"
 #include "GameData/UGameDataBase.h"

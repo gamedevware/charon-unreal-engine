@@ -338,13 +338,7 @@ void SCreateGameDataDialog::OnGenerateCodeAndAssets()
 		TEXT("U") + Name
 	);
 	Tasks.Add(GenerateCppCodeTask);
-
-	// remove when templates stops producing broken C++ code for UE 5.4
-	Tasks.Add(ICharonTask::FromSimpleDelegate(
-		FSimpleDelegate::CreateStatic(&SCreateGameDataDialog::FixCppCode, ModuleDirectory),
-		INVTEXT("Fixing C++ code...")));
-	//
-
+	
 	Tasks.Add(ICharonTask::FromSimpleDelegate(
 		FSimpleDelegate::CreateSP(this, &SCreateGameDataDialog::AddModuleToProjectFile, ModuleName),
 		INVTEXT("Adding module to .uproject and targets...")));
@@ -413,40 +407,6 @@ void SCreateGameDataDialog::CodeGenerationFailed()
 	GenerationProgress = 1.0;
 
 	ErrorText = INVTEXT("The source code generation process encountered errors and did not complete successfully. Please consult the Output Log for specific error details, address these issues, and attempt the generation process again. Note that there may have been partial changes made to the project files; it's advisable to review these modifications in your Source Control system and consider discarding them if necessary.");
-}
-
-void SCreateGameDataDialog::FixCppCode(const FString ModuleDirectory)
-{
-	struct FixCppVisitor : public IPlatformFile::FDirectoryVisitor
-	{
-		virtual bool Visit(const TCHAR* FilenameOrDirectory, bool bIsDirectory) override
-		{
-			auto ERROR_LINE = TEXT("throw std::runtime_error(\"Unknown/Unsupported data format specified.\");");
-
-			if (!bIsDirectory)
-			{
-				FString CppFilename(FilenameOrDirectory);
-				if (FPaths::GetExtension(CppFilename).Equals(TEXT("cpp"), ESearchCase::IgnoreCase))
-				{
-					FString FileContent;
-					FFileHelper::LoadFileToString(FileContent, FilenameOrDirectory);
-					if (FileContent.Contains(ERROR_LINE))
-					{
-						auto REPLACEMENT_LINE = TEXT("return FGameDataReaderFactory::CreateJsonReader(GameDataStream);");
-
-						FileContent.ReplaceInline(ERROR_LINE, REPLACEMENT_LINE);
-						FFileHelper::SaveStringToFile(FileContent, FilenameOrDirectory);
-					}
-				}
-			}
-			return true;
-		}
-	};
-
-	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
-
-	FixCppVisitor Visitor;
-	PlatformFile.IterateDirectoryRecursively(*ModuleDirectory, Visitor);
 }
 
 void SCreateGameDataDialog::AddModuleToProjectFile(const FName ModuleName) const

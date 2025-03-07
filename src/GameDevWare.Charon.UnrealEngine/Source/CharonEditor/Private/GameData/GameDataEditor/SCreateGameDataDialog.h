@@ -37,8 +37,6 @@ public:
 
 	void ShowModal();
 	void Show();
-	
-	static void FixCppCode(const FString ModuleDirectory);
 
 private:
 	EVisibility GetErrorLabelVisibility() const;

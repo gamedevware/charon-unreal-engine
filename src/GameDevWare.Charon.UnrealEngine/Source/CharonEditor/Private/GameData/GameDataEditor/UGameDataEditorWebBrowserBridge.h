@@ -21,5 +21,8 @@ public:
 
 	UFUNCTION()
 	bool Download(FString FileName, FString ContentBase64);
+
+	UFUNCTION()
+	FString Upload(FString FileFilter);
 };
 

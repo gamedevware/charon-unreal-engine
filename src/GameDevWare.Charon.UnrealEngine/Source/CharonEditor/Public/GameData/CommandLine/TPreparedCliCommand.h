@@ -188,6 +188,7 @@ bool TPreparedCliCommand<InResultType>::Start(ENamedThreads::Type EventDispatchT
 	const bool bRunSuccess = Process->Launch();
 	if(!bRunSuccess)
 	{
+		UE_LOG(LogTCharonCliCommand, Warning, TEXT("Failed to launch command because Unreal failed to create In/Out pipes or FPlatformProcess instance."));
 		auto _ = Process->OnCanceled().ExecuteIfBound();
 	}
 	return bRunSuccess;

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "FGameDataReimportHandler.h"
+#include "GameData/FGameDataReimportHandler.h"
 #include "GameData/UGameDataBase.h"
 
 DEFINE_LOG_CATEGORY(LogFGameDataReimportHandler);

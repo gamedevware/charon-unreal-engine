@@ -225,7 +225,7 @@ void FGameDataEditorToolkit::ExtendMenu()
 
 	ICharonEditorModule* CharonEditorModule = &FModuleManager::LoadModuleChecked<ICharonEditorModule>(
 		"CharonEditor");
-	AddMenuExtender(CharonEditorModule->GetGameDataEditorMenuExtensibilityManager()->GetAllExtenders());
+	AddMenuExtender(CharonEditorModule->GetGameDataEditorMenuExtensibilityManager()->GetAllExtenders(GetToolkitCommands(), GetEditingObjects()));
 }
 
 void FGameDataEditorToolkit::OpenInBrowser_Execute() const
@@ -411,10 +411,33 @@ void FGameDataEditorToolkit::GenerateSourceCode_Execute()
 		GameDataUrl = ServerApiClient.GetGameDataUrl(ProjectId, GameData->AssetImportData->BranchId);
 	}
 
-	const FString GameDataClassName = GameData->GetClass()->GetPrefixCPP() + GameData->GetClass()->GetName();
-	const FString DefineConstants;
+	FString GameDataClassName = GameData->AssetImportData->GameDataClassName;
+	FString GameDataDocumentClassName = GameData->AssetImportData->GameDataDocumentClassName;
+	const FString DefineConstants = GameData->AssetImportData->DefineConstants;
+	const int SourceCodeOptimizationFlags = GameData->AssetImportData->Optimizations;
+	const int SourceCodeLineEnding = GameData->AssetImportData->LineEnding;
+	const int SourceCodeIndentation = GameData->AssetImportData->Indentation;
+
+	if (GameDataClassName.IsEmpty())
+	{
+		GameDataClassName = GameData->GetClass()->GetPrefixCPP() + GameData->GetClass()->GetName();
+	}
+	if (GameDataDocumentClassName.IsEmpty())
+	{
+		GameDataDocumentClassName = "UDocument";
+	}
+
+	TArray<ESourceCodeGenerationOptimizations> SourceCodeOptimizations;
+	for (int OptimizationValue = 0; OptimizationValue < 32; ++OptimizationValue)
+	{
+		if ((SourceCodeOptimizationFlags & (1 << OptimizationValue)) == 0) continue;
+
+		SourceCodeOptimizations.Add(static_cast<ESourceCodeGenerationOptimizations>(OptimizationValue));	
+	}
+	
 	const auto GenerateSourceCodeCommand = FCharonCli::GenerateUnrealEngineSourceCode(
-		GameDataUrl, ApiKey, SourceCodePath, "UDocument", GameDataClassName, DefineConstants);
+		GameDataUrl, ApiKey, SourceCodePath, GameDataDocumentClassName, GameDataClassName, DefineConstants,
+		SourceCodeOptimizations, static_cast<ESourceCodeIndentation>(SourceCodeIndentation), static_cast<ESourceCodeLineEndings>(SourceCodeLineEnding));
 
 	BroadcastCommandRunning(
 		GenerateSourceCodeCommand,
@@ -430,12 +453,6 @@ void FGameDataEditorToolkit::GenerateSourceCode_Execute()
 	TArray<TSharedRef<ICharonTask>> AllTasks;
 	auto PreTasks = MakeShared<TArray<TSharedRef<ICharonTask>>>();
 	auto PostTasks = MakeShared<TArray<TSharedRef<ICharonTask>>>();
-
-	// remove when templates stops producing broken C++ code for UE 5.4
-	PostTasks->Add(ICharonTask::FromSimpleDelegate(
-		FSimpleDelegate::CreateStatic(&SCreateGameDataDialog::FixCppCode, SourceCodePath),
-		INVTEXT("Fixing C++ code...")));
-	//
 	
 	CharonEditorModule.OnGameDataPreSourceCodeGeneration().Broadcast(GameData, PreTasks);
 	CharonEditorModule.OnGameDataPostSourceCodeGeneration().Broadcast(GameData, PostTasks);
@@ -627,7 +644,8 @@ void FGameDataEditorToolkit::Sync_Execute()
 
 	const FString GameDataPath = GameData->AssetImportData->GetNormalizedGameDataPath();
 	const FString GameDataDownloadPath = GameDataPath + ".tmp";
-	TSharedPtr<ICharonTask> PublishCommand;
+	const TArray<FString> All { TEXT("*") };
+	TSharedPtr<ICharonTask> BackupCommand;
 	
 	if (GameData->AssetImportData->IsConnected())
 	{
@@ -645,12 +663,11 @@ void FGameDataEditorToolkit::Sync_Execute()
 		const auto ServerApiClient = FServerApiClient(ServerAddress);
 		const FString GameDataUrl = ServerApiClient.GetGameDataUrl(ProjectId, GameData->AssetImportData->BranchId);
 
-		const TArray<FString> All{TEXT("*")};
-		PublishCommand = FCharonCli::ExportToFile(GameDataUrl, ApiKey, All, All, All, EExportMode::Publication,
-													  GameDataDownloadPath, FPaths::GetExtension(GameDataPath));
 
+		BackupCommand = FCharonCli::BackupToFile(GameDataUrl, ApiKey, GameDataDownloadPath, FPaths::GetExtension(GameDataPath));
+		
 		BroadcastCommandRunning(
-			PublishCommand.ToSharedRef(),
+			BackupCommand.ToSharedRef(),
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Import"),
 			INVTEXT("Downloading game data..."),
 			INVTEXT("Game data has been downloaded."),
@@ -658,14 +675,14 @@ void FGameDataEditorToolkit::Sync_Execute()
 			/* can cancel */ true
 		);
 
-		PublishCommand->OnFailed().AddLambda([GameDataDownloadPath]()
+		BackupCommand->OnFailed().AddLambda([GameDataDownloadPath]()
 		{
 			// Clear temp file
 			IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 			PlatformFile.DeleteFile(*GameDataDownloadPath);
 		});
 	}
-
+	
 	ICharonEditorModule& CharonEditorModule = ICharonEditorModule::Get(); 
 	TArray<TSharedRef<ICharonTask>> AllTasks;
 	auto PreTasks = MakeShared<TArray<TSharedRef<ICharonTask>>>();
@@ -674,9 +691,9 @@ void FGameDataEditorToolkit::Sync_Execute()
 	CharonEditorModule.OnGameDataPostSynchronization().Broadcast(GameData, PostTasks);
 
 	AllTasks.Append(PreTasks.Get());
-	if (PublishCommand != nullptr)
+	if (BackupCommand != nullptr)
 	{
-		AllTasks.Add(PublishCommand.ToSharedRef());
+		AllTasks.Add(BackupCommand.ToSharedRef());
 		AllTasks.Add(ICharonTask::FromSimpleDelegate(FSimpleDelegate::CreateSP(this, &FGameDataEditorToolkit::ReplaceGameDataFile, GameDataPath, GameDataDownloadPath), INVTEXT("Replace Files")));
 	}
 	AllTasks.Add(ICharonTask::FromSimpleDelegate(FSimpleDelegate::CreateSP(this, &FGameDataEditorToolkit::Reimport_Execute), INVTEXT("Reimport")));

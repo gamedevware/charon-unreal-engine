@@ -164,7 +164,7 @@ UObject* UImportGameDataFactory::FactoryCreateBinary
 		check(InClass->IsChildOf(UGameDataBase::StaticClass()));
 		GameData = NewObject<UGameDataBase>(InParent, InClass, InName, Flags);
 	}
-
+	
 	FBufferReader Stream((void*)Buffer, BufferEnd - Buffer, false);
 	if (!GameData->TryLoad(&Stream, Format))
 	{

@@ -581,8 +581,7 @@ public:
 	 * @param ApiKey Authentication credentials if GameDataUrl is a server, otherwise empty.
 	 * @return A shared reference to a TPreparedCliCommand which could be run when needed.
 	 */
-	template<typename InResultType = int32>
-	static TSharedRef<TPreparedCliCommand<InResultType>> RunCharon(
+	static TSharedRef<TPreparedCliCommand<FString>> RunCharon(
 		const TArray<FString>& CommandsAndOptions,
 		const FString& ApiKey
 	);
@@ -591,33 +590,50 @@ public:
 	 * @brief Run dotnet-t4 command-line tool for processing T4 templates. It is a general-purpose way to generate text or code files using C#.
 	 * https://github.com/mono/t4/blob/main/dotnet-t4/readme.md
 	 * @param TemplateFile The path of the template .tt file.
-	 * @param OutputFile The name or path of the output file. It defaults to the input filename with its extension changed to .txt, or to match the generated code when preprocessing, and may be overridden by template settings. Use - instead of a filename to write to stdout.
 	 * @param ReferencedAssemblies An assembly reference by path or assembly name. It will be resolved from the framework and assembly directories.
 	 * @param Usings A namespace imports which generate a using statement in template source code.
 	 * @param IncludeDirectories A directory to be searched when resolving included files.
 	 * @param AssemblyLookupDirectories A directory to be searched when resolving assemblies.
-	 * @param TemplateClassName Preprocess the template into class name for use as a runtime template. The class name may include a namespace.
 	 * @param Parameters session parameter Pair{FString,FString}.Key toPair{FString,FString}.Value.
 	 * @param bUseRelativeLinePragmas Use relative paths in line pragmas.
 	 * @param bDebugMode Generate debug symbols and keep temporary files.
 	 * @param bVerboseLogs >Output additional diagnostic information to stdout.
 	 * @return A shared reference to a TPreparedCliCommand which could be run when needed.
 	 */
-	template<typename InResultType = int32>
-	static TSharedRef<TPreparedCliCommand<InResultType>> RunT4(
+	static TSharedRef<TPreparedCliCommand<FString>> RunT4(
 		const FString& TemplateFile,
-		const FString& OutputFile = FString(),
 		const TArray<FString>& ReferencedAssemblies = TArray<FString>(),
 		const TArray<FString>& Usings = TArray<FString>(),
 		const TArray<FString>& IncludeDirectories = TArray<FString>(),
 		const TArray<FString>& AssemblyLookupDirectories = TArray<FString>(),
-		const FString& TemplateClassName = FString(),
 		const TArray<TPair<FString, FString>>& Parameters = TArray<TPair<FString, FString>>(),
 		const bool bUseRelativeLinePragmas = false,
 		const bool bDebugMode = false,
 		const bool bVerboseLogs = false
 	);
 
+	/**
+	 * @brief Run dotnet-t4 command-line tool for processing T4 templates. It is a general-purpose way to generate text or code files using C#.
+	 * https://github.com/mono/t4/blob/main/dotnet-t4/readme.md
+	 * @param TemplateFile The path of the template .tt file.
+	 * @param OutputFile The name or path of the output file. It defaults to the input filename with its extension changed to .txt, or to match the generated code when preprocessing, and may be overridden by template settings. Use - instead of a filename to write to stdout.
+	 * @param Usings A namespace imports which generate a using statement in template source code.
+	 * @param TemplateClassName Preprocess the template into class name for use as a runtime template. The class name may include a namespace.
+	 * @param bUseRelativeLinePragmas Use relative paths in line pragmas.
+	 * @param bDebugMode Generate debug symbols and keep temporary files.
+	 * @param bVerboseLogs >Output additional diagnostic information to stdout.
+	 * @return A shared reference to a TPreparedCliCommand which could be run when needed.
+	 */
+	static TSharedRef<TPreparedCliCommand<FString>> PreprocessT4(
+		const FString& TemplateFile,
+		const FString& OutputFile,
+		const FString& TemplateClassName,
+		const TArray<FString>& Usings = TArray<FString>(),
+		const bool bUseRelativeLinePragmas = false,
+		const bool bDebugMode = false,
+		const bool bVerboseLogs = false
+	);
+	
 private:
 	static FString GetLogOptions(const ECharonLogLevel LogsVerbosity);
 	static FString WriteJsonToTempFile(const TSharedRef<FJsonObject>& JsonObject);
