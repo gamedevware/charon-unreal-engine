@@ -44,7 +44,7 @@ static void Execute_ValidateGameData(const TArray<UObject*> ContextSensitiveObje
 		{
 			for (const auto& ValidationError : ValidationRecord.Errors)
 			{	
-				Issues.Add(FString::Format(TEXT("{0}[id: {1}] {2}: {3}"), { ValidationRecord.SchemaName, ValidationRecord.Id, ValidationError.Code, ValidationError.Message }));
+				Issues.Add(FString::Format(TEXT("{0}[id: {1}] {2}: {3}"), { ValidationRecord.SchemaName, ValidationRecord.Id, ValidationError.Path, ValidationError.Message }));
 			}
 		}
 

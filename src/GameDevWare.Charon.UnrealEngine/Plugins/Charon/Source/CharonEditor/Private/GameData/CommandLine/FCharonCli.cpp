@@ -74,21 +74,44 @@ TSharedRef<TPreparedCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::DeleteDocum
 	const TSharedRef<FJsonObject>& Document,
 	const ECharonLogLevel LogsVerbosity)
 {
+	const auto IdValue = Document->TryGetField(TEXT("Id"));
+	FString Id;
+	switch (IdValue->Type)
+	{
+	case EJson::String:
+		IdValue->TryGetString(Id);
+		break;
+	case EJson::Number:
+		double IdNumber; 
+		IdValue->TryGetNumber(IdNumber);
+		Id = FString::Format(TEXT("{0}"), { IdNumber });
+		break;
+	case EJson::Boolean:
+		bool IdBoolean; 
+		IdValue->TryGetBool(IdBoolean);
+		Id = FString::Format(TEXT("{0}"), { IdBoolean });
+		break;
+	default:
+	case EJson::None: 
+	case EJson::Null:
+	case EJson::Array:
+	case EJson::Object:
+		Id = TEXT("null");
+		break;
+	}
+	
 	const FString TempOutputFile = PrepareTempOutputFile();
-	const FString TempInputFile = WriteJsonToTempFile(Document);
 	const FString Params = FString::Format(
-		TEXT("DATA DELETE --dataBase \"{0}\" --input \"{1}\" --inputFormat json --schema \"{2}\" --output \"{3}\" --outputFormat json {4}"),
-		{
+		TEXT("DATA DELETE --dataBase \"{0}\" --schema \"{1}\" --id \"{2}\" --output \"{3}\" --outputFormat json {4}"), {
 			GameDataUrl,
-			TempInputFile,
 			SchemaNameOrId,
+			Id,
 			TempOutputFile,
 			GetLogOptions(LogsVerbosity)
 		});
 
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
-	CommandRunner->AttachTemporaryFile(TempInputFile);
 	CommandRunner->AttachTemporaryFile(TempOutputFile);
 	return MakeShared<TPreparedCliCommand<TSharedPtr<FJsonObject>>>(CommandRunner, INVTEXT("Deleting document"),
 	                                                                TempOutputFile);
@@ -170,7 +193,7 @@ TSharedRef<TPreparedCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::ListDocumen
 
 	const FString TempOutputFile = PrepareTempOutputFile();
 	const FString Params = FString::Format(
-		TEXT("DATA LIST --dataBase \"{0}\" --schemas {1} {2} {3} {4} {5} {6} --output \"{7}\" --outputFormat json {8}"),
+		TEXT("DATA LIST --dataBase \"{0}\" --schema {1} {2} {3} {4} {5} {6} --output \"{7}\" --outputFormat json {8}"),
 		{
 			GameDataUrl,
 			SchemaNameOrId,

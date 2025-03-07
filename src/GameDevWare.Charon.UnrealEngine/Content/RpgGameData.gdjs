@@ -1,7 +1,7 @@
 { 
-	"ToolsVersion": "2025.0.1.0", 
-	"RevisionHash": "67bf36bc26224e70f0f30ddd", 
-	"ChangeNumber": 7, 
+	"ToolsVersion": "2025.1.1.0", 
+	"RevisionHash": "67cb35e59075803d3449d6fd", 
+	"ChangeNumber": 12, 
 	"Collections": { 
 		"ProjectSettings": [ 
 			{ 

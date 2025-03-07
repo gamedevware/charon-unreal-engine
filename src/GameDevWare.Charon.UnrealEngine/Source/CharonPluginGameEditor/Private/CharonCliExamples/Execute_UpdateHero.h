@@ -28,7 +28,7 @@ static void Execute_UpdateHero(const TArray<UObject*> ContextSensitiveObjects)
 	
 	const TSharedPtr<FJsonObject> HeroDocument = MakeShared<FJsonObject>();
 	// The "Id" field is mandatory for the update operation.
-	HeroDocument->SetStringField(TEXT("Id"), TEXT("SuperBoy"));
+	HeroDocument->SetStringField(TEXT("Id"), TEXT("Crossbower"));
 	
 	// To update a field, specify its name and new value.
 	HeroDocument->SetBoolField(TEXT("Religious"), true);
