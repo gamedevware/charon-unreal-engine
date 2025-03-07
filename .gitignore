@@ -19,7 +19,15 @@ _ReSharper*
 *.userprefs
 media/
 .vs
+.vsconfig
 .DS_Store
 bin/
 obj/
 packages/
+
+Config/
+Intermediate/
+Binaries/
+
+src/GameDevWare.Charon.UnrealEngine/Saved/
+src/GameDevWare.Charon.UnrealEngine/DerivedDataCache/

@@ -1,0 +1,30 @@
+{
+	"ToolsVersion": "2024.1.13.1",
+	"Collections": {
+		"ProjectSettings": [
+			{
+				"Id": "049bc0604c363a980b000088",
+				"Languages": "en-US",
+				"Version": "0.0.0.2"
+			}
+		],
+		"TestEntity": [
+			{
+				"Id": "TestEntity1",
+				"TextField": "Patched1",
+				"LocalizedTextField": {
+					"en-GB": "Patched1",
+					"fr-FR": "Patched1",
+					"ru-RU": "Patched1",
+					"notes": {
+						"comment": "Other"
+					}
+				},
+				"DocumentField": null,
+				"ListOfDocumentsField": {
+					"TestEntity3": null
+				}
+			}
+		]
+	}
+}

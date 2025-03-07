@@ -1,0 +1,1289 @@
+{ 
+	"ToolsVersion": "2025.1.1.0", 
+	"RevisionHash": "67c86f77ff75bb706cc0d2b6", 
+	"ChangeNumber": 25, 
+	"Collections": { 
+		"ProjectSettings": [ 
+			{ 
+				"Id": "049bc0604c363a980b000088", 
+				"Name": "Test Project", 
+				"PrimaryLanguage": "ru-RU", 
+				"Languages": "en-GB;fr-FR", 
+				"Copyright": "GameDevWare (с) 2025", 
+				"Version": "1.0.0.0" 
+			} 
+		], 
+		"Schema": [ 
+			{ 
+				"Id": "18d4bf318f3c49688087dbed", 
+				"Name": "Schema", 
+				"DisplayName": "Schemas", 
+				"Type": 0, 
+				"Description": null, 
+				"IdGenerator": 1, 
+				"Specification": "classgen=skip&icon=blueprint&group=Metadata", 
+				"Properties": [ 
+					{ 
+						"Id": "53bd34a376a21229219cb156", 
+						"Name": "Id", 
+						"DisplayName": "Id", 
+						"Description": null, 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 1, 
+						"Requirement": 3, 
+						"ReferenceType": null, 
+						"Size": 24, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "3ad672c130f6192149605540", 
+						"Name": "Name", 
+						"DisplayName": "Name", 
+						"Description": null, 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 2, 
+						"Requirement": 3, 
+						"ReferenceType": null, 
+						"Size": 128, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "16e2300bf6a23c488629e69d", 
+						"Name": "DisplayName", 
+						"DisplayName": "Display Name", 
+						"Description": null, 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 3, 
+						"ReferenceType": null, 
+						"Size": 128, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "59f9e7dc923a364298db5e34", 
+						"Name": "Type", 
+						"DisplayName": "Type", 
+						"Description": null, 
+						"DataType": 18, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 4, 
+						"Specification": "pick.Normal=0&pick.Component=1&pick.Settings=2" 
+					}, 
+					{ 
+						"Id": "59088257983a362690093cf4", 
+						"Name": "Description", 
+						"DisplayName": "Description", 
+						"Description": null, 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 2048, 
+						"Specification": "editor=textareafield&editor.grow=true" 
+					}, 
+					{ 
+						"Id": "41a0a2dd9519fbb5e32c5932", 
+						"Name": "IdGenerator", 
+						"DisplayName": "Id Generator", 
+						"Description": null, 
+						"DataType": 18, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 4, 
+						"Specification": "pick.None=0&pick.ObjectId=1&pick.Guid=2&pick.Sequence=3&pick.GlobalSequence=4" 
+					}, 
+					{ 
+						"Id": "356560097834457153bb7b64", 
+						"Name": "Specification", 
+						"DisplayName": "Specification", 
+						"Description": null, 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 10240, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "cec3d153d20fdb588c1161c9", 
+						"Name": "Properties", 
+						"DisplayName": "Properties", 
+						"Description": null, 
+						"DataType": 23, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": { 
+							"Id": "d40d8eb1a23248b69b252eea", 
+							"DisplayName": "Properties" 
+						}, 
+						"Size": 0, 
+						"Specification": null 
+					} 
+				] 
+			}, 
+			{ 
+				"Id": "55a4f32faca22e191098f3d9", 
+				"Name": "ProjectSettings", 
+				"DisplayName": "Project Settings", 
+				"Type": 2, 
+				"Description": null, 
+				"IdGenerator": 1, 
+				"Specification": "classgen=skip&icon=gear&type=settings&group=Settings", 
+				"Properties": [ 
+					{ 
+						"Id": "59088258983a362690093d00", 
+						"Name": "Id", 
+						"DisplayName": "Id", 
+						"Description": null, 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 1, 
+						"Requirement": 3, 
+						"ReferenceType": null, 
+						"Size": 24, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "59088258983a362690093d01", 
+						"Name": "Name", 
+						"DisplayName": "Project Name", 
+						"Description": null, 
+						"DataType": 0, 
+						"DefaultValue": "Untitled Project", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 128, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "59088259983a362690093d0f", 
+						"Name": "PrimaryLanguage", 
+						"DisplayName": "Primary Language", 
+						"Description": null, 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 32, 
+						"Specification": "editor=languagefield" 
+					}, 
+					{ 
+						"Id": "59088259983a362690093d0d", 
+						"Name": "Languages", 
+						"DisplayName": "Languages", 
+						"Description": null, 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": "editor=languagelistfield" 
+					}, 
+					{ 
+						"Id": "59088259983a362690093d0b", 
+						"Name": "Copyright", 
+						"DisplayName": "Copyright", 
+						"Description": null, 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 512, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "59f9e7dc923a364298db5e33", 
+						"Name": "Version", 
+						"DisplayName": "Version", 
+						"Description": null, 
+						"DataType": 0, 
+						"DefaultValue": "0.0.0.0", 
+						"Uniqueness": 0, 
+						"Requirement": 3, 
+						"ReferenceType": null, 
+						"Size": 16, 
+						"Specification": "" 
+					} 
+				] 
+			}, 
+			{ 
+				"Id": "592fc86c983a36266c0912a0", 
+				"Name": "TestEntity", 
+				"DisplayName": "Test Entity", 
+				"Type": 0, 
+				"Description": "This is test description", 
+				"IdGenerator": 0, 
+				"Specification": "icon=fugue16%2Fabacus&group=Test%20Group", 
+				"Properties": [ 
+					{ 
+						"Id": "592fc86c983a36266c0912a1", 
+						"Name": "Id", 
+						"DisplayName": "Id", 
+						"Description": "", 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 1, 
+						"Requirement": 3, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "592fc9f8983a36266c0912aa", 
+						"Name": "TextField", 
+						"DisplayName": "Text Field", 
+						"Description": "", 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "592fc9f8983a36266c0912ab", 
+						"Name": "LocalizedTextField", 
+						"DisplayName": "Localized Text Field", 
+						"Description": "", 
+						"DataType": 1, 
+						"DefaultValue": "Translate Me!", 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "592fc9f8983a36266c0912ac", 
+						"Name": "LogicalField", 
+						"DisplayName": "Logical Field", 
+						"Description": "", 
+						"DataType": 5, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "592fc9f8983a36266c0912ad", 
+						"Name": "TimeField", 
+						"DisplayName": "Time Field", 
+						"Description": "", 
+						"DataType": 8, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "592fc9f8983a36266c0912ae", 
+						"Name": "DateField", 
+						"DisplayName": "Date Field", 
+						"Description": "", 
+						"DataType": 9, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "592fc9f8983a36266c0912af", 
+						"Name": "NumberField", 
+						"DisplayName": "Number Field", 
+						"Description": "", 
+						"DataType": 12, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 4, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "667c727d983a3609b8318817", 
+						"Name": "NumberFieldX64", 
+						"DisplayName": "Number Field X64", 
+						"Description": "", 
+						"DataType": 12, 
+						"DefaultValue": "0", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 8, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "592fc9f8983a36266c0912b0", 
+						"Name": "IntegerField", 
+						"DisplayName": "Integer Field", 
+						"Description": "", 
+						"DataType": 13, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 4, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "667c727d983a3609b8318818", 
+						"Name": "IntegerFieldX64", 
+						"DisplayName": "Integer Field X64", 
+						"Description": "", 
+						"DataType": 13, 
+						"DefaultValue": "0", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 8, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "592fc9f8983a36266c0912b1", 
+						"Name": "PickListField", 
+						"DisplayName": "Pick List Field", 
+						"Description": "", 
+						"DataType": 18, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 4, 
+						"Specification": "pick.None=0&pick.PickValue1=1&pick.PickValue2=2&pick.PickValue3=3&pick.PickValue4=4" 
+					}, 
+					{ 
+						"Id": "592fc9f9983a36266c0912b2", 
+						"Name": "MultiPickListField", 
+						"DisplayName": "Multi Pick List Field", 
+						"Description": "", 
+						"DataType": 19, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 4, 
+						"Specification": "pick.None=0&pick.PickValue1=1&pick.PickValue2=2&pick.PickValue3=3&pick.PickValue4=4" 
+					}, 
+					{ 
+						"Id": "592fc9f9983a36266c0912b3", 
+						"Name": "DocumentField", 
+						"DisplayName": "Document Field", 
+						"Description": "", 
+						"DataType": 22, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": { 
+							"Id": "592fc86c983a36266c0912a0", 
+							"DisplayName": "Test Entity" 
+						}, 
+						"Size": 0, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "592fc9f9983a36266c0912b4", 
+						"Name": "ListOfDocumentsField", 
+						"DisplayName": "List Of Documents Field", 
+						"Description": "", 
+						"DataType": 23, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": { 
+							"Id": "592fc86c983a36266c0912a0", 
+							"DisplayName": "Test Entity" 
+						}, 
+						"Size": 0, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "592fc9f9983a36266c0912b5", 
+						"Name": "ReferenceField", 
+						"DisplayName": "Reference Field", 
+						"Description": "", 
+						"DataType": 28, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": { 
+							"Id": "592fc86c983a36266c0912a0", 
+							"DisplayName": "Test Entity" 
+						}, 
+						"Size": 0, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "592fc9f9983a36266c0912b6", 
+						"Name": "ListOfReferencesField", 
+						"DisplayName": "List Of References Field", 
+						"Description": "", 
+						"DataType": 29, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": { 
+							"Id": "592fc86c983a36266c0912a0", 
+							"DisplayName": "Test Entity" 
+						}, 
+						"Size": 0, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "592fc9f9983a36266c0912b7", 
+						"Name": "FormulaField", 
+						"DisplayName": "Formula Field", 
+						"Description": "", 
+						"DataType": 35, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": "result=System.Int32&knownType=System.Guid&knownType=System.Int32&knownType=System.Boolean&param.arg1=System.Int32&param.arg2=System.Int32&param.arg3=System.Int32&param.arg4=System.Int32" 
+					}, 
+					{ 
+						"Id": "5d9faf605a363a9807000024", 
+						"Name": "IsPublished", 
+						"DisplayName": "Is Published", 
+						"Description": "", 
+						"DataType": 5, 
+						"DefaultValue": "True", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": "display=hidden&editor=hidden" 
+					} 
+				] 
+			}, 
+			{ 
+				"Id": "592fc894983a36266c0912a4", 
+				"Name": "RecursiveEntity", 
+				"DisplayName": "Recursive Entity", 
+				"Type": 0, 
+				"Description": null, 
+				"IdGenerator": 1, 
+				"Specification": "icon=document-tree&displayNameTemplate=Title%3A%20%7BTitle%7D%2C%20Children%3A%20%28%7BChildren%7D%29&group=Test%20Group", 
+				"Properties": [ 
+					{ 
+						"Id": "592fc894983a36266c0912a5", 
+						"Name": "Id", 
+						"DisplayName": "Id", 
+						"Description": null, 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 1, 
+						"Requirement": 3, 
+						"ReferenceType": null, 
+						"Size": 24, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "592fc8e6983a36266c0912a7", 
+						"Name": "Title", 
+						"DisplayName": "Title", 
+						"Description": null, 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "592fc8e6983a36266c0912a8", 
+						"Name": "Children", 
+						"DisplayName": "Children", 
+						"Description": null, 
+						"DataType": 23, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": { 
+							"Id": "592fc894983a36266c0912a4", 
+							"DisplayName": "Recursive Entity" 
+						}, 
+						"Size": 0, 
+						"Specification": null 
+					} 
+				] 
+			}, 
+			{ 
+				"Id": "592fdb43983a3619c016b696", 
+				"Name": "NumberTestEntity", 
+				"DisplayName": "Number Test Entity", 
+				"Type": 0, 
+				"Description": null, 
+				"IdGenerator": 4, 
+				"Specification": "icon=script-binary&group=Test%20Group", 
+				"Properties": [ 
+					{ 
+						"Id": "592fdb43983a3619c016b697", 
+						"Name": "Id", 
+						"DisplayName": "Id", 
+						"Description": null, 
+						"DataType": 13, 
+						"DefaultValue": null, 
+						"Uniqueness": 1, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 4, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "592fdb43983a3619c016b698", 
+						"Name": "Number32Bit", 
+						"DisplayName": "Number 32 Bit", 
+						"Description": null, 
+						"DataType": 12, 
+						"DefaultValue": "0.00", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 4, 
+						"Specification": "precision=2" 
+					}, 
+					{ 
+						"Id": "592fdb43983a3619c016b699", 
+						"Name": "Number64Bit", 
+						"DisplayName": "Number 64 Bit", 
+						"Description": null, 
+						"DataType": 12, 
+						"DefaultValue": "0.00", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 8, 
+						"Specification": "precision=2" 
+					}, 
+					{ 
+						"Id": "592fdb43983a3619c016b69a", 
+						"Name": "Integer8Bit", 
+						"DisplayName": "Integer 8 Bit", 
+						"Description": null, 
+						"DataType": 13, 
+						"DefaultValue": "0", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 1, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "592fdb43983a3619c016b69b", 
+						"Name": "Integer16Bit", 
+						"DisplayName": "Integer 16 Bit", 
+						"Description": null, 
+						"DataType": 13, 
+						"DefaultValue": "0", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 2, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "592fdb43983a3619c016b69c", 
+						"Name": "Integer32Bit", 
+						"DisplayName": "Integer 32 Bit", 
+						"Description": null, 
+						"DataType": 13, 
+						"DefaultValue": "0", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 4, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "592fdb43983a3619c016b69d", 
+						"Name": "Integer64Bit", 
+						"DisplayName": "Integer 64 Bit", 
+						"Description": null, 
+						"DataType": 13, 
+						"DefaultValue": "0", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 8, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "592fdb43983a3619c016b69e", 
+						"Name": "PickList8Bit", 
+						"DisplayName": "Pick List 8 Bit", 
+						"Description": null, 
+						"DataType": 18, 
+						"DefaultValue": "1", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 1, 
+						"Specification": "pick.One=1&pick.Two=2&pick.Three=3&pick.Four=4&pick.Five=5" 
+					}, 
+					{ 
+						"Id": "592fdb43983a3619c016b69f", 
+						"Name": "PickList16Bit", 
+						"DisplayName": "Pick List 16 Bit", 
+						"Description": null, 
+						"DataType": 18, 
+						"DefaultValue": "1", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 2, 
+						"Specification": "pick.One=1&pick.Two=2&pick.Three=3&pick.Four=4&pick.Five=5" 
+					}, 
+					{ 
+						"Id": "592fdb43983a3619c016b6a0", 
+						"Name": "PickList32Bit", 
+						"DisplayName": "Pick List 32 Bit", 
+						"Description": null, 
+						"DataType": 18, 
+						"DefaultValue": "1", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 4, 
+						"Specification": "pick.One=1&pick.Two=2&pick.Three=3&pick.Four=4&pick.Five=5" 
+					}, 
+					{ 
+						"Id": "592fdb43983a3619c016b6a1", 
+						"Name": "PickList64Bit", 
+						"DisplayName": "Pick List 64 Bit", 
+						"Description": null, 
+						"DataType": 18, 
+						"DefaultValue": "1", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 8, 
+						"Specification": "pick.One=1&pick.Two=2&pick.Three=3&pick.Four=4&pick.Five=5" 
+					}, 
+					{ 
+						"Id": "592fdb43983a3619c016b6a2", 
+						"Name": "MultiPickList8Bit", 
+						"DisplayName": "Multi Pick List 8 Bit", 
+						"Description": null, 
+						"DataType": 19, 
+						"DefaultValue": "0", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 1, 
+						"Specification": "pick.One=1&pick.Two=2&pick.Four=4&pick.Eight=8" 
+					}, 
+					{ 
+						"Id": "592fdb43983a3619c016b6a3", 
+						"Name": "MultiPickList16Bit", 
+						"DisplayName": "Multi Pick List 16 Bit", 
+						"Description": null, 
+						"DataType": 19, 
+						"DefaultValue": "0", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 2, 
+						"Specification": "pick.One=1&pick.Two=2&pick.Four=4&pick.Eight=8" 
+					}, 
+					{ 
+						"Id": "592fdb43983a3619c016b6a4", 
+						"Name": "MultiPickList32Bit", 
+						"DisplayName": "Multi Pick List 32 Bit", 
+						"Description": null, 
+						"DataType": 19, 
+						"DefaultValue": "0", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 4, 
+						"Specification": "pick.One=1&pick.Two=2&pick.Four=4&pick.Eight=8" 
+					}, 
+					{ 
+						"Id": "592fdb43983a3619c016b6a5", 
+						"Name": "MultiPickList64Bit", 
+						"DisplayName": "Multi Pick List 64 Bit", 
+						"Description": null, 
+						"DataType": 19, 
+						"DefaultValue": "0", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 8, 
+						"Specification": "pick.One=1&pick.Two=2&pick.Four=4&pick.Eight=8" 
+					} 
+				] 
+			}, 
+			{ 
+				"Id": "65d3565e27363a98010000ec", 
+				"Name": "UniqueAttributeEntity", 
+				"DisplayName": "Unique Attribute Entity", 
+				"Type": 0, 
+				"Description": "", 
+				"IdGenerator": 0, 
+				"Specification": "icon=money-bag-yen&group=Test%20Group", 
+				"Properties": [ 
+					{ 
+						"Id": "65d3565e27363a98020000ec", 
+						"Name": "Id", 
+						"DisplayName": "Id", 
+						"Description": "", 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 1, 
+						"Requirement": 3, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "65d3565e27363a98030000ec", 
+						"Name": "snake_case_key", 
+						"DisplayName": "lower case key", 
+						"Description": "", 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 1, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "65d3565e27363a98040000ec", 
+						"Name": "camelCaseKey", 
+						"DisplayName": "camel Case Key", 
+						"Description": "", 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 1, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "65d3565e27363a98050000ec", 
+						"Name": "DromedaryCaseKey", 
+						"DisplayName": "Dromedary Case Key", 
+						"Description": "", 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 1, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "65d3565e27363a98060000ec", 
+						"Name": "TextKey", 
+						"DisplayName": "Text Key", 
+						"Description": "", 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 1, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "65d3565e27363a98070000ec", 
+						"Name": "NonRequiredKey", 
+						"DisplayName": "Non Required Key", 
+						"Description": "", 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 1, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "65d3565e27363a98080000ec", 
+						"Name": "NumberKey", 
+						"DisplayName": "Number Key", 
+						"Description": "", 
+						"DataType": 12, 
+						"DefaultValue": null, 
+						"Uniqueness": 1, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 4, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "65d3565e27363a98090000ec", 
+						"Name": "IntegerKey", 
+						"DisplayName": "Integer Key", 
+						"Description": "", 
+						"DataType": 13, 
+						"DefaultValue": "0", 
+						"Uniqueness": 1, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 4, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "65d3565e27363a980a0000ec", 
+						"Name": "PickListKey", 
+						"DisplayName": "Pick List Key", 
+						"Description": "", 
+						"DataType": 18, 
+						"DefaultValue": "1", 
+						"Uniqueness": 1, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 4, 
+						"Specification": "pick.Value=1&pick.Value2=2" 
+					}, 
+					{ 
+						"Id": "65d3565e27363a980b0000ec", 
+						"Name": "MultiPickListKey", 
+						"DisplayName": "Multi Pick List Key", 
+						"Description": "", 
+						"DataType": 19, 
+						"DefaultValue": "1", 
+						"Uniqueness": 1, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 4, 
+						"Specification": "pick.Value=1&pick.Value2=2" 
+					}, 
+					{ 
+						"Id": "667c71e7983a3609b8318801", 
+						"Name": "TimeSpanKey", 
+						"DisplayName": "Time Key", 
+						"Description": "", 
+						"DataType": 8, 
+						"DefaultValue": "00:00:00", 
+						"Uniqueness": 1, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": "" 
+					}, 
+					{ 
+						"Id": "667c71e7983a3609b8318802", 
+						"Name": "DateTimeKey", 
+						"DisplayName": "Date Key", 
+						"Description": "", 
+						"DataType": 9, 
+						"DefaultValue": "1970-01-01", 
+						"Uniqueness": 1, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": "" 
+					} 
+				] 
+			}, 
+			{ 
+				"Id": "d40d8eb1a23248b69b252eea", 
+				"Name": "SchemaProperty", 
+				"DisplayName": "Properties", 
+				"Type": 1, 
+				"Description": null, 
+				"IdGenerator": 1, 
+				"Specification": "classgen=skip&type=component&group=Design", 
+				"Properties": [ 
+					{ 
+						"Id": "dfd84fc9957e94f02f9f60cc", 
+						"Name": "Id", 
+						"DisplayName": "Id", 
+						"Description": null, 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 1, 
+						"Requirement": 3, 
+						"ReferenceType": null, 
+						"Size": 24, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "bd453e1e7f1543a7133d7fb1", 
+						"Name": "Name", 
+						"DisplayName": "Name", 
+						"Description": null, 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 2, 
+						"Requirement": 3, 
+						"ReferenceType": null, 
+						"Size": 128, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "993520ecbe361cf06d060f2a", 
+						"Name": "DisplayName", 
+						"DisplayName": "Display Name", 
+						"Description": null, 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 3, 
+						"ReferenceType": null, 
+						"Size": 128, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "59088257983a362690093cf6", 
+						"Name": "Description", 
+						"DisplayName": "Description", 
+						"Description": null, 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 2048, 
+						"Specification": "editor=textareafield&editor.grow=true" 
+					}, 
+					{ 
+						"Id": "7286478a63f200a094a1cdc8", 
+						"Name": "DataType", 
+						"DisplayName": "Data Type", 
+						"Description": null, 
+						"DataType": 18, 
+						"DefaultValue": "0", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 4, 
+						"Specification": "pick.Text=0&pick.LocalizedText=1&pick.Logical=5&pick.Time=8&pick.Date=9&pick.Number=12&pick.Document=22&pick.DocumentCollection=23&pick.Integer=13&pick.PickList=18&pick.Formula=35&pick.MultiPickList=19&pick.Reference=28&pick.ReferenceCollection=29" 
+					}, 
+					{ 
+						"Id": "a15529ef753f70deed4af17e", 
+						"Name": "DefaultValue", 
+						"DisplayName": "Default Value", 
+						"Description": null, 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 2048, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "caaa34c8708b5550c95004d9", 
+						"Name": "Uniqueness", 
+						"DisplayName": "Uniqueness", 
+						"Description": null, 
+						"DataType": 18, 
+						"DefaultValue": "0", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 4, 
+						"Specification": "pick.None=0&pick.Unique=1&pick.UniqueInCollection=2" 
+					}, 
+					{ 
+						"Id": "d3e46e75b8a33b2b202f1a45", 
+						"Name": "Requirement", 
+						"DisplayName": "Requirement", 
+						"Description": null, 
+						"DataType": 18, 
+						"DefaultValue": "0", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 4, 
+						"Specification": "pick.None=0&pick.NotNull=2&pick.NotEmpty=3" 
+					}, 
+					{ 
+						"Id": "e3664a130c8c9f45220f08a7", 
+						"Name": "ReferenceType", 
+						"DisplayName": "Reference Type", 
+						"Description": null, 
+						"DataType": 28, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": { 
+							"Id": "18d4bf318f3c49688087dbed", 
+							"DisplayName": "Schemas" 
+						}, 
+						"Size": 0, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "8ddc9671536310356d553f7b", 
+						"Name": "Size", 
+						"DisplayName": "Size", 
+						"Description": null, 
+						"DataType": 13, 
+						"DefaultValue": "0", 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 4, 
+						"Specification": null 
+					}, 
+					{ 
+						"Id": "f1c2a71b2da0b365a852ae7a", 
+						"Name": "Specification", 
+						"DisplayName": "Specification", 
+						"Description": null, 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 10240, 
+						"Specification": null 
+					} 
+				] 
+			} 
+		], 
+		"SchemaProperty": [ 
+		], 
+		"NumberTestEntity": [ 
+			{ 
+				"Id": 1, 
+				"Number32Bit": 123, 
+				"Number64Bit": 0, 
+				"Integer8Bit": 0, 
+				"Integer16Bit": 0, 
+				"Integer32Bit": 0, 
+				"Integer64Bit": 0, 
+				"PickList8Bit": 2, 
+				"PickList16Bit": 2, 
+				"PickList32Bit": 2, 
+				"PickList64Bit": 3, 
+				"MultiPickList8Bit": 0, 
+				"MultiPickList16Bit": 0, 
+				"MultiPickList32Bit": 0, 
+				"MultiPickList64Bit": 0 
+			}, 
+			{ 
+				"Id": 2, 
+				"Number32Bit": 1, 
+				"Number64Bit": 2, 
+				"Integer8Bit": 1, 
+				"Integer16Bit": 2, 
+				"Integer32Bit": 3, 
+				"Integer64Bit": 4, 
+				"PickList8Bit": 1, 
+				"PickList16Bit": 2, 
+				"PickList32Bit": 3, 
+				"PickList64Bit": 4, 
+				"MultiPickList8Bit": 1, 
+				"MultiPickList16Bit": 2, 
+				"MultiPickList32Bit": 4, 
+				"MultiPickList64Bit": 8 
+			} 
+		], 
+		"RecursiveEntity": [ 
+			{ 
+				"Id": "592fd9e3983a3619c016b68e", 
+				"Title": "Test", 
+				"Children": [ 
+					{ 
+						"Id": "592fd9e3983a3619c016b68f", 
+						"Title": "Test1", 
+						"Children": [ 
+							{ 
+								"Id": "592fd9e3983a3619c016b690", 
+								"Title": "Test2", 
+								"Children": [ 
+									{ 
+										"Id": "592fd9e3983a3619c016b691", 
+										"Title": "Test3", 
+										"Children": [ 
+											{ 
+												"Id": "592fd9e3983a3619c016b692", 
+												"Title": "Test4", 
+												"Children": [ 
+													{ 
+														"Id": "592fd9e3983a3619c016b693", 
+														"Title": "Test5", 
+														"Children": [ 
+														] 
+													} 
+												] 
+											} 
+										] 
+									} 
+								] 
+							} 
+						] 
+					} 
+				] 
+			} 
+		], 
+		"TestEntity": [ 
+			{ 
+				"Id": "TestEntity1", 
+				"TextField": "Test", 
+				"LocalizedTextField": { 
+					"ru-RU": "Test", 
+					"en-GB": "Test", 
+					"fr-FR": "Test", 
+					"notes": { 
+						"comment": "Test" 
+					} 
+				}, 
+				"LogicalField": null, 
+				"TimeField": "00:00:01", 
+				"DateField": "2017-05-31T00:00:00.000Z", 
+				"NumberField": 1, 
+				"NumberFieldX64": 9007199254740992, 
+				"IntegerField": 2147483647, 
+				"IntegerFieldX64": "9223372036854775807", 
+				"PickListField": 1, 
+				"MultiPickListField": 1, 
+				"DocumentField": { 
+					"Id": "TestEntity2", 
+					"TextField": "Test2", 
+					"LocalizedTextField": { 
+						"ru-RU": "Test2", 
+						"en-GB": "Test2", 
+						"fr-FR": "Test2", 
+						"notes": null 
+					}, 
+					"LogicalField": false, 
+					"TimeField": "00:00:02", 
+					"DateField": "2017-06-02T00:00:00.000Z", 
+					"NumberField": -0.1, 
+					"NumberFieldX64": -9007199254740992, 
+					"IntegerField": -2147483648, 
+					"IntegerFieldX64": "-9223372036854775808", 
+					"PickListField": 2, 
+					"MultiPickListField": 3, 
+					"DocumentField": null, 
+					"ListOfDocumentsField": [ 
+					], 
+					"ReferenceField": null, 
+					"ListOfReferencesField": [ 
+					], 
+					"FormulaField": null, 
+					"IsPublished": true 
+				}, 
+				"ListOfDocumentsField": [ 
+					{ 
+						"Id": "TestEntity3", 
+						"TextField": "Test3", 
+						"LocalizedTextField": { 
+							"ru-RU": "Test3", 
+							"en-GB": "Test3", 
+							"fr-FR": "Test3", 
+							"notes": null 
+						}, 
+						"LogicalField": true, 
+						"TimeField": null, 
+						"DateField": null, 
+						"NumberField": null, 
+						"NumberFieldX64": 0, 
+						"IntegerField": null, 
+						"IntegerFieldX64": 0, 
+						"PickListField": 0, 
+						"MultiPickListField": 0, 
+						"DocumentField": null, 
+						"ListOfDocumentsField": [ 
+						], 
+						"ReferenceField": null, 
+						"ListOfReferencesField": [ 
+						], 
+						"FormulaField": null, 
+						"IsPublished": true 
+					} 
+				], 
+				"ReferenceField": { 
+					"Id": "TestEntity1", 
+					"DisplayName": "TestEntity1" 
+				}, 
+				"ListOfReferencesField": [ 
+					{ 
+						"Id": "TestEntity1", 
+						"DisplayName": "TestEntity1" 
+					} 
+				], 
+				"FormulaField": { 
+					"expressionType": "AddChecked", 
+					"left": { 
+						"expressionType": "AddChecked", 
+						"left": { 
+							"expressionType": "AddChecked", 
+							"left": { 
+								"expressionType": "PropertyOrField", 
+								"propertyOrFieldName": "arg1", 
+								"expression": null, 
+								"useNullPropagation": false, 
+								"_pos": "1:1+4" 
+							}, 
+							"right": { 
+								"expressionType": "PropertyOrField", 
+								"propertyOrFieldName": "arg2", 
+								"expression": null, 
+								"useNullPropagation": false, 
+								"_pos": "1:8+4" 
+							}, 
+							"_pos": "1:6+1" 
+						}, 
+						"right": { 
+							"expressionType": "PropertyOrField", 
+							"propertyOrFieldName": "arg3", 
+							"expression": null, 
+							"useNullPropagation": false, 
+							"_pos": "1:15+4" 
+						}, 
+						"_pos": "1:13+1" 
+					}, 
+					"right": { 
+						"expressionType": "PropertyOrField", 
+						"propertyOrFieldName": "arg4", 
+						"expression": null, 
+						"useNullPropagation": false, 
+						"_pos": "1:22+4" 
+					}, 
+					"_cs": "arg1 + arg2 + arg3 + arg4", 
+					"_pos": "1:20+1" 
+				}, 
+				"IsPublished": true 
+			} 
+		], 
+		"UniqueAttributeEntity": [ 
+			{ 
+				"Id": "UniqueAttributeEntity1", 
+				"snake_case_key": "lower", 
+				"camelCaseKey": "upper", 
+				"DromedaryCaseKey": "drome", 
+				"TextKey": "text", 
+				"NonRequiredKey": null, 
+				"NumberKey": 1.2, 
+				"IntegerKey": 1, 
+				"PickListKey": 1, 
+				"MultiPickListKey": 2, 
+				"TimeSpanKey": "01:00:00", 
+				"DateTimeKey": "1970-07-10T00:00:00.000Z" 
+			} 
+		] 
+	} 
+}
