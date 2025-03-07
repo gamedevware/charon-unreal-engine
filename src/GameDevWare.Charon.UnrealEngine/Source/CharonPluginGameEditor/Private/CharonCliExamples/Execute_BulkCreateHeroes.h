@@ -1,3 +1,5 @@
+// Copyright GameDevWare, Denis Zykov 2025
+
 #pragma once
 #include "GameData/UGameDataBase.h"
 #include "GameData/CommandLine/FCharonCli.h"
@@ -6,7 +8,7 @@
 static TSharedPtr<ICharonTask> CurrentBulkCreateTask;
 
 /**
- * Example creating multiple documents in Game Data file.
+ * Example of creating multiple documents in a Game Data file.
  */
 static void Execute_BulkCreateHeroes(const TArray<UObject*> ContextSensitiveObjects)
 {
@@ -22,7 +24,7 @@ static void Execute_BulkCreateHeroes(const TArray<UObject*> ContextSensitiveObje
 	}
 
 	const FString GameDataPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), GameDataPtr->AssetImportData->GetFirstFilename());
-	UE_LOG(LogFGameDataExtensionCommands, Log, TEXT("Creating multiple heroes to '%s'..."), *GameDataPath);
+	UE_LOG(LogFGameDataExtensionCommands, Log, TEXT("Creating multiple heroes in '%s'..."), *GameDataPath);
 	
 	const TSharedRef<FJsonObject> ImportData = MakeShared<FJsonObject>();
 	const TSharedRef<FJsonObject> Collections = MakeShared<FJsonObject>();
@@ -34,27 +36,27 @@ static void Execute_BulkCreateHeroes(const TArray<UObject*> ContextSensitiveObje
 	HeroDocument1->SetBoolField(TEXT("Religious"), false);
 
 	TSharedPtr<FJsonObject> HeroDocument2 = MakeShared<FJsonObject>();
-	HeroDocument2->SetStringField(TEXT("Id"), TEXT("WounderBobby"));
-	HeroDocument2->SetStringField(TEXT("Name"), TEXT("Wounder Bobby"));
+	HeroDocument2->SetStringField(TEXT("Id"), TEXT("WonderBobby"));
+	HeroDocument2->SetStringField(TEXT("Name"), TEXT("Wonder Bobby"));
 	HeroDocument2->SetBoolField(TEXT("Religious"), true);
 
-	// Putting documents into Hero collection
+	// Adding documents to the Hero collection
 	HeroCollection.Add(MakeShared<FJsonValueObject>(HeroDocument1));
 	HeroCollection.Add(MakeShared<FJsonValueObject>(HeroDocument2));
 
-	// Putting Hero collection inside Collections
+	// Adding the Hero collection to Collections
 	Collections->SetArrayField("Hero", HeroCollection);
 
-	// Putting Collection into root no, so Hero documents would be under /Collections/Hero/0 and /Collections/Hero/1 paths
+	// Adding Collections to the root node so Hero documents will be under /Collections/Hero/0 and /Collections/Hero/1 paths
 	ImportData->SetObjectField("Collections", Collections);
 
 	//
-	// Documentation for Import command and its parameters:
+	// Documentation for the Import command and its parameters:
 	// https://gamedevware.github.io/charon/advanced/commands/data_import.html
 	//
 	const auto BulkCreateTask = FCharonCli::Import(
 		GameDataPath,
-		FString(), // Api Key
+		FString(), // API Key
 		TArray<FString> { TEXT("*") }, // Schemas
 		ImportData,
 		EImportMode::CreateAndUpdate
@@ -67,13 +69,13 @@ static void Execute_BulkCreateHeroes(const TArray<UObject*> ContextSensitiveObje
 	
 	BulkCreateTask->OnCommandFailed().AddLambda([](const int ExitCode, const FString& Output)
 	{
-		UE_LOG(LogFGameDataExtensionCommands, Warning, TEXT("Command run failed with exit code %d. Output %s."), ExitCode, *Output);
+		UE_LOG(LogFGameDataExtensionCommands, Warning, TEXT("Command execution failed with exit code %d. Output: %s."), ExitCode, *Output);
 	});
 	
 	BulkCreateTask->Start(/* EventDispatchThread */ ENamedThreads::GameThread);
 
 	//
-	// Make sure that Task will outlive this method call.
+	// Ensure the task outlives this method call by storing it in a shared pointer.
 	//
 	CurrentBulkCreateTask = BulkCreateTask;
 }

@@ -1,4 +1,6 @@
-﻿#pragma once
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#pragma once
 #include "ICharonTask.h"
 
 class FRenamedCharonTask final : public ICharonTask

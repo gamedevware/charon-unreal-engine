@@ -1,4 +1,6 @@
-﻿#include "FDeferredGameDataImporter.h"
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#include "FDeferredGameDataImporter.h"
 
 #include "AssetToolsModule.h"
 #include "IAssetTools.h"

@@ -1,3 +1,5 @@
+// Copyright GameDevWare, Denis Zykov 2025
+
 #pragma once
 #include "GameData/UGameDataBase.h"
 #include "GameData/CommandLine/FCharonCli.h"
@@ -6,7 +8,7 @@
 static TSharedPtr<ICharonTask> CurrentBulkDeleteTask;
 
 /**
- * Example creating multiple documents in Game Data file.
+ * Example of deleting multiple documents from a Game Data file.
  */
 static void Execute_BulkDeleteHeroes(const TArray<UObject*> ContextSensitiveObjects)
 {
@@ -22,13 +24,13 @@ static void Execute_BulkDeleteHeroes(const TArray<UObject*> ContextSensitiveObje
 	}
 
 	const FString GameDataPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), GameDataPtr->AssetImportData->GetFirstFilename());
-	UE_LOG(LogFGameDataExtensionCommands, Log, TEXT("Deleting multiple heroes to '%s'..."), *GameDataPath);
+	UE_LOG(LogFGameDataExtensionCommands, Log, TEXT("Deleting multiple heroes from '%s'..."), *GameDataPath);
 	
 	const TSharedRef<FJsonObject> ImportData = MakeShared<FJsonObject>();
 	const TSharedRef<FJsonObject> Collections = MakeShared<FJsonObject>();
 	TArray<TSharedPtr<FJsonValue>> HeroCollection = TArray<TSharedPtr<FJsonValue>>();
 
-	// only Ids are required for mass delete
+	// Only IDs are required for mass deletion
 	TSharedPtr<FJsonObject> HeroDocument1 = MakeShared<FJsonObject>();
 	HeroDocument1->SetStringField(TEXT("Id"), TEXT("Crossbower"));
 
@@ -38,24 +40,24 @@ static void Execute_BulkDeleteHeroes(const TArray<UObject*> ContextSensitiveObje
 	TSharedPtr<FJsonObject> HeroDocument3 = MakeShared<FJsonObject>();
 	HeroDocument3->SetStringField(TEXT("Id"), TEXT("Zealot"));
 	
-	// Putting documents into Hero collection
+	// Adding documents to the Hero collection
 	HeroCollection.Add(MakeShared<FJsonValueObject>(HeroDocument1));
 	HeroCollection.Add(MakeShared<FJsonValueObject>(HeroDocument2));
 	HeroCollection.Add(MakeShared<FJsonValueObject>(HeroDocument3));
 
-	// Putting Hero collection inside Collections
+	// Adding the Hero collection to Collections
 	Collections->SetArrayField("Hero", HeroCollection);
 
-	// Putting Collection into root no, so Hero documents would be under /Collections/Hero/0 and /Collections/Hero/1 paths
+	// Adding Collections to the root node so Hero documents will be under /Collections/Hero/0, /Collections/Hero/1, etc.
 	ImportData->SetObjectField("Collections", Collections);
 
 	//
-	// Documentation for Import command and its parameters:
+	// Documentation for the Import command and its parameters:
 	// https://gamedevware.github.io/charon/advanced/commands/data_import.html
 	//
 	const auto BulkDeleteTask = FCharonCli::Import(
 		GameDataPath,
-		FString(), // Api Key
+		FString(), // API Key
 		TArray<FString> { TEXT("*") }, // Schemas
 		ImportData,
 		EImportMode::Delete
@@ -68,13 +70,13 @@ static void Execute_BulkDeleteHeroes(const TArray<UObject*> ContextSensitiveObje
 	
 	BulkDeleteTask->OnCommandFailed().AddLambda([](const int ExitCode, const FString& Output)
 	{
-		UE_LOG(LogFGameDataExtensionCommands, Warning, TEXT("Command run failed with exit code %d. Output %s."), ExitCode, *Output);
+		UE_LOG(LogFGameDataExtensionCommands, Warning, TEXT("Command execution failed with exit code %d. Output: %s."), ExitCode, *Output);
 	});
 	
 	BulkDeleteTask->Start(/* EventDispatchThread */ ENamedThreads::GameThread);
 
 	//
-	// Make sure that Task will outlive this method call.
+	// Ensure the task outlives this method call by storing it in a shared pointer.
 	//
 	CurrentBulkDeleteTask = BulkDeleteTask;
 }

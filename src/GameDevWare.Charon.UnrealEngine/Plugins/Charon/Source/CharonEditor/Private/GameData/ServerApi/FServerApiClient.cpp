@@ -1,4 +1,4 @@
-﻿// Copyright GameDevWare, Denis Zykov 2024
+﻿// Copyright GameDevWare, Denis Zykov 2025
 
 // ReSharper disable CppPassValueParameterByConstReference
 #pragma once

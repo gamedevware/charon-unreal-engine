@@ -1,4 +1,6 @@
-﻿#include "GameData/UGameDataImportData.h"
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#include "GameData/UGameDataImportData.h"
 #include "Misc/Paths.h"
 
 bool UGameDataImportData::IsConnected() const

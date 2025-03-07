@@ -1,3 +1,5 @@
+// Copyright GameDevWare, Denis Zykov 2025
+
 #pragma once
 #include "GameData/UGameDataBase.h"
 #include "GameData/CommandLine/FCharonCli.h"
@@ -6,8 +8,8 @@
 static TSharedPtr<ICharonTask> CurrentDeleteByIdTask;
 
 /**
-* Example deleting single document by id in Game Data file.
-*/
+ * Example of deleting a single document by ID in a Game Data file.
+ */
 static void Execute_DeleteHeroById(const TArray<UObject*> ContextSensitiveObjects)
 {
 	if (ContextSensitiveObjects.IsEmpty())
@@ -22,17 +24,17 @@ static void Execute_DeleteHeroById(const TArray<UObject*> ContextSensitiveObject
 	}
 
 	const FString GameDataPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), GameDataPtr->AssetImportData->GetFirstFilename());
-	UE_LOG(LogFGameDataExtensionCommands, Log, TEXT("Deleting hero document by known id at '%s'..."), *GameDataPath);
+	UE_LOG(LogFGameDataExtensionCommands, Log, TEXT("Deleting hero document with ID 'SuperBoy' from '%s'..."), *GameDataPath);
 	
 	//
-	// Documentation for DeleteDocument command and its parameters:
+	// Documentation for the DeleteDocument command and its parameters:
 	// https://gamedevware.github.io/charon/advanced/commands/data_delete.html
 	//
 	const auto DeleteTask = FCharonCli::DeleteDocument(
 		GameDataPath,
-		FString(), // Api Key
+		FString(), // API Key
 		TEXT("Hero"), // Schema
-		TEXT("SuperBoy")  // Id
+		TEXT("SuperBoy")  // Document ID
 	);
 	
 	DeleteTask->OnCommandSucceed().AddLambda([](TSharedPtr<FJsonObject> DeletedDocument)
@@ -42,13 +44,13 @@ static void Execute_DeleteHeroById(const TArray<UObject*> ContextSensitiveObject
 	
 	DeleteTask->OnCommandFailed().AddLambda([](const int ExitCode, const FString& Output)
 	{
-		UE_LOG(LogFGameDataExtensionCommands, Warning, TEXT("Command run failed with exit code %d. Output %s."), ExitCode, *Output);
+		UE_LOG(LogFGameDataExtensionCommands, Warning, TEXT("Command execution failed with exit code %d. Output: %s."), ExitCode, *Output);
 	});
 	
 	DeleteTask->Start(/* EventDispatchThread */ ENamedThreads::GameThread);
 
 	//
-	// Make sure that Task will outlive this method call.
+	// Ensure the task outlives this method call by storing it in a shared pointer.
 	//
 	CurrentDeleteByIdTask = DeleteTask;
 }

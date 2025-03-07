@@ -1,3 +1,5 @@
+// Copyright GameDevWare, Denis Zykov 2025
+
 #pragma once
 #include "GameData/UGameDataBase.h"
 #include "GameData/CommandLine/FCharonCli.h"
@@ -6,8 +8,8 @@
 static TSharedPtr<ICharonTask> CurrentCreateTask;
 
 /**
-* Example creating single document in Game Data file.
-*/
+ * Example of creating a single document in a Game Data file.
+ */
 static void Execute_CreateHero(const TArray<UObject*> ContextSensitiveObjects)
 {
 	if (ContextSensitiveObjects.IsEmpty())
@@ -22,7 +24,7 @@ static void Execute_CreateHero(const TArray<UObject*> ContextSensitiveObjects)
 	}
 
 	const FString GameDataPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), GameDataPtr->AssetImportData->GetFirstFilename());
-	UE_LOG(LogFGameDataExtensionCommands, Log, TEXT("Create hero document at '%s'..."), *GameDataPath);
+	UE_LOG(LogFGameDataExtensionCommands, Log, TEXT("Creating hero document at '%s'..."), *GameDataPath);
 	
 	const TSharedPtr<FJsonObject> HeroDocument = MakeShared<FJsonObject>();
 	
@@ -30,9 +32,9 @@ static void Execute_CreateHero(const TArray<UObject*> ContextSensitiveObjects)
 	HeroDocument->SetStringField(TEXT("Name"), TEXT("Super Boy"));
 	HeroDocument->SetBoolField(TEXT("Religious"), false);
 	
-	// many fields omitted here
+	// Many fields omitted here
 
-	// list of references example
+	// Example: List of references
 	TArray<TSharedPtr<FJsonValue>> DislikeHeroes = TArray<TSharedPtr<FJsonValue>>();
 	TSharedPtr<FJsonObject> CrossbowerReference = MakeShared<FJsonObject>();
 	CrossbowerReference->SetStringField(TEXT("Id"), TEXT("Crossbower"));
@@ -40,7 +42,7 @@ static void Execute_CreateHero(const TArray<UObject*> ContextSensitiveObjects)
 	
 	HeroDocument->SetArrayField(TEXT("DislikeHeroes"), DislikeHeroes);
 	
-	// list of embedded documents example
+	// Example: List of embedded documents
 	TArray<TSharedPtr<FJsonValue>> Armors = TArray<TSharedPtr<FJsonValue>>();
 	
 	TSharedPtr<FJsonObject> Armor1 = MakeShared<FJsonObject>();
@@ -60,12 +62,12 @@ static void Execute_CreateHero(const TArray<UObject*> ContextSensitiveObjects)
 	HeroDocument->SetArrayField(TEXT("Armors"), Armors);
 
 	//
-	// Documentation for Import command and its parameters:
-	// https://gamedevware.github.io/charon/advanced/commands/data_import.html
+	// Documentation for the CreateDocument command and its parameters:
+	// https://gamedevware.github.io/charon/advanced/commands/data_create.html
 	//
 	const auto CreateTask = FCharonCli::CreateDocument(
 		GameDataPath,
-		FString(), // Api Key
+		FString(), // API Key
 		TEXT("Hero"), // Schema
 		HeroDocument.ToSharedRef()
 	);
@@ -77,13 +79,13 @@ static void Execute_CreateHero(const TArray<UObject*> ContextSensitiveObjects)
 	
 	CreateTask->OnCommandFailed().AddLambda([](const int ExitCode, const FString& Output)
 	{
-		UE_LOG(LogFGameDataExtensionCommands, Warning, TEXT("Command run failed with exit code %d. Output %s."), ExitCode, *Output);
+		UE_LOG(LogFGameDataExtensionCommands, Warning, TEXT("Command execution failed with exit code %d. Output: %s."), ExitCode, *Output);
 	});
 	
 	CreateTask->Start(/* EventDispatchThread */ ENamedThreads::GameThread);
 
 	//
-	// Make sure that Task will outlive this method call.
+	// Ensure the task outlives this method call by storing it in a shared pointer.
 	//
 	CurrentCreateTask = CreateTask;
 }

@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright GameDevWare, Denis Zykov 2025
 
 #pragma once
 

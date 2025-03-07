@@ -1,3 +1,5 @@
+// Copyright GameDevWare, Denis Zykov 2025
+
 #pragma once
 #include "GameData/UGameDataBase.h"
 #include "GameData/CommandLine/FCharonCli.h"
@@ -6,11 +8,11 @@
 static TSharedPtr<ICharonTask> CurrentUpdateTask;
 
 /**
-* Example updating single document in Game Data file.
-*/
+ * Example of updating a single document in a Game Data file.
+ */
 static void Execute_UpdateHero(const TArray<UObject*> ContextSensitiveObjects)
 {
-if (ContextSensitiveObjects.IsEmpty())
+	if (ContextSensitiveObjects.IsEmpty())
 	{
 		return;
 	}
@@ -25,16 +27,16 @@ if (ContextSensitiveObjects.IsEmpty())
 	UE_LOG(LogFGameDataExtensionCommands, Log, TEXT("Updating hero document at '%s'..."), *GameDataPath);
 	
 	const TSharedPtr<FJsonObject> HeroDocument = MakeShared<FJsonObject>();
-	// Id field is mandatory for the update operation.
+	// The "Id" field is mandatory for the update operation.
 	HeroDocument->SetStringField(TEXT("Id"), TEXT("SuperBoy"));
 	
-	// To update field just specify name and new value.
+	// To update a field, specify its name and new value.
 	HeroDocument->SetBoolField(TEXT("Religious"), true);
 	
 	// When updating collections, you must specify all existing documents in the collection by their ID.
 	// Any missing documents will be deleted during the update operation.
-	// Sometimes it's easier to find a document through a FindDocument() operation, update the required field, and UpdateDocument() the document back.
-	TArray<TSharedPtr<FJsonValue>> Armors = TArray<TSharedPtr<FJsonValue>>();
+	// Sometimes it's easier to find a document through a FindDocument() operation, update the required field, and then use UpdateDocument() to save the changes.
+	TArray<TSharedPtr<FJsonValue>> Armors;
 	
 	TSharedPtr<FJsonObject> Armor1 = MakeShared<FJsonObject>();
 	Armor1->SetStringField(TEXT("Id"), TEXT("CrossbowerArmor1"));
@@ -61,12 +63,12 @@ if (ContextSensitiveObjects.IsEmpty())
 	HeroDocument->SetArrayField(TEXT("Armors"), Armors);
 
 	//
-	// Documentation for UpdateDocument command and its parameters:
+	// Documentation for the UpdateDocument command and its parameters:
 	// https://gamedevware.github.io/charon/advanced/commands/data_update.html
 	//
 	const auto UpdateTask = FCharonCli::UpdateDocument(
 		GameDataPath,
-		FString(), // Api Key
+		FString(), // API Key
 		TEXT("Hero"), // Schema
 		HeroDocument.ToSharedRef()
 	);
@@ -78,13 +80,13 @@ if (ContextSensitiveObjects.IsEmpty())
 	
 	UpdateTask->OnCommandFailed().AddLambda([](const int ExitCode, const FString& Output)
 	{
-		UE_LOG(LogFGameDataExtensionCommands, Warning, TEXT("Command run failed with exit code %d. Output %s."), ExitCode, *Output);
+		UE_LOG(LogFGameDataExtensionCommands, Warning, TEXT("Command execution failed with exit code %d. Output: %s"), ExitCode, *Output);
 	});
 	
 	UpdateTask->Start(/* EventDispatchThread */ ENamedThreads::GameThread);
 
 	//
-	// Make sure that Task will outlive this method call.
+	// Ensure the task outlives this method call by storing it in a shared pointer.
 	//
 	CurrentUpdateTask = UpdateTask;
 }

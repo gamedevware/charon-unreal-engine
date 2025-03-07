@@ -1,3 +1,5 @@
+// Copyright GameDevWare, Denis Zykov 2025
+
 #pragma once
 #include "GameData/UGameDataBase.h"
 #include "GameData/CommandLine/FCharonCli.h"
@@ -6,7 +8,7 @@
 static TSharedPtr<ICharonTask> CurrentI18NExportTask;
 
 /**
- * Example exporting of localizable data from Game Data file into XLSX file.
+ * Example of exporting localizable data from a Game Data file into an XLSX file.
  */
 static void Execute_ExportLocalizableData(const TArray<UObject*> ContextSensitiveObjects)
 {
@@ -25,36 +27,37 @@ static void Execute_ExportLocalizableData(const TArray<UObject*> ContextSensitiv
 		
 	UE_LOG(LogFGameDataExtensionCommands, Log, TEXT("Exporting localizable data from '%s'..."), *GameDataPath);
 
-	const FString XslxExportPath = FPaths::CreateTempFilename(FPlatformProcess::UserTempDir(), TEXT("CharonExportToFile"), TEXT(".xslx"));
+	// Generate a temporary file path for the exported XLSX file.
+	const FString XlsxExportPath = FPaths::CreateTempFilename(FPlatformProcess::UserTempDir(), TEXT("CharonExport"), TEXT(".xlsx"));
 
 	//
-	// Documentation for I18NExport command and its parameters:
+	// Documentation for the I18NExport command and its parameters:
 	// https://gamedevware.github.io/charon/advanced/commands/data_i18n_export.html
 	//
 	const auto ExportTask = FCharonCli::I18NExportToFile(
 		GameDataPath,
-		FString(), // Api Key
-		TArray<FString> { TEXT("*") }, // Schemas
-		TEXT("en-US"), // Source Language
-		TEXT("es-ES"), // Target Language
-		XslxExportPath,
-		TEXT("xslx") // Format
+		FString(), // API Key
+		TArray<FString>{ TEXT("*") }, // Schemas (use "*" to export all)
+		TEXT("en-US"), // Source language
+		TEXT("es-ES"), // Target language
+		XlsxExportPath, // Output file path
+		TEXT("xlsx") // Export format
 	);
 		
-	ExportTask->OnCommandSucceed().AddLambda([XslxExportPath](int _)
+	ExportTask->OnCommandSucceed().AddLambda([XlsxExportPath](int _)
 	{
-		UE_LOG(LogFGameDataExtensionCommands, Log, TEXT("Export succeed into file: %s"), *XslxExportPath);
+		UE_LOG(LogFGameDataExtensionCommands, Log, TEXT("Export succeeded. File saved to: %s"), *XlsxExportPath);
 	});
 		
 	ExportTask->OnCommandFailed().AddLambda([](const int ExitCode, const FString& Output)
 	{
-		UE_LOG(LogFGameDataExtensionCommands, Warning, TEXT("Command run failed with exit code %d. Output %s."), ExitCode, *Output);
+		UE_LOG(LogFGameDataExtensionCommands, Warning, TEXT("Command execution failed with exit code %d. Output: %s"), ExitCode, *Output);
 	});
 		
 	ExportTask->Start(/* EventDispatchThread */ ENamedThreads::GameThread);
 
 	//
-	// Make sure that Task will outlive this method call.
+	// Ensure the task outlives this method call by storing it in a shared pointer.
 	//
 	CurrentI18NExportTask = ExportTask;
 }

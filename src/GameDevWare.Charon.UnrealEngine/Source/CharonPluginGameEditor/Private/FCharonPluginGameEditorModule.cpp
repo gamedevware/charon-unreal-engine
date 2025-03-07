@@ -1,3 +1,5 @@
+// Copyright GameDevWare, Denis Zykov 2025
+
 #include "FCharonPluginGameEditorModule.h"
 #include "CharonCliExamples/FGameDataExtensionCommands.h"
 #include "GameData/FCharonEditorModule.h"

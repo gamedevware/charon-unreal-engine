@@ -1,3 +1,5 @@
+// Copyright GameDevWare, Denis Zykov 2025
+
 #pragma once
 #include "GameDataExtensionCommandsLog.h"
 
@@ -8,8 +10,7 @@ static bool TryReadJson(const FString& JsonContent, TSharedPtr<FJsonObject>& Out
 
 	if (!FJsonSerializer::Deserialize(JsonReader, OutValue) || !OutValue.IsValid())
 	{
-		UE_LOG(LogFGameDataExtensionCommands, Warning, TEXT("Failed to read content as JSON. Output is not a valid JSON. Output: "));
-		UE_LOG(LogFGameDataExtensionCommands, Warning, TEXT("%s"), *JsonContent);
+		UE_LOG(LogFGameDataExtensionCommands, Warning, TEXT("Failed to read content as JSON. Input is not valid JSON. Content: %s"), *JsonContent);
 		return false;
 	}
 
@@ -30,6 +31,7 @@ static bool TryReadJsonFile(const FString& FilePath, TSharedPtr<FJsonObject>& Ou
 	FString JsonContent;
 	if (!FFileHelper::LoadFileToString(JsonContent, *FilePath))
 	{
+		UE_LOG(LogFGameDataExtensionCommands, Warning, TEXT("Failed to read JSON file. File not found or could not be read: %s"), *FilePath);
 		return false;
 	}
 	
