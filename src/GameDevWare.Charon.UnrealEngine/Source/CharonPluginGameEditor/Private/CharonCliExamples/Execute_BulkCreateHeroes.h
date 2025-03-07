@@ -3,12 +3,12 @@
 #include "GameData/CommandLine/FCharonCli.h"
 #include "GameDataExtensionCommandsLog.h"
 
-static TSharedPtr<ICharonTask> CurrentImportTask;
+static TSharedPtr<ICharonTask> CurrentBulkCreateTask;
 
 /**
  * Example creating multiple documents in Game Data file.
  */
-static void Execute_ImportHero(const TArray<UObject*> ContextSensitiveObjects)
+static void Execute_BulkCreateHeroes(const TArray<UObject*> ContextSensitiveObjects)
 {
 	if (ContextSensitiveObjects.IsEmpty())
 	{
@@ -22,7 +22,7 @@ static void Execute_ImportHero(const TArray<UObject*> ContextSensitiveObjects)
 	}
 
 	const FString GameDataPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), GameDataPtr->AssetImportData->GetFirstFilename());
-	UE_LOG(LogFGameDataExtensionCommands, Log, TEXT("Importing heroes to FJsonObject to '%s'..."), *GameDataPath);
+	UE_LOG(LogFGameDataExtensionCommands, Log, TEXT("Creating multiple heroes to '%s'..."), *GameDataPath);
 	
 	const TSharedRef<FJsonObject> ImportData = MakeShared<FJsonObject>();
 	const TSharedRef<FJsonObject> Collections = MakeShared<FJsonObject>();
@@ -52,7 +52,7 @@ static void Execute_ImportHero(const TArray<UObject*> ContextSensitiveObjects)
 	// Documentation for Import command and its parameters:
 	// https://gamedevware.github.io/charon/advanced/commands/data_import.html
 	//
-	const auto ImportTask = FCharonCli::Import(
+	const auto BulkCreateTask = FCharonCli::Import(
 		GameDataPath,
 		FString(), // Api Key
 		TArray<FString> { TEXT("*") }, // Schemas
@@ -60,20 +60,20 @@ static void Execute_ImportHero(const TArray<UObject*> ContextSensitiveObjects)
 		EImportMode::CreateAndUpdate
 	);
 	
-	ImportTask->OnCommandSucceed().AddLambda([](int _)
+	BulkCreateTask->OnCommandSucceed().AddLambda([](int _)
 	{
-		UE_LOG(LogFGameDataExtensionCommands, Log, TEXT("Successfully imported documents."));
+		UE_LOG(LogFGameDataExtensionCommands, Log, TEXT("Successfully created documents."));
 	});
 	
-	ImportTask->OnCommandFailed().AddLambda([](const int ExitCode, const FString& Output)
+	BulkCreateTask->OnCommandFailed().AddLambda([](const int ExitCode, const FString& Output)
 	{
 		UE_LOG(LogFGameDataExtensionCommands, Warning, TEXT("Command run failed with exit code %d. Output %s."), ExitCode, *Output);
 	});
 	
-	ImportTask->Start(/* EventDispatchThread */ ENamedThreads::GameThread);
+	BulkCreateTask->Start(/* EventDispatchThread */ ENamedThreads::GameThread);
 
 	//
 	// Make sure that Task will outlive this method call.
 	//
-	CurrentImportTask = ImportTask;
+	CurrentBulkCreateTask = BulkCreateTask;
 }

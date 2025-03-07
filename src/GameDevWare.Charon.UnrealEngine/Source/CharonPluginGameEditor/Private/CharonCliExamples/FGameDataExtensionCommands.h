@@ -11,7 +11,8 @@
 #include "Execute_ExportLocalizableData.h"
 #include "Execute_FindHeroById.h"
 #include "Execute_GetT4TemplateGenerator.h"
-#include "Execute_ImportHero.h"
+#include "Execute_BulkCreateHeroes.h"
+#include "Execute_BulkDeleteHeroes.h"
 #include "Execute_ListItems.h"
 #include "Execute_ListReligiousHeroes.h"
 #include "Execute_RunT4Template.h"
@@ -29,7 +30,8 @@ public:
 	TSharedPtr<FUICommandInfo> ExportHeroes;
 	TSharedPtr<FUICommandInfo> ExportHeroesToFile;
 	TSharedPtr<FUICommandInfo> ExportLocalizableData;
-	TSharedPtr<FUICommandInfo> ImportHero;
+	TSharedPtr<FUICommandInfo> BulkCreateHeroes;
+	TSharedPtr<FUICommandInfo> BulkDeleteHeroes;
 	TSharedPtr<FUICommandInfo> CreateHero;
 	TSharedPtr<FUICommandInfo> DeleteHeroById;
 	TSharedPtr<FUICommandInfo> DeleteHero;
@@ -56,7 +58,8 @@ public:
 		UI_COMMAND(ExportHeroes, "Export Heroes", "", EUserInterfaceActionType::Button, FInputChord());
 		UI_COMMAND(ExportHeroesToFile, "Export Heroes to File", "", EUserInterfaceActionType::Button, FInputChord());
 		UI_COMMAND(ExportLocalizableData, "Export Localizable Data", "", EUserInterfaceActionType::Button, FInputChord());
-		UI_COMMAND(ImportHero, "Import Hero", "", EUserInterfaceActionType::Button, FInputChord());
+		UI_COMMAND(BulkCreateHeroes, "Bulk Create Heroes", "", EUserInterfaceActionType::Button, FInputChord());
+		UI_COMMAND(BulkDeleteHeroes, "Bulk Delete Heroes", "", EUserInterfaceActionType::Button, FInputChord());
 		UI_COMMAND(CreateHero, "Create Hero", "", EUserInterfaceActionType::Button, FInputChord());
 		UI_COMMAND(DeleteHeroById, "Delete Hero By Id", "", EUserInterfaceActionType::Button, FInputChord());
 		UI_COMMAND(DeleteHero, "Delete Hero", "", EUserInterfaceActionType::Button, FInputChord());
@@ -78,7 +81,8 @@ public:
 		GameDataUICommandList->MapAction(GameDataExtensionCommands.ExportHeroes, FExecuteAction::CreateStatic(&Execute_ExportHeroes, ContextSensitiveObjects));
 		GameDataUICommandList->MapAction(GameDataExtensionCommands.ExportHeroesToFile, FExecuteAction::CreateStatic(&Execute_ExportHeroesToFile, ContextSensitiveObjects));
 		GameDataUICommandList->MapAction(GameDataExtensionCommands.ExportLocalizableData, FExecuteAction::CreateStatic(&Execute_ExportLocalizableData, ContextSensitiveObjects));
-		GameDataUICommandList->MapAction(GameDataExtensionCommands.ImportHero, FExecuteAction::CreateStatic(&Execute_ImportHero, ContextSensitiveObjects));
+		GameDataUICommandList->MapAction(GameDataExtensionCommands.BulkCreateHeroes, FExecuteAction::CreateStatic(&Execute_BulkCreateHeroes, ContextSensitiveObjects));
+		GameDataUICommandList->MapAction(GameDataExtensionCommands.BulkDeleteHeroes, FExecuteAction::CreateStatic(&Execute_BulkDeleteHeroes, ContextSensitiveObjects));
 		GameDataUICommandList->MapAction(GameDataExtensionCommands.CreateHero, FExecuteAction::CreateStatic(&Execute_CreateHero, ContextSensitiveObjects));
 		GameDataUICommandList->MapAction(GameDataExtensionCommands.DeleteHeroById, FExecuteAction::CreateStatic(&Execute_DeleteHeroById, ContextSensitiveObjects));
 		GameDataUICommandList->MapAction(GameDataExtensionCommands.DeleteHero, FExecuteAction::CreateStatic(&Execute_DeleteHero, ContextSensitiveObjects));
@@ -105,7 +109,8 @@ public:
 					InMenuBuilder.AddMenuEntry(GameDataExtensionCommands.ExportHeroes);
 					InMenuBuilder.AddMenuEntry(GameDataExtensionCommands.ExportHeroesToFile);
 					InMenuBuilder.AddMenuEntry(GameDataExtensionCommands.ExportLocalizableData);
-					InMenuBuilder.AddMenuEntry(GameDataExtensionCommands.ImportHero);
+					InMenuBuilder.AddMenuEntry(GameDataExtensionCommands.BulkCreateHeroes);
+					InMenuBuilder.AddMenuEntry(GameDataExtensionCommands.BulkDeleteHeroes);
 					InMenuBuilder.AddMenuEntry(GameDataExtensionCommands.CreateHero);
 					InMenuBuilder.AddMenuEntry(GameDataExtensionCommands.DeleteHeroById);
 					InMenuBuilder.AddMenuEntry(GameDataExtensionCommands.DeleteHero);
