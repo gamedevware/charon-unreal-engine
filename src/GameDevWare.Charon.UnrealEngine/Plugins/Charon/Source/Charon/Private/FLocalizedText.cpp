@@ -1,7 +1,5 @@
 // Copyright GameDevWare, Denis Zykov 2025
 
-#pragma once
-
 #include "GameData/FLocalizedText.h"
 
 FLocalizedText::FLocalizedText

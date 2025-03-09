@@ -1,7 +1,5 @@
 // Copyright GameDevWare, Denis Zykov 2025
 
-#pragma once
-
 #include "GameData/GameDataAssetActions/UImportGameDataFactory.h"
 #include "UObject/Class.h"
 #include "Misc/FeedbackContext.h"

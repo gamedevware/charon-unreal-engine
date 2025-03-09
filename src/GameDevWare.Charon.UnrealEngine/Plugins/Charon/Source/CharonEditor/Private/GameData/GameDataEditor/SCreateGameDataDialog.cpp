@@ -1,8 +1,5 @@
 ﻿// Copyright GameDevWare, Denis Zykov 2025
 
-#pragma once
-
-
 #include "SCreateGameDataDialog.h"
 
 #include "GameData/FDeferredGameDataImporter.h"

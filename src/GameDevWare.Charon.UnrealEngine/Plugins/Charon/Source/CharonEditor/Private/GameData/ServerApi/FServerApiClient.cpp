@@ -1,7 +1,6 @@
 ﻿// Copyright GameDevWare, Denis Zykov 2025
 
 // ReSharper disable CppPassValueParameterByConstReference
-#pragma once
 
 #include "FServerApiClient.h"
 

@@ -1,7 +1,5 @@
 ﻿// Copyright GameDevWare, Denis Zykov 2025
 
-#pragma once
-
 #include "FGameDataDocumentReferenceCustomization.h"
 #include "AssetRegistry/AssetData.h"
 #include "Containers/Map.h"

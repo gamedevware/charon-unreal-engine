@@ -1,5 +1,4 @@
 ﻿// Copyright GameDevWare, Denis Zykov 2025
-#pragma once
 
 #include "GameData/Formatters/FMessagePackGameDataReader.h"
 #include "Misc/Base64.h"

@@ -1,7 +1,5 @@
 ﻿// Copyright GameDevWare, Denis Zykov 2025
 
-#pragma once
-
 #include "GameData/FGameDataAssetTypeActions.h"
 #include "GameData/ICharonEditorModule.h"
 #include "GameData/GameDataEditor/FGameDataEditorToolkit.h"

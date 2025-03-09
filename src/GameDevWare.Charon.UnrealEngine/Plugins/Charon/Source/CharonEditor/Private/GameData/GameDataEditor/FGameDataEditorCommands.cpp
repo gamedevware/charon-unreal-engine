@@ -1,7 +1,5 @@
 ﻿// Copyright GameDevWare, Denis Zykov 2025
 
-#pragma once
-
 #include "FGameDataEditorCommands.h"
 
 #define LOCTEXT_NAMESPACE "GameDataEditorCommands"
