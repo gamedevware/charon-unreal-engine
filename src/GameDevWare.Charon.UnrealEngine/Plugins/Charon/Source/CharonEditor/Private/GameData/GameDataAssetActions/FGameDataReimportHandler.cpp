@@ -89,6 +89,11 @@ EReimportResult::Type FGameDataReimportHandler::Reimport(UObject* Obj)
 
 	UE_LOG(LogFGameDataReimportHandler, Log, TEXT("Successfully imported game data from file '%s' in %f seconds."), *GameDataFilePath, FPlatformTime::Seconds() - StartTime);
 
+	if (!GameData->AssetImportData->PublishLanguages.IsEmpty())
+	{
+		GameData->SetSupportedLanguages(GameData->AssetImportData->PublishLanguages);	
+	}
+	
 	return EReimportResult::Succeeded;
 #else
 	return EReimportResult::Failed;

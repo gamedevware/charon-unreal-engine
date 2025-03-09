@@ -43,12 +43,16 @@ public:
 	/*
 	 * Get all document ids by specified SchemaNameOrId. Used by FGameDataDocumentReferenceCustomization.
 	 */
-	virtual void GetDocumentIds(const FString& SchemaNameOrId, TArray<FString>& AllIds) { }
+	virtual void GetDocumentIds(const FString& SchemaNameOrId, TArray<FString>& OutAllIds) { }
 	/*
 	 * Get all schema names defined in derived game data class. Used by FGameDataDocumentReferenceCustomization.
 	 */
-	virtual void GetDocumentSchemaNames(TArray<FString>& AllSchemaNames) { }
-
+	virtual void GetDocumentSchemaNames(TArray<FString>& OutAllSchemaNames) { }
+	/*
+	 * Make sure only specified languages are left in this game data.
+	 */
+	virtual void SetSupportedLanguages(const TArray<FString>& LanguageIds) { }
+	
 	virtual void PostInitProperties() override;
 	virtual void PostLoad() override;
 };

@@ -13,6 +13,26 @@ bool UGameDataEditorWebBrowserBridge::Publish(FString Format, TArray<FString> La
 {
 	const auto EditorToolkitPtr = EditorToolkit.Pin();
 	if (!EditorToolkitPtr.IsValid()) { return false; }
+
+	if (Languages.Num() == 1 && Languages[0] == TEXT("*"))
+	{
+		Languages.Empty(); // empty languages = all languages
+	} 
+
+	for (FString& LanguageId : Languages)
+	{
+		if (LanguageId.Len() >= 2 && LanguageId.StartsWith("{") && LanguageId.EndsWith("}"))
+		{
+			LanguageId.MidInline(1, LanguageId.Len() - 2);
+		}
+	}
+	
+	for (auto EditingObjectPtr : EditorToolkitPtr->GetEditingObjectPtrs())
+	{
+		const UGameDataBase* GameDataPtr = Cast<UGameDataBase>(EditingObjectPtr);
+		if (!GameDataPtr) continue;
+		GameDataPtr->AssetImportData->PublishLanguages = Languages;
+	}
 	EditorToolkitPtr->Sync_Execute();
 	return true;
 }

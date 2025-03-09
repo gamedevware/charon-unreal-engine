@@ -176,6 +176,11 @@ UObject* UImportGameDataFactory::FactoryCreateBinary
 
 	ImportSubsystem->BroadcastAssetPostImport(this, GameData);
 
+	if (!GameData->AssetImportData->PublishLanguages.IsEmpty())
+	{
+		GameData->SetSupportedLanguages(GameData->AssetImportData->PublishLanguages);	
+	}
+	
 	return GameData;
 }
 
