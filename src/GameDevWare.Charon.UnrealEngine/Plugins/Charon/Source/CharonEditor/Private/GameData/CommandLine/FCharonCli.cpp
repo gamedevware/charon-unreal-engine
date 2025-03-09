@@ -213,7 +213,7 @@ TSharedRef<TPreparedCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::ListDocumen
 	                                                                TempOutputFile);
 }
 
-TSharedRef<TPreparedCliCommand<>> FCharonCli::Import(
+TSharedRef<TPreparedCliCommand<FImportReport>> FCharonCli::Import(
 	const FString& GameDataUrl,
 	const FString& ApiKey,
 	const TArray<FString>& SchemaNamesOrIds,
@@ -221,6 +221,7 @@ TSharedRef<TPreparedCliCommand<>> FCharonCli::Import(
 	const EImportMode ImportMode,
 	const ECharonLogLevel LogsVerbosity)
 {
+	const FString TempOutputFile = PrepareTempOutputFile();
 	FString ImportModeName;
 	switch (ImportMode)
 	{
@@ -246,21 +247,23 @@ TSharedRef<TPreparedCliCommand<>> FCharonCli::Import(
 	}
 	const FString TempInputFile = WriteJsonToTempFile(DocumentsBySchemaNameOrId);
 	const FString Params = FString::Format(
-		TEXT("DATA IMPORT --dataBase \"{0}\" --input \"{1}\" --inputFormat json --schemas {2} --mode {3} {4}"), {
+		TEXT("DATA IMPORT --dataBase \"{0}\" --input \"{1}\" --inputFormat json --schemas {2} --mode {3} --output \"{4}\" --outputFormat json {5}"), {
 			GameDataUrl,
 			TempInputFile,
 			SchemaNamesOrIds.IsEmpty() ? "*" : FString::Join(SchemaNamesOrIds, TEXT(" ")),
 			ImportModeName,
+			TempOutputFile,
 			GetLogOptions(LogsVerbosity)
 		});
 
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
 	CommandRunner->AttachTemporaryFile(TempInputFile);
-	return MakeShared<TPreparedCliCommand<>>(CommandRunner, INVTEXT("Importing documents"));
+	CommandRunner->AttachTemporaryFile(TempOutputFile);
+	return MakeShared<TPreparedCliCommand<FImportReport>>(CommandRunner, INVTEXT("Importing documents"), TempOutputFile);
 }
 
-TSharedRef<TPreparedCliCommand<>> FCharonCli::ImportFromFile(
+TSharedRef<TPreparedCliCommand<FImportReport>> FCharonCli::ImportFromFile(
 	const FString& GameDataUrl,
 	const FString& ApiKey,
 	const TArray<FString>& SchemaNamesOrIds,
@@ -269,6 +272,7 @@ TSharedRef<TPreparedCliCommand<>> FCharonCli::ImportFromFile(
 	const FString& Format,
 	const ECharonLogLevel LogsVerbosity)
 {
+	const FString TempOutputFile = PrepareTempOutputFile();
 	FString ImportModeName;
 	switch (ImportMode)
 	{
@@ -293,18 +297,20 @@ TSharedRef<TPreparedCliCommand<>> FCharonCli::ImportFromFile(
 		break;
 	}
 	const FString Params = FString::Format(
-		TEXT("DATA IMPORT --dataBase \"{0}\" --input \"{1}\" --inputFormat {4} --schemas {2} --mode {3} {5}"), {
+		TEXT("DATA IMPORT --dataBase \"{0}\" --input \"{1}\" --inputFormat {2} --schemas {3} --mode {4} --output \"{5}\" --outputFormat json {6}"), {
 			GameDataUrl,
 			DocumentsBySchemaNameOrIdFilePath,
+			Format,
 			SchemaNamesOrIds.IsEmpty() ? "*" : FString::Join(SchemaNamesOrIds, TEXT(" ")),
 			ImportModeName,
-			Format,
+			TempOutputFile,
 			GetLogOptions(LogsVerbosity)
 		});
 
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
-	return MakeShared<TPreparedCliCommand<>>(CommandRunner, INVTEXT("Importing documents"));
+	CommandRunner->AttachTemporaryFile(TempOutputFile);
+	return MakeShared<TPreparedCliCommand<FImportReport>>(CommandRunner, INVTEXT("Importing documents"), TempOutputFile);
 }
 
 TSharedRef<TPreparedCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::Export(
@@ -402,7 +408,7 @@ TSharedRef<TPreparedCliCommand<>> FCharonCli::ExportToFile(
 	return MakeShared<TPreparedCliCommand<>>(CommandRunner, INVTEXT("Exporting documents"));
 }
 
-TSharedRef<TPreparedCliCommand<>> FCharonCli::I18NImport(
+TSharedRef<TPreparedCliCommand<FImportReport>> FCharonCli::I18NImport(
 	const FString& GameDataUrl,
 	const FString& ApiKey,
 	const TArray<FString>& SchemaNamesOrIds,
@@ -410,24 +416,27 @@ TSharedRef<TPreparedCliCommand<>> FCharonCli::I18NImport(
 	const TSharedRef<FJsonObject>& DocumentsBySchemaNameOrId,
 	const ECharonLogLevel LogsVerbosity)
 {
+	const FString TempOutputFile = PrepareTempOutputFile();
 	const FString TempInputFile = WriteJsonToTempFile(DocumentsBySchemaNameOrId);
 	const FString Params = FString::Format(
-		TEXT("DATA I18N IMPORT --dataBase \"{0}\" --schemas {1} --languages {2} --inputFormat json --input \"{3}\" {4}"),
+		TEXT("DATA I18N IMPORT --dataBase \"{0}\" --schemas {1} --languages {2} --inputFormat json --input \"{3}\" --output \"{4}\" --outputFormat json {5}"),
 		{
 			GameDataUrl,
 			SchemaNamesOrIds.IsEmpty() ? "*" : FString::Join(SchemaNamesOrIds, TEXT(" ")),
 			LanguageIds.IsEmpty() ? "*" : FString::Join(LanguageIds, TEXT(" ")),
 			TempInputFile,
+			TempOutputFile,
 			GetLogOptions(LogsVerbosity)
 		});
 
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
 	CommandRunner->AttachTemporaryFile(TempInputFile);
-	return MakeShared<TPreparedCliCommand<>>(CommandRunner, INVTEXT("Importing documents"));
+	CommandRunner->AttachTemporaryFile(TempOutputFile);
+	return MakeShared<TPreparedCliCommand<FImportReport>>(CommandRunner, INVTEXT("Importing documents"), TempOutputFile);
 }
 
-TSharedRef<TPreparedCliCommand<>> FCharonCli::I18NImportFromFile(
+TSharedRef<TPreparedCliCommand<FImportReport>> FCharonCli::I18NImportFromFile(
 	const FString& GameDataUrl,
 	const FString& ApiKey,
 	const TArray<FString>& SchemaNamesOrIds,
@@ -436,20 +445,23 @@ TSharedRef<TPreparedCliCommand<>> FCharonCli::I18NImportFromFile(
 	const FString& Format,
 	const ECharonLogLevel LogsVerbosity)
 {
+	const FString TempOutputFile = PrepareTempOutputFile();
 	const FString Params = FString::Format(
-		TEXT("DATA I18N IMPORT --dataBase \"{0}\" --schemas {1} --languages {2} --inputFormat {3} --input \"{4}\" {5}"),
+		TEXT("DATA I18N IMPORT --dataBase \"{0}\" --schemas {1} --languages {2} --inputFormat {3} --input \"{4}\" --output \"{5}\" --outputFormat json {6}"),
 		{
 			GameDataUrl,
 			SchemaNamesOrIds.IsEmpty() ? "*" : FString::Join(SchemaNamesOrIds, TEXT(" ")),
 			LanguageIds.IsEmpty() ? "*" : FString::Join(LanguageIds, TEXT(" ")),
 			Format,
 			DocumentsBySchemaNameOrIdFilePath,
+			TempOutputFile,
 			GetLogOptions(LogsVerbosity)
 		});
 
 	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
 	CommandRunner->SetApiKey(ApiKey);
-	return MakeShared<TPreparedCliCommand<>>(CommandRunner, INVTEXT("Importing documents"));
+	CommandRunner->AttachTemporaryFile(TempOutputFile);
+	return MakeShared<TPreparedCliCommand<FImportReport>>(CommandRunner, INVTEXT("Importing documents"), TempOutputFile);
 }
 
 TSharedRef<TPreparedCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::I18NExport(

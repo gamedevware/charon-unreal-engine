@@ -164,7 +164,7 @@ public:
 	 * @param LogsVerbosity The verbosity level of logs. Defaults to ECharonLogLevel::Normal.
 	 * @return A shared reference to a TPreparedCliCommand representing the import operation.
 	 */
-	static TSharedRef<TPreparedCliCommand<>> Import(
+	static TSharedRef<TPreparedCliCommand<FImportReport>> Import(
 		const FString& GameDataUrl,
 		const FString& ApiKey,
 		const TArray<FString>& SchemaNamesOrIds,
@@ -185,7 +185,7 @@ public:
 	 * @param LogsVerbosity The verbosity level of logs. Defaults to ECharonLogLevel::Normal.
 	 * @return A shared reference to a TPreparedCliCommand representing the import operation.
 	 */
-	static TSharedRef<TPreparedCliCommand<>> ImportFromFile(
+	static TSharedRef<TPreparedCliCommand<FImportReport>> ImportFromFile(
 		const FString& GameDataUrl,
 		const FString& ApiKey,
 		const TArray<FString>& SchemaNamesOrIds,
@@ -254,7 +254,7 @@ public:
 	 * @param LogsVerbosity The verbosity level of logs. Defaults to ECharonLogLevel::Normal.
 	 * @return A shared reference to a TPreparedCliCommand representing the import operation.
 	 */
-	static TSharedRef<TPreparedCliCommand<>> I18NImport(
+	static TSharedRef<TPreparedCliCommand<FImportReport>> I18NImport(
 		const FString& GameDataUrl,
 		const FString& ApiKey,
 		const TArray<FString>& SchemaNamesOrIds,
@@ -275,7 +275,7 @@ public:
 	 * @param LogsVerbosity The verbosity level of logs. Defaults to ECharonLogLevel::Normal.
 	 * @return A shared reference to a TPreparedCliCommand representing the import operation.
 	 */
-	static TSharedRef<TPreparedCliCommand<>> I18NImportFromFile(
+	static TSharedRef<TPreparedCliCommand<FImportReport>> I18NImportFromFile(
 		const FString& GameDataUrl,
 		const FString& ApiKey,
 		const TArray<FString>& SchemaNamesOrIds,

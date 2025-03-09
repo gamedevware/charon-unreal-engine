@@ -63,9 +63,9 @@ static void Execute_BulkDeleteHeroes(const TArray<UObject*> ContextSensitiveObje
 		EImportMode::Delete
 	);
 	
-	BulkDeleteTask->OnCommandSucceed().AddLambda([](int _)
+	BulkDeleteTask->OnCommandSucceed().AddLambda([](FImportReport ImportReport)
 	{
-		UE_LOG(LogFGameDataExtensionCommands, Log, TEXT("Successfully deleted documents."));
+		UE_LOG(LogFGameDataExtensionCommands, Log, TEXT("Successfully deleted %d documents."), ImportReport.Changes.Num());
 	});
 	
 	BulkDeleteTask->OnCommandFailed().AddLambda([](const int ExitCode, const FString& Output)

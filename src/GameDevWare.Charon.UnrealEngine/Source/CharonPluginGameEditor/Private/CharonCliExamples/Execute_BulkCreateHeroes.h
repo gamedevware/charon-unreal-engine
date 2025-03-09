@@ -62,9 +62,9 @@ static void Execute_BulkCreateHeroes(const TArray<UObject*> ContextSensitiveObje
 		EImportMode::CreateAndUpdate
 	);
 	
-	BulkCreateTask->OnCommandSucceed().AddLambda([](int _)
+	BulkCreateTask->OnCommandSucceed().AddLambda([](FImportReport ImportReport)
 	{
-		UE_LOG(LogFGameDataExtensionCommands, Log, TEXT("Successfully created documents."));
+		UE_LOG(LogFGameDataExtensionCommands, Log, TEXT("Successfully created %d documents."), ImportReport.Changes.Num());
 	});
 	
 	BulkCreateTask->OnCommandFailed().AddLambda([](const int ExitCode, const FString& Output)

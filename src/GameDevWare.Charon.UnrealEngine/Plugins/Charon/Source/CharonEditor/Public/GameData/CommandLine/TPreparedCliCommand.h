@@ -378,14 +378,14 @@ bool TPreparedCliCommand<InResultType>::TryReadResult(const FString& Output, int
 template <typename InResultType>
 bool TPreparedCliCommand<InResultType>::TryReadResult(const FString& Output, int32 ExitCode, FImportReport& OutResult)
 {
-	TSharedRef<FJsonObject> Object;
+	TSharedPtr<FJsonObject> Object;
 	if (!TryReadResult(Output, ExitCode, Object))
 	{
 		return false;
 	}
 
 	FText FailReason;
-	if(!FJsonObjectConverter::JsonObjectToUStruct<FImportReport>(Object, &OutResult, 0, 0, false, &FailReason))
+	if(!FJsonObjectConverter::JsonObjectToUStruct<FImportReport>(Object.ToSharedRef(), &OutResult, 0, 0, false, &FailReason))
 	{
 		UE_LOG(LogTCharonCliCommand, Warning, TEXT("Failed to read command's output as JSON. Result value is not valid 'FImportReport' object. Reason: %s."), *FailReason.ToString());
 		return false;
