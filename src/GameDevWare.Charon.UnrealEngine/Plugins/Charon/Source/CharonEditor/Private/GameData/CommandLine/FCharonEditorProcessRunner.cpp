@@ -39,7 +39,7 @@ FCharonEditorProcessRunner::FCharonEditorProcessRunner(const FString& InDataBase
 	bool bInHidden = true;
 	bool bInCreatePipes = true;
 	this->Process = MakeShared<FMonitoredProcess>(URL, Params, ProjectDirectory, bInHidden, bInCreatePipes);
-
+	
 	UE_LOG(LogFCharonEditorProcessRunner, Log, TEXT("Preparing to launching '%s' executable with '%s' parameters at '%s' working directory."), *ExecutableName, *RunParameters, *ProjectDirectory);
 }
 
@@ -56,13 +56,16 @@ bool FCharonEditorProcessRunner::Launch()
 		UE_LOG(LogFCharonEditorProcessRunner, Warning, TEXT("Unable to FGameDataEditorProcessRunner::Launch() again because it is already been launched."));
 		return false;
 	}
-
+	
 	if (!FPaths::FileExists(this->RunScriptPath))
 	{
 		UE_LOG(LogFCharonEditorProcessRunner, Warning, TEXT("Missing launch script file at '%s'."), *this->RunScriptPath);
 		this->RaiseLaunched(EGameDataEditorLaunchStatus::MissingRunScript);
 		return false;
 	}
+	
+	const FString ContentRootDirectory = FCharonCliCommandRunner::GetOrCreateCharonContentRootDirectory();
+	FPlatformMisc::SetEnvironmentVar(TEXT("DOTNET_CONTENTROOT"), *ContentRootDirectory);
 	
 	auto WeakThisPtr = this->AsWeak();
 	this->Process->OnOutput().BindLambda([WeakThisPtr](FString Output)

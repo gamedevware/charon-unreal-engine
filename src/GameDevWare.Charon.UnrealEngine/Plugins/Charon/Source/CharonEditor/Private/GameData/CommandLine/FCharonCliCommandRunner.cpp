@@ -22,6 +22,9 @@ FCharonCliCommandRunner::FCharonCliCommandRunner(FString InParameters)
 	URL = TEXT("/usr/bin/env");
 	Params = FString::Printf(TEXT(" -- \"%s\" %s"), *RunScriptPath, *InParameters);
 #endif
+
+	const FString ContentRootDirectory = FCharonCliCommandRunner::GetOrCreateCharonContentRootDirectory();
+	EnvironmentVariables.Add(TEXT("DOTNET_CONTENTROOT"), ContentRootDirectory);
 }
 
 FCharonCliCommandRunner::~FCharonCliCommandRunner()
@@ -150,4 +153,16 @@ FString FCharonCliCommandRunner::GetOrCreateCharonIntermediateDirectory()
 	}
 
 	return CharonIntermediateDirectory;
+}
+
+FString FCharonCliCommandRunner::GetOrCreateCharonContentRootDirectory()
+{
+	const FString CharonIntermediateDirectory = FCharonCliCommandRunner::GetOrCreateCharonIntermediateDirectory();
+	const FString PreferenceDirectory = CharonIntermediateDirectory / "preferences";
+	IFileManager& FileManager = IFileManager::Get();
+	if (!FileManager.DirectoryExists(*PreferenceDirectory))
+	{
+		FileManager.MakeDirectory(*PreferenceDirectory);
+	}
+	return PreferenceDirectory;
 }

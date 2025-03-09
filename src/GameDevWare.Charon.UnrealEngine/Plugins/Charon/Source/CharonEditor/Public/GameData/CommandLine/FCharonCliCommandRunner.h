@@ -66,4 +66,8 @@ public:
 	 * For internal use only.
 	 */
 	static FString GetOrCreateCharonIntermediateDirectory();
+	/**
+	 * For internal use only.
+	 */
+	static FString GetOrCreateCharonContentRootDirectory();
 };
