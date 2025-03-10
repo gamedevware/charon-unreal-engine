@@ -1,9 +1,9 @@
 {
 	"FileVersion": 3,
-	"Version": 12,
-	"VersionName": "2025.1.1",
+	"Version": 13,
+	"VersionName": "2025.1.2",
 	"FriendlyName": "Charon",
-	"Description": "Charon game data editor plugin for Unreal Engine editor.",
+	"Description": "Charon is a powerful data-driven game development tool designed to streamline the creation and management of static game data within your game.",
 	"Category": "Other",
 	"CreatedBy": "Denis Zykov",
 	"CreatedByURL": "https://www.gamedevware.com/",
