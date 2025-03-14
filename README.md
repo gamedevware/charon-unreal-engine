@@ -6,6 +6,8 @@ like units, items, missions, quests, and other. It provides a user-friendly inte
 for game designers, simplifying the process of data manipulation. For programmers, Charon streamlines
 development workflows by generating C++ code to load game data seamlessly into the game.
 
+<img width="800" alt="editor ui" src="https://raw.githubusercontent.com/gamedevware/charon/refs/heads/main/docs/assets/ue_editor_screenshot.png"/>  
+
 # Installation
 
 Prerequisites
