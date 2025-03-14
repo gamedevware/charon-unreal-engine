@@ -535,6 +535,28 @@ TSharedRef<TPreparedCliCommand<>> FCharonCli::I18NAddLanguage(
 	return MakeShared<TPreparedCliCommand<>>(CommandRunner, INVTEXT("Adding translation languages"));
 }
 
+TSharedRef<TPreparedCliCommand<FString>> FCharonCli::I18NListLanguages
+(
+	const FString& GameDataUrl,
+	const FString& ApiKey,
+	const ECharonLogLevel LogsVerbosity
+)
+{
+	const FString TempOutputFile = PrepareTempOutputFile();
+	const FString Params = FString::Format(
+	TEXT("DATA I18N LANGUAGES --dataBase \"{0}\" --output {1} --outputFormat list {2}"), {
+	   GameDataUrl,
+	   TempOutputFile,
+	   GetLogOptions(LogsVerbosity)
+	});
+
+	const TSharedRef<FCharonCliCommandRunner> CommandRunner = MakeShared<FCharonCliCommandRunner>(Params);
+	CommandRunner->SetApiKey(ApiKey);
+	CommandRunner->AttachTemporaryFile(TempOutputFile);
+	
+	return MakeShared<TPreparedCliCommand<FString>>(CommandRunner, INVTEXT("Listing translation languages"), TempOutputFile);
+}
+
 TSharedRef<TPreparedCliCommand<TSharedPtr<FJsonObject>>> FCharonCli::CreatePatch(
 	const FString& GameDataUrl1,
 	const FString& GameDataUrl2,

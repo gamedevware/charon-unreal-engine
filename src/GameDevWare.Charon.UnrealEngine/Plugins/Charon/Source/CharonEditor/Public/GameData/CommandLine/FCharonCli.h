@@ -344,6 +344,20 @@ public:
 		const TArray<FString>& LanguageIds,
 		const ECharonLogLevel LogsVerbosity = ECharonLogLevel::Normal
 	);
+
+/**
+ * @brief List translation languages in a GameDataUrl file or server.
+ *
+ * @param GameDataUrl The URL of the GameData file or server.
+ * @param ApiKey Authentication credentials if GameDataUrl is a server, otherwise empty.
+ * @param LogsVerbosity The verbosity level of logs. Defaults to ECharonLogLevel::Normal.
+ * @return A shared reference to a TPreparedCliCommand representing the operation returning list of languages separated by space character.
+ */
+	static TSharedRef<TPreparedCliCommand<FString>> I18NListLanguages(
+		const FString& GameDataUrl,
+		const FString& ApiKey,
+		const ECharonLogLevel LogsVerbosity = ECharonLogLevel::Normal
+	);
 	
 	/**
 	 * @brief Compares all documents in two GameData URLs and creates a patch representing the difference.
