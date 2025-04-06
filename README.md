@@ -17,7 +17,7 @@ Unreal Engine plugin uses `dotnet charon` tool, which is a .NET Core application
 Installation from Fab
 ---------------------------------------
 
-1. Install the [.NET 8 or later](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) for your operating system.
+1. Install the [.NET 8 or later](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) for your operating system (Windows, MacOS, Linux).
 2. Ensure your Unreal Engine version is 5.3 or later.
 3. [Open](https://www.fab.com/listings/8cdfd7af-e1e9-4c97-b28d-d4b196767824) the Fab page for the plugin.
 4. Click the **Add To My Library** button in the upper right corner and follow the instructions.
