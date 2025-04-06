@@ -12,7 +12,9 @@ development workflows by generating C++ code to load game data seamlessly into t
 
 Prerequisites
 ---------------
-Unreal Engine plugin uses `dotnet charon` tool, which is a .NET Core application built for [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) it runs wherever Unreal Engine can run.
+Unreal Engine Editor plugin uses `dotnet charon` tool, which is a .NET Core application built for [.NET 8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) it runs wherever Unreal Engine Editor can run.
+
+The generated code and data do not require any additional dependencies for your game's runtime.  
 
 Installation from Fab
 ---------------------------------------
