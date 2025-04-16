@@ -56,6 +56,7 @@ protected:
 
 	static void BroadcastMissingApiKey(FText ProjectName);
 	static TSharedRef<FSlateStyleSet> GetPluginStyleSet() { return ICharonEditorModule::Get().GetStyleSet().ToSharedRef(); }
+	static void OnBrowserConsoleMessage(const FString& Message, const FString& Source, int32 Line, EWebBrowserConsoleLogSeverity Severity);
 
 public:
 	void InitEditor(const TArray<UObject*>& InObjects);

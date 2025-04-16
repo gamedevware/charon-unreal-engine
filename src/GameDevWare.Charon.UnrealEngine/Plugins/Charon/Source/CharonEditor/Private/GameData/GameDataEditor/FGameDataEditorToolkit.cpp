@@ -4,6 +4,7 @@
 #include "GameData/ServerApi/FApiKeyStorage.h"
 #include "GameData/CommandLine/FCharonCli.h"
 #include "FGameDataEditorCommands.h"
+#include "IWebBrowserWindow.h"
 #include "GameData/ICharonEditorModule.h"
 #include "SConnectGameDataDialog.h"
 #include "SourceCodeNavigation.h"
@@ -24,6 +25,7 @@ const FString LoadingHtml = TEXT(
 const FString CancelledHtml = TEXT("<h1>Process Start Cancelled</h1><p>Review Unreal Engine logs for details.</p>");
 const FString ProcessFailedHtml = TEXT("<h1>Process Start Failed</h1><p>Review Unreal Engine logs for details.</p>");
 const FString StartFailedHtml = TEXT("<h1>Start Failed</h1><p>Review Unreal Engine logs for details.</p>");
+
 
 void FGameDataEditorToolkit::InitEditor(const TArray<UObject*>& InObjects)
 {
@@ -64,7 +66,7 @@ void FGameDataEditorToolkit::InitEditor(const TArray<UObject*>& InObjects)
 	{
 		InvokeTab(FName("GameDataBrowserTab"));
 	}
-	
+
 	Browser->BindUObject("deployment", WebBrowserBridge, /* permanent */ true);
 	
 	ExtendToolbar();
@@ -259,6 +261,7 @@ void FGameDataEditorToolkit::RegisterTabSpawners(const TSharedRef<FTabManager>& 
 						.BackgroundColor(FColor::White)
 			            .PopupMenuMethod(EPopupMethod::UseCurrentWindow)
 						.InitialURL(TEXT("about:blank"))
+			            .OnConsoleMessage_Static( &FGameDataEditorToolkit::OnBrowserConsoleMessage)
 		            ];
 	            }))
 	            .SetDisplayName(INVTEXT("Game Data"))
@@ -766,4 +769,19 @@ void FGameDataEditorToolkit::BroadcastMissingApiKey(FText ProjectName)
 	if (!NotificationItem.IsValid()) { return; }
 
 	NotificationItem->SetCompletionState(SNotificationItem::CS_Fail);
+}
+
+void FGameDataEditorToolkit::OnBrowserConsoleMessage(const FString& Message, const FString& Source, int32 Line,
+	EWebBrowserConsoleLogSeverity Severity)
+{
+	switch (Severity)
+	{
+		case EWebBrowserConsoleLogSeverity::Debug: UE_LOG(LogFGameDataEditorToolkit, Verbose, TEXT("[%s:%d] %s."), *Source, Line, *Message); break;
+		case EWebBrowserConsoleLogSeverity::Warning: UE_LOG(LogFGameDataEditorToolkit, Warning, TEXT("[%s:%d] %s."), *Source, Line, *Message); break;
+		case EWebBrowserConsoleLogSeverity::Fatal:
+		case EWebBrowserConsoleLogSeverity::Error: UE_LOG(LogFGameDataEditorToolkit, Error, TEXT("[%s:%d] %s."), *Source, Line, *Message); break;
+		default:  UE_LOG(LogFGameDataEditorToolkit, Log, TEXT("[%s:%d] %s."), *Source, Line, *Message); break;
+
+	}
+	
 }
