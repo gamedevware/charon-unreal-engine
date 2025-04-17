@@ -263,26 +263,33 @@ FString UGameDataEditorWebBrowserBridge::GetAssetThumbnail(FString Path, int32 S
         return TEXT(""); // No thumbnail available
     }
 
-	
-    // 3. Render the thumbnail
-	FTextureRenderTargetResource* RenderTargetResource = nullptr;
-	UTextureRenderTarget2D* RenderTargetTexture = GEditor->GetScratchRenderTarget( Size );
-    if (!RenderTargetTexture)
-    {
-        return TEXT("");
-    }
-	RenderTargetResource = RenderTargetTexture->GameThread_GetRenderTargetResource();
-	
+	// 3. Render the thumbnail
 	FObjectThumbnail NewThumbnail;
-	ThumbnailTools::RenderThumbnail(Asset, Size, Size, ThumbnailTools::EThumbnailTextureFlushMode::AlwaysFlush, RenderTargetResource, &NewThumbnail);
+	FObjectThumbnail* ObjectThumbnail = ThumbnailTools::GetThumbnailForObject(Asset);
+	if (ObjectThumbnail)
+	{
+		ObjectThumbnail->CompressImageData();
+	}
+	else
+	{
+		FTextureRenderTargetResource* RenderTargetResource = nullptr;
+		UTextureRenderTarget2D* RenderTargetTexture = GEditor->GetScratchRenderTarget( Size );
+	    if (!RenderTargetTexture)
+	    {
+	        return TEXT("");
+	    }
+		RenderTargetResource = RenderTargetTexture->GameThread_GetRenderTargetResource();
+		
+		ThumbnailTools::RenderThumbnail(Asset, Size, Size, ThumbnailTools::EThumbnailTextureFlushMode::AlwaysFlush, RenderTargetResource, &NewThumbnail);
 
+		NewThumbnail.CompressImageData();
+		ObjectThumbnail = &NewThumbnail;
+	}
 
-	NewThumbnail.CompressImageData();
-	
-    TArray<uint8>& CompressedData = NewThumbnail.AccessCompressedImageData();
-	
-    // 6. Convert to Data URL
-	FString MediaType = NewThumbnail.GetCompressor()->IsLosslessCompression() ? TEXT("image/png") : TEXT("image/jpeg");  
+	TArray<uint8>& CompressedData = ObjectThumbnail->AccessCompressedImageData();
+
+    // 4. Convert to Data URL
+	FString MediaType = ObjectThumbnail->GetCompressor()->IsLosslessCompression() ? TEXT("image/png") : TEXT("image/jpeg");  
     FString ThumbnailDataUrl = FBase64::Encode(CompressedData);
 	ThumbnailDataUrl.InsertAt(0, FString::Format(TEXT("data:{0};base64,"), { MediaType }));
 

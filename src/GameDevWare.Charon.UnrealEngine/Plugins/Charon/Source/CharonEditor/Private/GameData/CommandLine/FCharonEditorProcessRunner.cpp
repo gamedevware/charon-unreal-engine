@@ -66,6 +66,8 @@ bool FCharonEditorProcessRunner::Launch()
 	
 	const FString ContentRootDirectory = FCharonCliCommandRunner::GetOrCreateCharonContentRootDirectory();
 	FPlatformMisc::SetEnvironmentVar(TEXT("DOTNET_CONTENTROOT"), *ContentRootDirectory);
+	const FString ProjectRootDirectory = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());
+	FPlatformMisc::SetEnvironmentVar(TEXT("STANDALONE__GAMEASSETSPATH"), *ProjectRootDirectory);
 	
 	auto WeakThisPtr = this->AsWeak();
 	this->Process->OnOutput().BindLambda([WeakThisPtr](FString Output)

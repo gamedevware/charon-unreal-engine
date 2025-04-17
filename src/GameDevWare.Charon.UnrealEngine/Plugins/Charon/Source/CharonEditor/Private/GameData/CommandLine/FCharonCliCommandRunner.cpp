@@ -25,6 +25,8 @@ FCharonCliCommandRunner::FCharonCliCommandRunner(FString InParameters)
 
 	const FString ContentRootDirectory = FCharonCliCommandRunner::GetOrCreateCharonContentRootDirectory();
 	EnvironmentVariables.Add(TEXT("DOTNET_CONTENTROOT"), ContentRootDirectory);
+	const FString ProjectRootDirectory = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());
+	EnvironmentVariables.Add(TEXT("STANDALONE__GAMEASSETSPATH"), *ProjectRootDirectory);
 }
 
 FCharonCliCommandRunner::~FCharonCliCommandRunner()
