@@ -29,7 +29,7 @@ const FString& FJsonGameDataReader::GetIdentifier() const
 	return JsonReader->GetIdentifier();
 }
 
-const FString& FJsonGameDataReader::GetValueAsString() const
+const FString FJsonGameDataReader::GetValueAsString() const
 {
 	return JsonReader->GetValueAsString();
 }

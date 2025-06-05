@@ -30,7 +30,7 @@ public:
 	// ReSharper disable CppFunctionIsNotImplemented
 	virtual bool ReadNext() = 0;
 	virtual const FString& GetIdentifier() const = 0;
-	virtual const FString& GetValueAsString() const = 0;
+	virtual const FString GetValueAsString() const = 0;
 	virtual double GetValueAsNumber() const = 0;
 	virtual bool GetValueAsBoolean() const = 0;
 	virtual const FString& GetErrorMessage() const = 0;

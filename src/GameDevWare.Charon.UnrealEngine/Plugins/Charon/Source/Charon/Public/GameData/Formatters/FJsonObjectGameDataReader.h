@@ -57,7 +57,7 @@ public:
 
 	virtual bool ReadNext() override;
 	virtual const FString& GetIdentifier() const override;
-	virtual const FString& GetValueAsString() const override;
+	virtual const FString GetValueAsString() const override;
 	virtual double GetValueAsNumber() const override;
 	virtual bool GetValueAsBoolean() const override;
 	virtual const FString& GetErrorMessage() const override;

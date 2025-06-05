@@ -194,7 +194,7 @@ const FString& FJsonObjectGameDataReader::GetIdentifier() const
 	return Identifier;
 }
 
-const FString& FJsonObjectGameDataReader::GetValueAsString() const
+const FString FJsonObjectGameDataReader::GetValueAsString() const
 {
 	check(CurrentToken == EJsonToken::String);
 

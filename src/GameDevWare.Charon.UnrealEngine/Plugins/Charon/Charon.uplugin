@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
-	"Version": 14,
-	"VersionName": "2025.2.2",
+	"Version": 15,
+	"VersionName": "2025.3.3",
 	"FriendlyName": "Charon",
 	"Description": "Charon is a powerful data-driven game development tool designed to streamline the creation and management of static game data within Unity. It allows both developers and game designers to efficiently model and edit game entities such as characters, items, missions, quests, and more, directly within the Unity environment. Charon simplifies the process of data manipulation, offering a user-friendly interface and automatic source code generation, which significantly reduces development time and minimizes manual coding errors.",
 	"Category": "Other",
@@ -10,7 +10,7 @@
 	"DocsURL": "https://gamedevware.github.io/charon/",
 	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/b4231a79707e491ba96b9842d971e6f4",
 	"SupportURL": "https://www.gamedevware.com/",
-	"EngineVersion": "5.5.0",
+	"EngineVersion": "5.6.0", 
 	"CanContainContent": true,
 	"IsBetaVersion": true,
 	"IsExperimentalVersion": false,

@@ -531,7 +531,7 @@ const FString& FMessagePackGameDataReader::GetIdentifier() const
 	return Identifier;
 }
 
-const FString& FMessagePackGameDataReader::GetValueAsString() const
+const FString FMessagePackGameDataReader::GetValueAsString() const
 {
 	check(CurrentToken == EJsonToken::String);
 
