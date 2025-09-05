@@ -52,6 +52,25 @@ public:
 	 * Make sure only specified languages are left in this game data.
 	 */
 	virtual void SetSupportedLanguages(const TArray<FString>& LanguageIds) { }
+	/*
+	 * Get revision hash of loaded game
+	 */
+	virtual FStringView GetRevisionHash()
+	{
+		// Use reflection to get the RevisionHash property
+		UClass* Class = GetClass();
+		if (FStrProperty* RevisionHashProperty = CastField<FStrProperty>(Class->FindPropertyByName(TEXT("RevisionHash"))))
+		{
+			// Get the value of the RevisionHash property from this object
+			if (FString* RevisionHashValue = RevisionHashProperty->ContainerPtrToValuePtr<FString>(this))
+			{
+				return FStringView(*RevisionHashValue);
+			}
+		}
+    
+		// fallback to empty value 
+		return FStringView();
+	}
 	
 	virtual void PostInitProperties() override;
 	virtual void PostLoad() override;

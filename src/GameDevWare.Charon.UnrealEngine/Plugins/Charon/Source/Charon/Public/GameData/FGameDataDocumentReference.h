@@ -21,7 +21,10 @@ USTRUCT(BlueprintType)
 struct CHARON_API FGameDataDocumentReference
 {
 	GENERATED_BODY()
-
+private:
+	FStringView LastRevisionHash;
+	TWeakObjectPtr<UGameDataDocument> LastDocument;
+	
 public:
 	/*
 	 * Id of referenced document. Should be non-empty text to be valid.
@@ -53,13 +56,29 @@ public:
 	 * Nullptr in case if document is not found.
 	 * Use Cast<T> to get strongly typed version of document. 
 	 */
-	UGameDataDocument* GetReferencedDocument() const
+	UGameDataDocument* GetReferencedDocument()
 	{
 		if (!IsValid())
 		{
 			return nullptr;
 		}
-		return GameData->FindGameDataDocumentById(SchemaIdOrName, Id);
+
+		const auto GameDataRevisionHash = GameData->GetRevisionHash();
+		if (this->LastRevisionHash.IsEmpty() || !this->LastRevisionHash.Equals(GameDataRevisionHash))
+		{
+			this->LastDocument = GameData->FindGameDataDocumentById(SchemaIdOrName, Id);
+			this->LastRevisionHash = GameDataRevisionHash;
+		}
+		return this->LastDocument.Get();
+	}
+
+	/*
+	 * Reset currently cached document. Call this method when you change Id or SchemaIdOrName fields.
+	 */
+	void ResetCachedValue()
+	{
+		this->LastDocument = nullptr;
+		this->LastRevisionHash = FStringView();
 	}
 
 	/*
