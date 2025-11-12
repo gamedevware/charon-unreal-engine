@@ -4,6 +4,7 @@
 
 #include "DesktopPlatformModule.h"
 #include "EditorDirectories.h"
+#include "IAssetTools.h"
 #include "IImageWrapper.h"
 #include "JsonObjectConverter.h"
 #include "ObjectTools.h"
@@ -22,7 +23,7 @@ bool UGameDataEditorWebBrowserBridge::Publish(FString Format, TArray<FString> La
 	if (Languages.Num() == 1 && Languages[0] == TEXT("*"))
 	{
 		Languages.Empty(); // empty languages = all languages
-	} 
+	}
 
 	for (FString& LanguageId : Languages)
 	{
@@ -31,7 +32,7 @@ bool UGameDataEditorWebBrowserBridge::Publish(FString Format, TArray<FString> La
 			LanguageId.MidInline(1, LanguageId.Len() - 2);
 		}
 	}
-	
+
 	for (auto EditingObjectPtr : EditorToolkitPtr->GetEditingObjectPtrs())
 	{
 		const UGameDataBase* GameDataPtr = Cast<UGameDataBase>(EditingObjectPtr);
@@ -99,7 +100,7 @@ FString UGameDataEditorWebBrowserBridge::Upload(FString FileFilter)
 	{
 		return FString();
 	}
-	
+
 	TArray<FString> OpenFileNames;
 	auto bDialogResult = DesktopPlatform->OpenFileDialog(
 		FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr),
@@ -150,22 +151,23 @@ FString UGameDataEditorWebBrowserBridge::Upload(FString FileFilter)
 	{
 		MediaType = TEXT("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 	}
-	
+
 	FString ContentBase64 = FBase64::Encode(ContentBytes);
-	ContentBase64.InsertAt(0, FString::Format(TEXT("data:{0};base64,"), { MediaType }));
-	
+	ContentBase64.InsertAt(0, FString::Format(TEXT("data:{0};base64,"), {MediaType}));
+
 	return ContentBase64;
 }
 
 FString UGameDataEditorWebBrowserBridge::ListAssets(int32 Skip, int32 Take, FString Query,
-	TArray<FString> Types)
+                                                    TArray<FString> Types)
 {
 	FListAssetsResult Result;
 	Result.Total = 0;
 	Result.Assets.Empty();
 
 	// Get the Asset Registry module
-	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<
+		FAssetRegistryModule>("AssetRegistry");
 	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
 
 	// Convert string class names to UClass* (e.g., "Texture2D" -> UTexture2D::StaticClass())
@@ -182,7 +184,7 @@ FString UGameDataEditorWebBrowserBridge::ListAssets(int32 Skip, int32 Take, FStr
 	{
 		FilterClasses.Add(UObject::StaticClass());
 	}
-	
+
 	// Build the filter
 	FARFilter Filter;
 	if (FilterClasses.Num() > 0)
@@ -193,7 +195,7 @@ FString UGameDataEditorWebBrowserBridge::ListAssets(int32 Skip, int32 Take, FStr
 	Filter.bIncludeOnlyOnDiskAssets = true; // Include persisted game assets
 	Filter.RecursiveClassPathsExclusionSet.Emplace(FTopLevelAssetPath(FString(TEXT("/Engine"))));
 	Filter.RecursiveClassPathsExclusionSet.Emplace(FTopLevelAssetPath(FString(TEXT("/Script"))));
-	
+
 	// Get all assets matching the filter
 	TArray<FAssetData> AssetDataList;
 	AssetRegistry.GetAssets(Filter, AssetDataList);
@@ -201,7 +203,7 @@ FString UGameDataEditorWebBrowserBridge::ListAssets(int32 Skip, int32 Take, FStr
 	{
 		const FString AssetName = InValue.GetObjectPathString();
 		const bool bIsMatching = Query.IsEmpty() || AssetName.Contains(Query, ESearchCase::IgnoreCase);
-		const bool bIsBuildIn =  AssetName.StartsWith(TEXT("/Engine")) || AssetName.StartsWith(TEXT("/Script"));
+		const bool bIsBuildIn = AssetName.StartsWith(TEXT("/Engine")) || AssetName.StartsWith(TEXT("/Script"));
 		return !bIsMatching || bIsBuildIn;
 	});
 
@@ -231,73 +233,131 @@ FString UGameDataEditorWebBrowserBridge::ListAssets(int32 Skip, int32 Take, FStr
 	return ResultAsJsonString;
 }
 
-TMap<FString, FString> ThumbnailCache; 
-FString UGameDataEditorWebBrowserBridge::GetAssetThumbnail(FString Path, int32 Size)
+void WaitForAssetLoading(UObject* Asset)
+{
+	if (UTexture* Texture = Cast<UTexture>(Asset))
+	{
+		Texture->BlockOnAnyAsyncBuild();
+		Texture->WaitForStreaming();
+	}
+
+	if (UMaterial* InMaterial = Cast<UMaterial>(Asset))
+	{
+		FScopedSlowTask SlowTask(0, NSLOCTEXT("ObjectTools", "FinishingCompilationStatus",
+		                                      "Finishing Shader Compilation..."));
+		SlowTask.MakeDialog();
+
+		// Block until the shader maps that we will save have finished being compiled
+		FMaterialResource* CurrentResource = InMaterial->GetMaterialResource(GMaxRHIFeatureLevel);
+		if (CurrentResource)
+		{
+			if (!CurrentResource->IsGameThreadShaderMapComplete())
+			{
+				CurrentResource->SubmitCompileJobs_GameThread(EShaderCompileJobPriority::High);
+			}
+			CurrentResource->FinishCompilation();
+		}
+	}
+}
+
+TMap<FString, TSharedRef<FString>> ThumbnailCache;
+
+TSharedPtr<FString> GetThumbnailFromCache(const FString& Path, const int32 Size)
+{
+	FString CacheKey = FString::Printf(TEXT("%s_%d"), *Path, Size);
+	TSharedRef<FString>* Thumbnail = ThumbnailCache.Find(CacheKey);
+	return Thumbnail ? Thumbnail->ToSharedPtr() : nullptr;
+}
+
+void PutThumbnailToCache(const FString& Path, const int32 Size, const TSharedRef<FString>& ThumbnailRef)
+{
+	FString CacheKey = FString::Printf(TEXT("%s_%d"), *Path, Size);
+	ThumbnailCache.Add(CacheKey, ThumbnailRef);
+}
+
+void UGameDataEditorWebBrowserBridge::GetAssetThumbnail(FString Path, int32 Size, FWebJSResponse Response)
 {
 	// Check cache first
-	FString CacheKey = FString::Printf(TEXT("%s_%d"), *Path, Size);
-	if (FString* CachedThumbnail = ThumbnailCache.Find(CacheKey))
+	if (TSharedPtr<FString> CachedThumbnail = GetThumbnailFromCache(Path, Size))
 	{
-		return *CachedThumbnail;
+		Response.Success(FString(*CachedThumbnail));
+		return;
 	}
 
-    // 1. Load the asset from the path
-    FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-    FAssetData AssetData = AssetRegistryModule.Get().GetAssetByObjectPath(FSoftObjectPath(Path));
+	// 1. Load the asset from the path
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<
+		FAssetRegistryModule>("AssetRegistry");
+	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+	FAssetData AssetData = AssetRegistry.GetAssetByObjectPath(FSoftObjectPath(Path));
 
-    if (!AssetData.IsValid())
-    {
-        return TEXT(""); // Invalid path
-    }
+	if (!AssetData.IsValid())
+	{
+		Response.Success(FString(TEXT(""))); // Invalid path
+		return;
+	}
 
-    // 2. Get the thumbnail image
-    UObject* Asset = AssetData.GetAsset();
-    if (!Asset)
-    {
-        return TEXT(""); // Failed to load
-    }
+	// 2. Get the thumbnail image
+	UObject* Asset = AssetData.GetAsset();
+	if (!Asset)
+	{
+		Response.Success(FString(TEXT(""))); // Failed to load
+		return;
+	}
 
-    FThumbnailRenderingInfo* ThumbnailInfo = UThumbnailManager::Get().GetRenderingInfo(Asset);
-    if (!ThumbnailInfo)
-    {
-        return TEXT(""); // No thumbnail available
-    }
+	WaitForAssetLoading(Asset);
+
+	IAssetTools& AssetTools = IAssetTools::Get();
+	if (AssetTools.AssetUsesGenericThumbnail(AssetData))
+	{
+		Response.Success(FString(TEXT(""))); // No thumbnail available
+		
+		UE_LOG(LogUGameDataEditorWebBrowserBridge, Verbose, TEXT("There is no existing thumbnail for '%s' asset."),
+		       *AssetData.GetSoftObjectPath().ToString());
+		return;
+	}
 
 	// 3. Render the thumbnail
-	FObjectThumbnail NewThumbnail;
-	FObjectThumbnail* ObjectThumbnail = ThumbnailTools::GetThumbnailForObject(Asset);
-	if (ObjectThumbnail)
-	{
-		ObjectThumbnail->CompressImageData();
-	}
-	else
-	{
-		FTextureRenderTargetResource* RenderTargetResource = nullptr;
-		UTextureRenderTarget2D* RenderTargetTexture = GEditor->GetScratchRenderTarget( Size );
-	    if (!RenderTargetTexture)
-	    {
-	        return TEXT("");
-	    }
-		RenderTargetResource = RenderTargetTexture->GameThread_GetRenderTargetResource();
-		
-		ThumbnailTools::RenderThumbnail(Asset, Size, Size, ThumbnailTools::EThumbnailTextureFlushMode::AlwaysFlush, RenderTargetResource, &NewThumbnail);
+	AsyncTask(
+		ENamedThreads::Type::GameThread,
+		[Path, AssetData, Size, Response]
+		{
+			FObjectThumbnail ThumbnailToUse;
+			if (FObjectThumbnail* FoundThumbnail = ThumbnailTools::GetThumbnailForObject(AssetData.GetAsset()))
+			{
+				ThumbnailToUse = *FoundThumbnail;
+				UE_LOG(LogUGameDataEditorWebBrowserBridge, Log,
+				       TEXT("Found existing asset '%s' thumbnail in package."), *AssetData.GetSoftObjectPath().ToString());
+			}
+			else
+			{
+				ThumbnailTools::RenderThumbnail(AssetData.GetAsset(), Size, Size,
+				                                ThumbnailTools::EThumbnailTextureFlushMode::AlwaysFlush, nullptr,
+				                                &ThumbnailToUse);
+				UE_LOG(LogUGameDataEditorWebBrowserBridge, Log, TEXT("Rendered asset '%s' thumbnail."),
+				       *AssetData.GetSoftObjectPath().ToString());
+			}
 
-		NewThumbnail.CompressImageData();
-		ObjectThumbnail = &NewThumbnail;
-	}
+			ThumbnailToUse.CompressImageData();
+			TArray<uint8>& CompressedData = ThumbnailToUse.AccessCompressedImageData();
 
-	TArray<uint8>& CompressedData = ObjectThumbnail->AccessCompressedImageData();
+			// 4. Convert to Data URL
+			FString MediaType = ThumbnailToUse.GetCompressor()->IsLosslessCompression()
+				                    ? TEXT("image/png")
+				                    : TEXT("image/jpeg");
+			TSharedRef<FString> ThumbnailDataUrl = MakeShared<FString>(FBase64::Encode(CompressedData));
+			ThumbnailDataUrl->InsertAt(0, FString::Format(TEXT("data:{0};base64,"), {MediaType}));
 
-    // 4. Convert to Data URL
-	FString MediaType = ObjectThumbnail->GetCompressor()->IsLosslessCompression() ? TEXT("image/png") : TEXT("image/jpeg");  
-    FString ThumbnailDataUrl = FBase64::Encode(CompressedData);
-	ThumbnailDataUrl.InsertAt(0, FString::Format(TEXT("data:{0};base64,"), { MediaType }));
+			// Cache for future calls
+			if (!ThumbnailDataUrl->IsEmpty())
+			{
+				PutThumbnailToCache(Path, Size, ThumbnailDataUrl);
+			}
 
-	// Cache for future calls
-	if (!ThumbnailDataUrl.IsEmpty())
-	{
-		ThumbnailCache.Add(CacheKey, ThumbnailDataUrl);
-	}
-
-	return ThumbnailDataUrl;
+			// cleanup
+			ThumbnailToUse.AccessCompressedImageData().Empty();
+			ThumbnailToUse.AccessImageData().Empty();
+			
+			Response.Success(FString(ThumbnailDataUrl.Get()));
+		}
+	);
 }

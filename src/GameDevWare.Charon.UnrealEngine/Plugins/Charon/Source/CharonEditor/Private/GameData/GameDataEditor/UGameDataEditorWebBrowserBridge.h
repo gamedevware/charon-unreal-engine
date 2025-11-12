@@ -3,6 +3,7 @@
 #pragma once
 #include "FGameDataEditorToolkit.h"
 #include "FListAssetsResult.h"
+#include "WebJSFunction.h"
 
 #include "UGameDataEditorWebBrowserBridge.generated.h"
 
@@ -30,8 +31,8 @@ public:
 
 	UFUNCTION()
 	FString ListAssets(int32 Skip, int32 Take, FString Query, TArray<FString> Types);
-
+	
 	UFUNCTION()
-	FString GetAssetThumbnail(FString Path, int32 Size);
+	void GetAssetThumbnail(FString Path, int32 Size, FWebJSResponse Response);
 };
 
