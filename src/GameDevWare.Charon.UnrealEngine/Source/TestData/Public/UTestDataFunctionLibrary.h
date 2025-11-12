@@ -22,6 +22,7 @@
 #include "URecursiveEntity.h"
 #include "UNumberTestEntity.h"
 #include "UUniqueAttributeEntity.h"
+#include "UUnionType.h"
 #include "ETestEntityPickListField.h"
 #include "ETestEntityMultiPickListField.h"
 #include "ENumberTestEntityPickList8Bit.h"
@@ -34,6 +35,8 @@
 #include "ENumberTestEntityMultiPickList64Bit.h"
 #include "EUniqueAttributeEntityPickListKey.h"
 #include "EUniqueAttributeEntityMultiPickListKey.h"
+#include "EUnionTypePickList8.h"
+#include "EUnionTypeMultiPickList9.h"
 #include "ERecursiveEntityId.h"
 #include "ETestEntityId.h"
 #include "EUniqueAttributeEntityId.h"
@@ -141,5 +144,246 @@ class TESTDATA_API UTestDataFunctionLibrary : public UBlueprintFunctionLibrary
 			Branches = EDocumentReferenceGetResult::Found;
 		}
 		return Document;
+	}
+	/*
+	 * Get UUnionType referenced in specified DocumentReference.
+	 */
+	UFUNCTION(BlueprintCallable, Meta = (ExpandEnumAsExecs = "Branches"))
+	static UUnionType* GetUnionType(FGameDataDocumentReference DocumentReference, EDocumentReferenceGetResult& Branches)
+	{
+		UUnionType* Document = Cast<UUnionType>(DocumentReference.GetReferencedDocument());
+		if (Document == nullptr)
+		{
+			Branches = EDocumentReferenceGetResult::NotFound;
+		}
+		else
+		{
+			Branches = EDocumentReferenceGetResult::Found;
+		}
+		return Document;
+	}
+	/*
+	 * Get Text1 value from specified UUnionType.
+	 */
+	UFUNCTION(BlueprintCallable, Meta = (ExpandEnumAsExecs = "Branches"))
+	static FString MatchText1(UUnionType* Document, EDocumentReferenceGetResult& Branches)
+	{
+		if (Document == nullptr || Document->Tag != TEXT("Text1"))
+		{
+			Branches = EDocumentReferenceGetResult::NotFound;
+		}
+		else
+		{
+			Branches = EDocumentReferenceGetResult::Found;
+		}
+			return Document->Text1;
+	}
+	/*
+	 * Get TextLocalizable2 value from specified UUnionType.
+	 */
+	UFUNCTION(BlueprintCallable, Meta = (ExpandEnumAsExecs = "Branches"))
+	static FText MatchTextLocalizable2(UUnionType* Document, EDocumentReferenceGetResult& Branches)
+	{
+		if (Document == nullptr || Document->Tag != TEXT("TextLocalizable2"))
+		{
+			Branches = EDocumentReferenceGetResult::NotFound;
+		}
+		else
+		{
+			Branches = EDocumentReferenceGetResult::Found;
+		}
+			return Document->GetTextLocalizable2();
+	}
+	/*
+	 * Get Logical3 value from specified UUnionType.
+	 */
+	UFUNCTION(BlueprintCallable, Meta = (ExpandEnumAsExecs = "Branches"))
+	static bool MatchLogical3(UUnionType* Document, EDocumentReferenceGetResult& Branches)
+	{
+		if (Document == nullptr || Document->Tag != TEXT("Logical3"))
+		{
+			Branches = EDocumentReferenceGetResult::NotFound;
+		}
+		else
+		{
+			Branches = EDocumentReferenceGetResult::Found;
+		}
+			return Document->Logical3;
+	}
+	/*
+	 * Get Time4 value from specified UUnionType.
+	 */
+	UFUNCTION(BlueprintCallable, Meta = (ExpandEnumAsExecs = "Branches"))
+	static FTimespan MatchTime4(UUnionType* Document, EDocumentReferenceGetResult& Branches)
+	{
+		if (Document == nullptr || Document->Tag != TEXT("Time4"))
+		{
+			Branches = EDocumentReferenceGetResult::NotFound;
+		}
+		else
+		{
+			Branches = EDocumentReferenceGetResult::Found;
+		}
+			return Document->Time4;
+	}
+	/*
+	 * Get Date5 value from specified UUnionType.
+	 */
+	UFUNCTION(BlueprintCallable, Meta = (ExpandEnumAsExecs = "Branches"))
+	static FDateTime MatchDate5(UUnionType* Document, EDocumentReferenceGetResult& Branches)
+	{
+		if (Document == nullptr || Document->Tag != TEXT("Date5"))
+		{
+			Branches = EDocumentReferenceGetResult::NotFound;
+		}
+		else
+		{
+			Branches = EDocumentReferenceGetResult::Found;
+		}
+			return Document->Date5;
+	}
+	/*
+	 * Get Number6 value from specified UUnionType.
+	 */
+	UFUNCTION(BlueprintCallable, Meta = (ExpandEnumAsExecs = "Branches"))
+	static float MatchNumber6(UUnionType* Document, EDocumentReferenceGetResult& Branches)
+	{
+		if (Document == nullptr || Document->Tag != TEXT("Number6"))
+		{
+			Branches = EDocumentReferenceGetResult::NotFound;
+		}
+		else
+		{
+			Branches = EDocumentReferenceGetResult::Found;
+		}
+			return Document->Number6;
+	}
+	/*
+	 * Get NumberInteger7 value from specified UUnionType.
+	 */
+	UFUNCTION(BlueprintCallable, Meta = (ExpandEnumAsExecs = "Branches"))
+	static int32 MatchNumberInteger7(UUnionType* Document, EDocumentReferenceGetResult& Branches)
+	{
+		if (Document == nullptr || Document->Tag != TEXT("NumberInteger7"))
+		{
+			Branches = EDocumentReferenceGetResult::NotFound;
+		}
+		else
+		{
+			Branches = EDocumentReferenceGetResult::Found;
+		}
+			return Document->NumberInteger7;
+	}
+	/*
+	 * Get PickList8 value from specified UUnionType.
+	 */
+	UFUNCTION(BlueprintCallable, Meta = (ExpandEnumAsExecs = "Branches"))
+	static EUnionTypePickList8 MatchPickList8(UUnionType* Document, EDocumentReferenceGetResult& Branches)
+	{
+		if (Document == nullptr || Document->Tag != TEXT("PickList8"))
+		{
+			Branches = EDocumentReferenceGetResult::NotFound;
+		}
+		else
+		{
+			Branches = EDocumentReferenceGetResult::Found;
+		}
+			return Document->PickList8;
+	}
+	/*
+	 * Get MultiPickList9 value from specified UUnionType.
+	 */
+	UFUNCTION(BlueprintCallable, Meta = (ExpandEnumAsExecs = "Branches"))
+	static EUnionTypeMultiPickList9 MatchMultiPickList9(UUnionType* Document, EDocumentReferenceGetResult& Branches)
+	{
+		if (Document == nullptr || Document->Tag != TEXT("MultiPickList9"))
+		{
+			Branches = EDocumentReferenceGetResult::NotFound;
+		}
+		else
+		{
+			Branches = EDocumentReferenceGetResult::Found;
+		}
+			return Document->MultiPickList9;
+	}
+	/*
+	 * Get Document10 value from specified UUnionType.
+	 */
+	UFUNCTION(BlueprintCallable, Meta = (ExpandEnumAsExecs = "Branches"))
+	static UNumberTestEntity* MatchDocument10(UUnionType* Document, EDocumentReferenceGetResult& Branches)
+	{
+		if (Document == nullptr || Document->Tag != TEXT("Document10"))
+		{
+			Branches = EDocumentReferenceGetResult::NotFound;
+		}
+		else
+		{
+			Branches = EDocumentReferenceGetResult::Found;
+		}
+			return Document->Document10;
+	}
+	/*
+	 * Get CollectionofDocuments11 value from specified UUnionType.
+	 */
+	UFUNCTION(BlueprintCallable, Meta = (ExpandEnumAsExecs = "Branches"))
+	static TMap<int32,UNumberTestEntity*> MatchCollectionofDocuments11(UUnionType* Document, EDocumentReferenceGetResult& Branches)
+	{
+		if (Document == nullptr || Document->Tag != TEXT("CollectionofDocuments11"))
+		{
+			Branches = EDocumentReferenceGetResult::NotFound;
+		}
+		else
+		{
+			Branches = EDocumentReferenceGetResult::Found;
+		}
+			return Document->CollectionofDocuments11;
+	}
+	/*
+	 * Get Reference12 value from specified UUnionType.
+	 */
+	UFUNCTION(BlueprintCallable, Meta = (ExpandEnumAsExecs = "Branches"))
+	static UNumberTestEntity* MatchReference12(UUnionType* Document, EDocumentReferenceGetResult& Branches)
+	{
+		if (Document == nullptr || Document->Tag != TEXT("Reference12"))
+		{
+			Branches = EDocumentReferenceGetResult::NotFound;
+		}
+		else
+		{
+			Branches = EDocumentReferenceGetResult::Found;
+		}
+			return Document->GetReference12();
+	}
+	/*
+	 * Get CollectionofReferences13 value from specified UUnionType.
+	 */
+	UFUNCTION(BlueprintCallable, Meta = (ExpandEnumAsExecs = "Branches"))
+	static TMap<int32,UNumberTestEntity*> MatchCollectionofReferences13(UUnionType* Document, EDocumentReferenceGetResult& Branches)
+	{
+		if (Document == nullptr || Document->Tag != TEXT("CollectionofReferences13"))
+		{
+			Branches = EDocumentReferenceGetResult::NotFound;
+		}
+		else
+		{
+			Branches = EDocumentReferenceGetResult::Found;
+		}
+			return Document->GetCollectionofReferences13();
+	}
+	/*
+	 * Get Formula14 value from specified UUnionType.
+	 */
+	UFUNCTION(BlueprintCallable, Meta = (ExpandEnumAsExecs = "Branches"))
+	static FJsonObjectWrapper MatchFormula14(UUnionType* Document, EDocumentReferenceGetResult& Branches)
+	{
+		if (Document == nullptr || Document->Tag != TEXT("Formula14"))
+		{
+			Branches = EDocumentReferenceGetResult::NotFound;
+		}
+		else
+		{
+			Branches = EDocumentReferenceGetResult::Found;
+		}
+			return Document->Formula14;
 	}
 };

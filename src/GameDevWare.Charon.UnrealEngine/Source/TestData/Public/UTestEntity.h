@@ -16,12 +16,14 @@
 #include "GameData/UGameDataDocument.h"
 #include "GameData/FGameDataDocumentReference.h"
 #include "GameData/FLocalizedText.h"
+#include "JsonObjectWrapper.h"
 
 #include "ETestEntityPickListField.h"
 #include "ETestEntityMultiPickListField.h"
 #include "UTestEntityFormulaFieldFormula.h"
 #include "UTestEntity.generated.h"
 
+class UUnionType; // forward declaration
 
 /**
   * This is test description.
@@ -149,4 +151,9 @@ public:
 	  */
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 	bool IsPublished;
+	/**
+	  * Union Field property of Document Collection type. Not Null.
+	  */
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	TMap<int32,UUnionType*> UnionField;
 };

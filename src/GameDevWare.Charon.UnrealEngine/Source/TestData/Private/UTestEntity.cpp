@@ -14,6 +14,7 @@
 
 #include "UTestEntity.h"
 #include "UTestEntityFormulaFieldFormula.h"
+#include "UUnionType.h"
 
 const FString UTestEntity::SchemaId = TEXT("592fc86c983a36266c0912a0");
 const FString UTestEntity::SchemaName = TEXT("TestEntity");

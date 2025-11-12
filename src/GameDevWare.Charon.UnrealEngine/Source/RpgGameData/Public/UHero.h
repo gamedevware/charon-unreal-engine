@@ -16,6 +16,7 @@
 #include "GameData/UGameDataDocument.h"
 #include "GameData/FGameDataDocumentReference.h"
 #include "GameData/FLocalizedText.h"
+#include "JsonObjectWrapper.h"
 
 #include "UHero.generated.h"
 
@@ -169,4 +170,9 @@ public:
 	  */
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 	TMap<FString,UWeapon*> Weapons;
+	/**
+	  * Picture property of Text type. Can Be Null.
+	  */
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	FString Picture;
 };

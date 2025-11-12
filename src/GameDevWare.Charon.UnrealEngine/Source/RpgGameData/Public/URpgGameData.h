@@ -84,7 +84,7 @@ class RPGGAMEDATA_API URpgGameData : public UGameDataBase
 
 public:
 	inline static const FString GeneratorName = TEXT("Charon");
-	inline static const FString GeneratorVersion = TEXT("2025.1.1.0");
+	inline static const FString GeneratorVersion = TEXT("2025.4.3.0");
 
 private:
 	UPROPERTY()
@@ -203,7 +203,16 @@ public:
 	virtual void GetDocumentIds(const FString& SchemaNameOrId, TArray<FString>& OutAllIds) override;
 	virtual void GetDocumentSchemaNames(TArray<FString>& OutAllSchemaNames) override;
 	virtual void SetSupportedLanguages(const TArray<FString>& LanguageIds) override;
-		
+	
+#if defined(CHARON_PLUGIN_MAJOR_VERSION) && defined(CHARON_PLUGIN_MINOR_VERSION)
+	#if (CHARON_PLUGIN_MAJOR_VERSION > 2025 || (CHARON_PLUGIN_MAJOR_VERSION == 2025 && CHARON_PLUGIN_MINOR_VERSION >= 3))
+	virtual FStringView GetRevisionHash() override
+	{
+		return this->RevisionHash;
+	}
+	#endif
+#endif
+	
 	UFUNCTION(BlueprintCallable)
 	void SetLanguage(
 		FString LanguageId,

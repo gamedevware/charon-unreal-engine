@@ -1484,6 +1484,20 @@ bool URpgGameData::ReadDocument
 				return false;
 			}
 		}
+		else if (PropertyName == TEXT("Extensions"))
+		{
+			if (Reader->IsNull())
+			{
+				Reader->ReadNext();
+				continue;
+			}
+			bReadSuccess = Reader->ReadValue(Document->Extensions) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("ProjectSettings.Extensions"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
 		else
 		{
 			Reader->SkipAny();
@@ -2177,6 +2191,20 @@ bool URpgGameData::ReadDocument
 			if (!bReadSuccess)
 			{
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("Hero.Weapons"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("Picture"))
+		{
+			if (Reader->IsNull())
+			{
+				Reader->ReadNext();
+				continue;
+			}
+			bReadSuccess = Reader->ReadValue(Document->Picture) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("Hero.Picture"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
 		}
@@ -5134,6 +5162,7 @@ TSharedPtr<FJsonValue> URpgGameData::MergeDocument(TSharedRef<FJsonValue> Origin
 		MergePropertyLanguagesValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Languages"));
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Copyright"));
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Version"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Extensions"));
 	}
 	else
 	if (TypeName == TEXT("UParameter"))
@@ -5184,6 +5213,7 @@ TSharedPtr<FJsonValue> URpgGameData::MergeDocument(TSharedRef<FJsonValue> Origin
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("TrapResistance"));
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Armors"), OptionalMergeValueFunc([this](TSharedRef<FJsonValue> OriginalValue, TSharedRef<FJsonValue> ModifiedValue) { return MergeDocumentCollection(OriginalValue, ModifiedValue, TEXT("UArmor"), true); }));
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Weapons"), OptionalMergeValueFunc([this](TSharedRef<FJsonValue> OriginalValue, TSharedRef<FJsonValue> ModifiedValue) { return MergeDocumentCollection(OriginalValue, ModifiedValue, TEXT("UWeapon"), true); }));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Picture"));
 	}
 	else
 	if (TypeName == TEXT("UItem"))
@@ -5447,9 +5477,9 @@ TSharedRef<FJsonValue> URpgGameData::MergeLocalizedText(TSharedRef<FJsonValue> O
 
 				for (auto LanguageId : Keys)
 				{
-					if(LanguageId == TEXT("notes"))
+					if (LanguageId == TEXT("notes") )
 					{
-						continue;;
+						continue;
 					}
 
 					auto LeftValue = Left->TryGetField(LanguageId);

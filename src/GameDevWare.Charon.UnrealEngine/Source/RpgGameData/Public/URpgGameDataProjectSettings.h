@@ -16,6 +16,7 @@
 #include "GameData/UGameDataDocument.h"
 #include "GameData/FGameDataDocumentReference.h"
 #include "GameData/FLocalizedText.h"
+#include "JsonObjectWrapper.h"
 
 #include "URpgGameDataProjectSettings.generated.h"
 
@@ -63,4 +64,9 @@ public:
 	  */
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 	FString Version;
+	/**
+	  * Extensions property of Text type. Can Be Null.
+	  */
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	FString Extensions;
 };

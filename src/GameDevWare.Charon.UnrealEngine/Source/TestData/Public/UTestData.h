@@ -33,6 +33,7 @@
 #include "URecursiveEntity.h"
 #include "UNumberTestEntity.h"
 #include "UUniqueAttributeEntity.h"
+#include "UUnionType.h"
 #include "ETestEntityPickListField.h"
 #include "ETestEntityMultiPickListField.h"
 #include "ENumberTestEntityPickList8Bit.h"
@@ -45,6 +46,8 @@
 #include "ENumberTestEntityMultiPickList64Bit.h"
 #include "EUniqueAttributeEntityPickListKey.h"
 #include "EUniqueAttributeEntityMultiPickListKey.h"
+#include "EUnionTypePickList8.h"
+#include "EUnionTypeMultiPickList9.h"
 #include "ERecursiveEntityId.h"
 #include "ETestEntityId.h"
 #include "EUniqueAttributeEntityId.h"
@@ -71,7 +74,7 @@ class TESTDATA_API UTestData : public UGameDataBase
 
 public:
 	inline static const FString GeneratorName = TEXT("Charon");
-	inline static const FString GeneratorVersion = TEXT("2025.1.1.0");
+	inline static const FString GeneratorVersion = TEXT("2025.4.3.0");
 
 private:
 	UPROPERTY()
@@ -116,6 +119,10 @@ public:
 	TMap<FString,UUniqueAttributeEntity*> AllUniqueAttributeEntities;
 	UPROPERTY(BlueprintReadOnly)
 	TMap<FString,UUniqueAttributeEntity*> UniqueAttributeEntities;
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	TMap<int32,UUnionType*> AllUnionTypes;
+	UPROPERTY(BlueprintReadOnly)
+	TMap<int32,UUnionType*> UnionTypes;
 
 	virtual bool TryLoad(FArchive* const GameDataStream, EGameDataFormat Format) override;
 	bool TryLoad(FArchive* const GameDataStream, FGameDataLoadOptions Options);
@@ -128,6 +135,15 @@ public:
 	virtual void GetDocumentIds(const FString& SchemaNameOrId, TArray<FString>& OutAllIds) override;
 	virtual void GetDocumentSchemaNames(TArray<FString>& OutAllSchemaNames) override;
 	virtual void SetSupportedLanguages(const TArray<FString>& LanguageIds) override;
+
+#if defined(CHARON_PLUGIN_MAJOR_VERSION) && defined(CHARON_PLUGIN_MINOR_VERSION)
+	#if (CHARON_PLUGIN_MAJOR_VERSION > 2025 || (CHARON_PLUGIN_MAJOR_VERSION == 2025 && CHARON_PLUGIN_MINOR_VERSION >= 3))
+	virtual FStringView GetRevisionHash() override
+	{
+		return this->RevisionHash;
+	}
+	#endif
+#endif
 
 	UFUNCTION(BlueprintCallable)
 	void SetLanguage(
@@ -194,6 +210,14 @@ private:
 	(
 		const TSharedRef<IGameDataReader>& Reader,
 		UUniqueAttributeEntity*& Document,
+		UObject* Outer,
+		TArray<FString>& GameDataPath,
+		bool NextToken = true
+	);
+	bool ReadDocument
+	(
+		const TSharedRef<IGameDataReader>& Reader,
+		UUnionType*& Document,
 		UObject* Outer,
 		TArray<FString>& GameDataPath,
 		bool NextToken = true
@@ -275,6 +299,7 @@ public:
 		virtual void Visit(URecursiveEntity& Document);
 		virtual void Visit(UNumberTestEntity& Document);
 		virtual void Visit(UUniqueAttributeEntity& Document);
+		virtual void Visit(UUnionType& Document);
 	};
 
 	void ApplyVisitor(FVisitor& Visitor) const;
@@ -288,6 +313,7 @@ public:
 		TArray<URecursiveEntity*> RecursiveEntity = TArray<URecursiveEntity*>();
 		TArray<UNumberTestEntity*> NumberTestEntity = TArray<UNumberTestEntity*>();
 		TArray<UUniqueAttributeEntity*> UniqueAttributeEntity = TArray<UUniqueAttributeEntity*>();
+		TArray<UUnionType*> UnionType = TArray<UUnionType*>();
 
 		// visit methods
 		virtual void Visit(UTestDataProjectSettings& Document) override;
@@ -295,6 +321,7 @@ public:
 		virtual void Visit(URecursiveEntity& Document) override;
 		virtual void Visit(UNumberTestEntity& Document) override;
 		virtual void Visit(UUniqueAttributeEntity& Document) override;
+		virtual void Visit(UUnionType& Document) override;
 	};
 
 private:
@@ -306,6 +333,7 @@ private:
 		virtual void Visit(URecursiveEntity& Document) override;
 		virtual void Visit(UNumberTestEntity& Document) override;
 		virtual void Visit(UUniqueAttributeEntity& Document) override;
+		virtual void Visit(UUnionType& Document) override;
 	};
 
 	class FLanguagesUpdateVisitor : public FVisitor
@@ -322,6 +350,7 @@ private:
 		virtual void Visit(URecursiveEntity& Document) override;
 		virtual void Visit(UNumberTestEntity& Document) override;
 		virtual void Visit(UUniqueAttributeEntity& Document) override;
+		virtual void Visit(UUnionType& Document) override;
 		void RemoveExtraKeys(TMap<FString, FText>& TextByLanguageId);
 	};
 };

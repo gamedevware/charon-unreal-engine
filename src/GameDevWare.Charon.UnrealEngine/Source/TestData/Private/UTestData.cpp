@@ -19,6 +19,7 @@
 #include "URecursiveEntity.h"
 #include "UNumberTestEntity.h"
 #include "UUniqueAttributeEntity.h"
+#include "UUnionType.h"
 #include "UTestEntityFormulaFieldFormula.h"
 
 DEFINE_LOG_CATEGORY(LogUTestData);
@@ -48,6 +49,8 @@ void UTestData::Empty()
 	NumberTestEntities.Empty();
 	AllUniqueAttributeEntities.Empty();
 	UniqueAttributeEntities.Empty();
+	AllUnionTypes.Empty();
+	UnionTypes.Empty();
 
 	SupportedLanguages.Empty();
 }
@@ -206,6 +209,10 @@ const TArray<UGameDataDocument*>& UTestData::GetAllDocuments() const
 	{
 		FoundDocuments->Add(DocumentById.Value);
 	}
+	for (const auto DocumentById : AllUnionTypes)
+	{
+		FoundDocuments->Add(DocumentById.Value);
+	}
 	const_cast<UTestData*>(this)->AllDocuments = FoundDocuments;
 	return FoundDocuments.Get();
 }
@@ -235,6 +242,10 @@ const TArray<UGameDataDocument*>& UTestData::GetRootDocuments() const
 		FoundDocuments->Add(DocumentById.Value);
 	}
 	for (const auto DocumentById : UniqueAttributeEntities)
+	{
+		FoundDocuments->Add(DocumentById.Value);
+	}
+	for (const auto DocumentById : UnionTypes)
 	{
 		FoundDocuments->Add(DocumentById.Value);
 	}
@@ -318,6 +329,16 @@ UGameDataDocument* UTestData::FindGameDataDocumentById(const FString& SchemaName
 			return *FoundDocument;
 		}
 	}
+	else if (SchemaNameOrId == TEXT("UnionType") || SchemaNameOrId == TEXT("691255870642d17fc832c712"))
+	{
+		int32 Id;
+		FGameDataDocumentIdConvert::ConvertToType(DocumentId, Id);
+		const auto FoundDocument = this->AllUnionTypes.Find(Id);
+		if (FoundDocument != nullptr)
+		{
+			return *FoundDocument;
+		}
+	}
 	return nullptr;
 }
 
@@ -346,6 +367,10 @@ UClass* UTestData::FindDocumentSchemaClass(const FString& SchemaNameOrId)
 	else if (SchemaNameOrId == TEXT("UniqueAttributeEntity") || SchemaNameOrId == TEXT("65d3565e27363a98010000ec"))
 	{
 		return UUniqueAttributeEntity::StaticClass();
+	}
+	else if (SchemaNameOrId == TEXT("UnionType") || SchemaNameOrId == TEXT("691255870642d17fc832c712"))
+	{
+		return UUnionType::StaticClass();
 	}
 	return nullptr;
 }
@@ -401,6 +426,15 @@ void UTestData::GetDocumentIds(const FString& SchemaNameOrId, TArray<FString>& A
 			AllIds.Add(IdString);
 		}
 	}
+	else if (SchemaNameOrId == TEXT("UnionType") || SchemaNameOrId == TEXT("691255870642d17fc832c712"))
+	{
+		for (auto DocumentById : AllUnionTypes)
+		{
+			FString IdString;
+			FGameDataDocumentIdConvert::ConvertToString(DocumentById.Key, IdString);
+			AllIds.Add(IdString);
+		}
+	}
 }
 
 void UTestData::GetDocumentSchemaNames(TArray<FString>& AllSchemaNames)
@@ -410,6 +444,7 @@ void UTestData::GetDocumentSchemaNames(TArray<FString>& AllSchemaNames)
 	AllSchemaNames.Add(TEXT("RecursiveEntity"));
 	AllSchemaNames.Add(TEXT("NumberTestEntity"));
 	AllSchemaNames.Add(TEXT("UniqueAttributeEntity"));
+	AllSchemaNames.Add(TEXT("UnionType"));
 }
 
 void UTestData::SetSupportedLanguages(const TArray<FString>& LanguageIds)
@@ -479,6 +514,26 @@ bool UTestData::ReadGameData(const TSharedRef<IGameDataReader>& Reader)
 				GameDataPath.Add(CollectionName);
 				switch (CollectionName.Len())
 				{
+					case 9:
+						if (CollectionName.IsEmpty())
+						{
+							Reader->SkipAny();
+						}
+						else if (CollectionName == TEXT("691255870642d17fc832c712") || CollectionName == TEXT("UnionType"))
+						{
+							GameDataPath.Add(TEXT("UnionType"));
+							if (!ReadDocumentCollection(Reader, this->UnionTypes, 100, this, GameDataPath))
+							{
+								UE_LOG(LogUTestData, Error, TEXT("Failed to read '%s' document collection. Path: %s."), TEXT("UnionType"), *CombineGameDataPath(GameDataPath));
+								return false;
+							}
+							GameDataPath.Pop();
+						}
+						else
+						{
+							Reader->SkipAny();
+						}
+						break;
 					case 10:
 						if (CollectionName.IsEmpty())
 						{
@@ -714,6 +769,20 @@ bool UTestData::ReadDocument
 			if (!bReadSuccess)
 			{
 				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("ProjectSettings.Version"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("Extensions"))
+		{
+			if (Reader->IsNull())
+			{
+				Reader->ReadNext();
+				continue;
+			}
+			bReadSuccess = Reader->ReadValue(Document->Extensions) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("ProjectSettings.Extensions"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
 		}
@@ -1021,6 +1090,20 @@ bool UTestData::ReadDocument
 			if (!bReadSuccess)
 			{
 				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("TestEntity.IsPublished"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("UnionField"))
+		{
+			if (Reader->IsNull())
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Unexpected null value for property '%s' of document. Path: %s."), TEXT("TestEntity.UnionField"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			bReadSuccess = ReadDocumentCollection(Reader, Document->UnionField, 0, Outer, GameDataPath);
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("TestEntity.UnionField"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
 		}
@@ -1625,6 +1708,285 @@ bool UTestData::ReadDocument
 
 	return true;
 }
+bool UTestData::ReadDocument
+(
+	const TSharedRef<IGameDataReader>& Reader,
+	UUnionType*& Document,
+	UObject* Outer,
+	TArray<FString>& GameDataPath,
+	bool NextToken
+)
+{
+	Document = NewObject<UUnionType>(Outer, UUnionType::StaticClass(), NAME_None, RF_Transactional);
+	Outer = Document;
+
+	Reader->ReadObjectBegin();
+	while (Reader->GetNotation() != EJsonNotation::ObjectEnd)
+	{
+		if (Reader->IsError())
+		{
+			UE_LOG(LogUTestData, Error, TEXT("File pasing failed due error '%s'. Path: %s."), *Reader->GetErrorMessage(), *CombineGameDataPath(GameDataPath));
+			return false;
+		}
+
+		auto PropertyName = Reader->ReadMember();
+		bool bReadSuccess;
+		GameDataPath.Add(PropertyName);
+		if (PropertyName != TEXT("Id") && !Reader->IsNull())
+		{
+			if (!Document->Tag.IsEmpty())
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Tagged Union has multiple conflicting options. Conflicting Options: %s, %s."), *FString(Document->Tag), *PropertyName);
+			}
+			Document->Tag = PropertyName;
+		}
+		if (PropertyName.IsEmpty())
+		{
+			Reader->SkipAny();
+		}
+		else if (PropertyName == TEXT("Id"))
+		{
+			if (Reader->IsNull())
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Unexpected null value for property '%s' of document. Path: %s."), TEXT("UnionType.Id"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			bReadSuccess = Reader->ReadValue(Document->Id) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("UnionType.Id"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			FString NewName;
+			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
+			NewName.InsertAt(0, TEXT("UnionType_"));
+
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			if (ExistingObject)
+			{
+				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document
+			}
+
+			Document->Rename(*NewName, nullptr, REN_DoNotDirty | REN_DontCreateRedirectors | REN_ForceNoResetLoaders);
+		}
+		else if (PropertyName == TEXT("Text1"))
+		{
+			if (Reader->IsNull())
+			{
+				Reader->ReadNext();
+				continue;
+			}
+			bReadSuccess = Reader->ReadValue(Document->Text1) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("UnionType.Text1"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("TextLocalizable2"))
+		{
+			if (Reader->IsNull())
+			{
+				Reader->ReadNext();
+				continue;
+			}
+			bReadSuccess = ReadLocalizedText(Reader, Document->TextLocalizable2Raw, GameDataPath);
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("UnionType.TextLocalizable2"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("Logical3"))
+		{
+			if (Reader->IsNull())
+			{
+				Reader->ReadNext();
+				continue;
+			}
+			bReadSuccess = Reader->ReadValue(Document->Logical3) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("UnionType.Logical3"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("Time4"))
+		{
+			if (Reader->IsNull())
+			{
+				Reader->ReadNext();
+				continue;
+			}
+			bReadSuccess = Reader->ReadValue(Document->Time4) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("UnionType.Time4"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("Date5"))
+		{
+			if (Reader->IsNull())
+			{
+				Reader->ReadNext();
+				continue;
+			}
+			bReadSuccess = Reader->ReadValue(Document->Date5) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("UnionType.Date5"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("Number6"))
+		{
+			if (Reader->IsNull())
+			{
+				Reader->ReadNext();
+				continue;
+			}
+			bReadSuccess = Reader->ReadValue(Document->Number6) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("UnionType.Number6"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("NumberInteger7"))
+		{
+			if (Reader->IsNull())
+			{
+				Reader->ReadNext();
+				continue;
+			}
+			bReadSuccess = Reader->ReadValue(Document->NumberInteger7) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("UnionType.NumberInteger7"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("PickList8"))
+		{
+			if (Reader->IsNull())
+			{
+				Reader->ReadNext();
+				continue;
+			}
+			bReadSuccess = Reader->ReadValue(Document->PickList8) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("UnionType.PickList8"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("MultiPickList9"))
+		{
+			if (Reader->IsNull())
+			{
+				Reader->ReadNext();
+				continue;
+			}
+			bReadSuccess = Reader->ReadValue(Document->MultiPickList9) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("UnionType.MultiPickList9"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("Document10"))
+		{
+			if (Reader->IsNull())
+			{
+				Reader->ReadNext();
+				continue;
+			}
+			bReadSuccess = ReadDocument(Reader, Document->Document10, Outer, GameDataPath);
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("UnionType.Document10"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("CollectionofDocuments11"))
+		{
+			if (Reader->IsNull())
+			{
+				Reader->ReadNext();
+				continue;
+			}
+			bReadSuccess = ReadDocumentCollection(Reader, Document->CollectionofDocuments11, 0, Outer, GameDataPath);
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("UnionType.CollectionofDocuments11"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("Reference12"))
+		{
+			if (Reader->IsNull())
+			{
+				Reader->ReadNext();
+				continue;
+			}
+			bReadSuccess = ReadDocumentReference(Reader, Document->Reference12Raw, TEXT("NumberTestEntity"), GameDataPath);
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("UnionType.Reference12"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("CollectionofReferences13"))
+		{
+			if (Reader->IsNull())
+			{
+				Reader->ReadNext();
+				continue;
+			}
+			bReadSuccess = ReadDocumentReferenceCollection(Reader, Document->CollectionofReferences13Raw, TEXT("NumberTestEntity"), GameDataPath);
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("UnionType.CollectionofReferences13"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("Formula14"))
+		{
+			if (Reader->IsNull())
+			{
+				Reader->ReadNext();
+				continue;
+			}
+			TSharedPtr<FJsonObject> FormulaObject;
+			bReadSuccess = Reader->ReadObject(FormulaObject);
+			Document->Formula14.JsonObject = FormulaObject;
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("UnionType.Formula14"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else
+		{
+			Reader->SkipAny();
+		}
+		GameDataPath.Pop();
+	}
+	Reader->ReadObjectEnd(NextToken);
+
+	if (Reader->IsError())
+	{
+		UE_LOG(LogUTestData, Error, TEXT("File pasing failed due error '%s'. Path: %s."), *Reader->GetErrorMessage(), *CombineGameDataPath(GameDataPath));
+		return false;
+	}
+
+	if (Document->Tag.IsEmpty())
+	{
+		UE_LOG(LogUTestData, Error, TEXT("Tagged Union has no selected option."));
+	}
+	return true;
+}
 template <typename IdType, typename DocumentType>
 bool UTestData::ReadDocumentCollection
 (
@@ -2102,6 +2464,37 @@ TSharedPtr<FJsonObject> UTestData::MergeGameData(const TSharedPtr<FJsonObject>& 
 				}
 			}
 			else
+			if (SchemaName == TEXT("691255870642d17fc832c712") || SchemaName == TEXT("UnionType"))
+			{
+				VisitedSchemas.Add(TEXT("691255870642d17fc832c712"));
+				VisitedSchemas.Add(TEXT("UnionType"));
+
+				auto GameDataDocumentCollection = GameDataCollectionsMap.Find(TEXT("691255870642d17fc832c712"));
+				if (GameDataDocumentCollection == nullptr)
+				{
+					GameDataDocumentCollection = GameDataCollectionsMap.Find(TEXT("UnionType"));
+				}
+				auto PatchDocumentCollection = PatchCollectionsMap.Find(TEXT("691255870642d17fc832c712"));
+				if (PatchDocumentCollection == nullptr)
+				{
+					PatchDocumentCollection = PatchCollectionsMap.Find(TEXT("UnionType"));
+				}
+
+				if (GameDataDocumentCollection != nullptr && PatchDocumentCollection != nullptr)
+				{
+					auto MergedCollection = MergeDocumentCollection(GameDataDocumentCollection->ToSharedRef(), PatchDocumentCollection->ToSharedRef(), TEXT("UUnionType"), false);
+					MergedCollections->SetField(TEXT("UnionType"), MergedCollection);
+				}
+				else if (GameDataDocumentCollection != nullptr)
+				{
+					MergedCollections->SetField(TEXT("UnionType"), *GameDataDocumentCollection);
+				}
+				else if (PatchDocumentCollection != nullptr)
+				{
+					MergedCollections->SetField(TEXT("UnionType"), *PatchDocumentCollection);
+				}
+			}
+			else
 			{
 				/* ignore schema */
 			}
@@ -2277,6 +2670,7 @@ TSharedPtr<FJsonValue> UTestData::MergeDocument(TSharedRef<FJsonValue> OriginalD
 		MergePropertyLanguagesValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Languages"));
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Copyright"));
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Version"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Extensions"));
 	}
 	else
 	if (TypeName == TEXT("UTestEntity"))
@@ -2299,6 +2693,7 @@ TSharedPtr<FJsonValue> UTestData::MergeDocument(TSharedRef<FJsonValue> OriginalD
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("ListOfReferencesField"), OptionalMergeValueFunc([this](TSharedRef<FJsonValue> OriginalValue, TSharedRef<FJsonValue> ModifiedValue) { return MergeDocumentCollection(OriginalValue, ModifiedValue, TEXT("UTestEntity"), true); }));
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("FormulaField"));
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("IsPublished"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("UnionField"), OptionalMergeValueFunc([this](TSharedRef<FJsonValue> OriginalValue, TSharedRef<FJsonValue> ModifiedValue) { return MergeDocumentCollection(OriginalValue, ModifiedValue, TEXT("UUnionType"), true); }));
 	}
 	else
 	if (TypeName == TEXT("URecursiveEntity"))
@@ -2341,6 +2736,25 @@ TSharedPtr<FJsonValue> UTestData::MergeDocument(TSharedRef<FJsonValue> OriginalD
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("MultiPickListKey"));
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("TimeSpanKey"));
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("DateTimeKey"));
+	}
+	else
+	if (TypeName == TEXT("UUnionType"))
+	{
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Id"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Text1"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("TextLocalizable2"), OptionalMergeValueFunc([this](TSharedRef<FJsonValue> OriginalValue, TSharedRef<FJsonValue> ModifiedValue) { return MergeLocalizedText(OriginalValue, ModifiedValue); }));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Logical3"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Time4"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Date5"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Number6"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("NumberInteger7"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("PickList8"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("MultiPickList9"));
+		MergePropertyDocumentValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Document10"), OptionalMergeValueFunc([this](TSharedRef<FJsonValue> OriginalValue, TSharedRef<FJsonValue> ModifiedValue) { return MergeDocument(OriginalValue, ModifiedValue, TEXT("UNumberTestEntity")); }));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("CollectionofDocuments11"), OptionalMergeValueFunc([this](TSharedRef<FJsonValue> OriginalValue, TSharedRef<FJsonValue> ModifiedValue) { return MergeDocumentCollection(OriginalValue, ModifiedValue, TEXT("UNumberTestEntity"), true); }));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Reference12"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("CollectionofReferences13"), OptionalMergeValueFunc([this](TSharedRef<FJsonValue> OriginalValue, TSharedRef<FJsonValue> ModifiedValue) { return MergeDocumentCollection(OriginalValue, ModifiedValue, TEXT("UNumberTestEntity"), true); }));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Formula14"));
 	}
 	else
 	{
@@ -2473,9 +2887,9 @@ TSharedRef<FJsonValue> UTestData::MergeLocalizedText(TSharedRef<FJsonValue> Orig
 
 				for (auto LanguageId : Keys)
 				{
-					if(LanguageId == TEXT("notes"))
+					if (LanguageId == TEXT("notes") )
 					{
-						continue;;
+						continue;
 					}
 
 					auto LeftValue = Left->TryGetField(LanguageId);
@@ -2595,6 +3009,7 @@ void UTestData::FindAllDocuments()
 		ToMapById(this->AllRecursiveEntities, FindingVisitor.RecursiveEntity);
 		ToMapById(this->AllNumberTestEntities, FindingVisitor.NumberTestEntity);
 		ToMapById(this->AllUniqueAttributeEntities, FindingVisitor.UniqueAttributeEntity);
+		ToMapById(this->AllUnionTypes, FindingVisitor.UnionType);
 }
 
 void UTestData::FVisitor::Visit(UGameDataDocument* Document)
@@ -2623,6 +3038,10 @@ void UTestData::FVisitor::Visit(UGameDataDocument* Document)
 	{
 		Visit(static_cast<UUniqueAttributeEntity&>(*Document));
 	}
+	else if ((Document->GetClass() == UUnionType::StaticClass()))
+	{
+		Visit(static_cast<UUnionType&>(*Document));
+	}
 }
 void UTestData::FVisitor::Visit(UTestDataProjectSettings& Document)
 {
@@ -2634,6 +3053,11 @@ void UTestData::FVisitor::Visit(UTestEntity& Document)
 		Visit (static_cast<UGameDataDocument*>(Document.DocumentField));
 	}
 	for (const auto SubDocumentById : Document.ListOfDocumentsField)
+	{
+		if (SubDocumentById.Value == nullptr) { continue; }
+		Visit(static_cast<UGameDataDocument*>(SubDocumentById.Value));
+	}
+	for (const auto SubDocumentById : Document.UnionField)
 	{
 		if (SubDocumentById.Value == nullptr) { continue; }
 		Visit(static_cast<UGameDataDocument*>(SubDocumentById.Value));
@@ -2652,6 +3076,18 @@ void UTestData::FVisitor::Visit(UNumberTestEntity& Document)
 }
 void UTestData::FVisitor::Visit(UUniqueAttributeEntity& Document)
 {
+}
+void UTestData::FVisitor::Visit(UUnionType& Document)
+{
+	if (Document.Document10)
+	{
+		Visit (static_cast<UGameDataDocument*>(Document.Document10));
+	}
+	for (const auto SubDocumentById : Document.CollectionofDocuments11)
+	{
+		if (SubDocumentById.Value == nullptr) { continue; }
+		Visit(static_cast<UGameDataDocument*>(SubDocumentById.Value));
+	}
 }
 void UTestData::FFindingVisitor::Visit(UTestDataProjectSettings& Document)
 {
@@ -2687,7 +3123,7 @@ void UTestData::FFindingVisitor::Visit(UNumberTestEntity& Document)
 {
 	if (this->NumberTestEntity.Num() == 0)
 	{
-		this->NumberTestEntity.Reserve(7);
+		this->NumberTestEntity.Reserve(9);
 	}
 	this->NumberTestEntity.Add(&Document);
 
@@ -2700,6 +3136,16 @@ void UTestData::FFindingVisitor::Visit(UUniqueAttributeEntity& Document)
 		this->UniqueAttributeEntity.Reserve(6);
 	}
 	this->UniqueAttributeEntity.Add(&Document);
+
+	FVisitor::Visit(Document);
+}
+void UTestData::FFindingVisitor::Visit(UUnionType& Document)
+{
+	if (this->UnionType.Num() == 0)
+	{
+		this->UnionType.Reserve(19);
+	}
+	this->UnionType.Add(&Document);
 
 	FVisitor::Visit(Document);
 }
@@ -2726,6 +3172,13 @@ void UTestData::FDereferencingVisitor::Visit(UUniqueAttributeEntity& Document)
 {
 	FVisitor::Visit(Document);
 }
+void UTestData::FDereferencingVisitor::Visit(UUnionType& Document)
+{
+	if (Document.Reference12Raw.IsValid())
+	{ auto _ = Document.Reference12Raw.GetReferencedDocument(); }
+	{ auto _ = Document.GetCollectionofReferences13(); }
+	FVisitor::Visit(Document);
+}
 void UTestData::FLanguagesUpdateVisitor::Visit(UTestDataProjectSettings& Document)
 {
 	FVisitor::Visit(Document);
@@ -2745,6 +3198,11 @@ void UTestData::FLanguagesUpdateVisitor::Visit(UNumberTestEntity& Document)
 }
 void UTestData::FLanguagesUpdateVisitor::Visit(UUniqueAttributeEntity& Document)
 {
+	FVisitor::Visit(Document);
+}
+void UTestData::FLanguagesUpdateVisitor::Visit(UUnionType& Document)
+{
+	RemoveExtraKeys(Document.TextLocalizable2Raw.TextByLanguageId);
 	FVisitor::Visit(Document);
 }
 UTestData::FLanguagesUpdateVisitor::FLanguagesUpdateVisitor(const TArray<FString>& LanguageIds)

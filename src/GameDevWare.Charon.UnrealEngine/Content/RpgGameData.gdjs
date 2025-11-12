@@ -1,7 +1,7 @@
 { 
-	"ToolsVersion": "2025.2.1.0", 
-	"RevisionHash": "67ff60489cdb4560dcd57033", 
-	"ChangeNumber": 15, 
+	"ToolsVersion": "2025.4.3.0", 
+	"RevisionHash": "69136f5cfb88485470c723bd", 
+	"ChangeNumber": 26, 
 	"Collections": { 
 		"ProjectSettings": [ 
 			{ 
@@ -22,7 +22,7 @@
 				"Type": 0, 
 				"Description": null, 
 				"IdGenerator": 1, 
-				"Specification": "classgen=skip&icon=blueprint&group=Metadata", 
+				"Specification": "icon=svg%2Fschema&group=Metadata&menuVisibility=hidden", 
 				"Properties": [ 
 					{ 
 						"Id": "53bd34a376a21229219cb156", 
@@ -78,7 +78,7 @@
 						"Requirement": 2, 
 						"ReferenceType": null, 
 						"Size": 4, 
-						"Specification": "pick.Normal=0&pick.Component=1&pick.Settings=2" 
+						"Specification": "pick.Normal=0&pick.Component=1&pick.Settings=2&pick.Union=3" 
 					}, 
 					{ 
 						"Id": "59088257983a362690093cf4", 
@@ -148,7 +148,7 @@
 				"Type": 2, 
 				"Description": null, 
 				"IdGenerator": 1, 
-				"Specification": "icon=gear&type=settings&group=Settings", 
+				"Specification": "icon=svg%2Fsettings&type=settings&group=Settings&menuVisibility=hidden", 
 				"Properties": [ 
 					{ 
 						"Id": "59088258983a362690093d00", 
@@ -485,7 +485,7 @@
 				"Name": "Hero", 
 				"DisplayName": "Heroes", 
 				"Type": 0, 
-				"Description": null, 
+				"Description": "", 
 				"IdGenerator": 0, 
 				"Specification": "icon=user-gray&group=Heroes%20and%20Stuff", 
 				"Properties": [ 
@@ -494,56 +494,56 @@
 						"SharedProperty": null, 
 						"Name": "Id", 
 						"DisplayName": "Id", 
-						"Description": null, 
+						"Description": "", 
 						"DataType": 0, 
 						"DefaultValue": null, 
 						"Uniqueness": 1, 
 						"Requirement": 3, 
 						"ReferenceType": null, 
 						"Size": 256, 
-						"Specification": null 
+						"Specification": "layout.order=2" 
 					}, 
 					{ 
 						"Id": "59f5b29330bb84165c06b55e", 
 						"SharedProperty": null, 
 						"Name": "Name", 
 						"DisplayName": "Name", 
-						"Description": null, 
+						"Description": "", 
 						"DataType": 1, 
 						"DefaultValue": "Translate Me!", 
 						"Uniqueness": 0, 
 						"Requirement": 2, 
 						"ReferenceType": null, 
 						"Size": 120, 
-						"Specification": null 
+						"Specification": "layout.order=3" 
 					}, 
 					{ 
 						"Id": "59f5b29330bb84165c06b55f", 
 						"SharedProperty": null, 
 						"Name": "Bio", 
 						"DisplayName": "Bio", 
-						"Description": null, 
+						"Description": "", 
 						"DataType": 1, 
 						"DefaultValue": "Translate Me!", 
 						"Uniqueness": 0, 
 						"Requirement": 2, 
 						"ReferenceType": null, 
 						"Size": 1000, 
-						"Specification": "editor=localizedtextareafield" 
+						"Specification": "editor=localizedtextareafield&layout.order=4" 
 					}, 
 					{ 
 						"Id": "59f5b29330bb84165c06b560", 
 						"SharedProperty": null, 
 						"Name": "Religious", 
 						"DisplayName": "Religious", 
-						"Description": null, 
+						"Description": "", 
 						"DataType": 5, 
 						"DefaultValue": "false", 
 						"Uniqueness": 0, 
 						"Requirement": 2, 
 						"ReferenceType": null, 
 						"Size": 0, 
-						"Specification": null 
+						"Specification": "layout.order=5" 
 					}, 
 					{ 
 						"Id": "59f9e7dd983a364298db5e3e", 
@@ -560,14 +560,14 @@
 							"DisplayName": "Heroes" 
 						}, 
 						"Size": 0, 
-						"Specification": null 
+						"Specification": "layout.order=6" 
 					}, 
 					{ 
 						"Id": "59f5b29330bb84165c06b561", 
 						"SharedProperty": null, 
 						"Name": "Provisions", 
 						"DisplayName": "Provisions", 
-						"Description": null, 
+						"Description": "", 
 						"DataType": 28, 
 						"DefaultValue": null, 
 						"Uniqueness": 0, 
@@ -577,21 +577,21 @@
 							"DisplayName": "Provisions" 
 						}, 
 						"Size": 0, 
-						"Specification": null 
+						"Specification": "layout.order=7" 
 					}, 
 					{ 
 						"Id": "59f9e7dd983a364298db5e3c", 
 						"SharedProperty": null, 
 						"Name": "ProvisionsCount", 
 						"DisplayName": "Provisions Count", 
-						"Description": null, 
+						"Description": "", 
 						"DataType": 13, 
 						"DefaultValue": "1", 
 						"Uniqueness": 0, 
 						"Requirement": 2, 
 						"ReferenceType": null, 
 						"Size": 4, 
-						"Specification": null 
+						"Specification": "layout.order=8" 
 					}, 
 					{ 
 						"Id": "59f5b29330bb84165c06b562", 
@@ -605,7 +605,7 @@
 						"Requirement": 2, 
 						"ReferenceType": null, 
 						"Size": 4, 
-						"Specification": null 
+						"Specification": "layout.order=9" 
 					}, 
 					{ 
 						"Id": "59f5b29330bb84165c06b563", 
@@ -619,7 +619,7 @@
 						"Requirement": 2, 
 						"ReferenceType": null, 
 						"Size": 4, 
-						"Specification": null 
+						"Specification": "layout.order=10" 
 					}, 
 					{ 
 						"Id": "59f9e586983a364298db5e1f", 
@@ -633,21 +633,21 @@
 						"Requirement": 2, 
 						"ReferenceType": null, 
 						"Size": 4, 
-						"Specification": null 
+						"Specification": "layout.order=11" 
 					}, 
 					{ 
 						"Id": "59f9e7dd983a364298db5e3b", 
 						"SharedProperty": null, 
 						"Name": "AccuracyModifier", 
 						"DisplayName": "Accuracy Modifier", 
-						"Description": null, 
+						"Description": "", 
 						"DataType": 13, 
 						"DefaultValue": "0", 
 						"Uniqueness": 0, 
 						"Requirement": 2, 
 						"ReferenceType": null, 
 						"Size": 4, 
-						"Specification": null 
+						"Specification": "layout.order=12" 
 					}, 
 					{ 
 						"Id": "59f9e7dd983a364298db5e3a", 
@@ -661,7 +661,7 @@
 						"Requirement": 2, 
 						"ReferenceType": null, 
 						"Size": 4, 
-						"Specification": "displayPrecision=2" 
+						"Specification": "displayPrecision=2&layout.order=13" 
 					}, 
 					{ 
 						"Id": "59f9e7dd983a364298db5e39", 
@@ -675,7 +675,7 @@
 						"Requirement": 2, 
 						"ReferenceType": null, 
 						"Size": 4, 
-						"Specification": "displayPrecision=2" 
+						"Specification": "displayPrecision=2&layout.order=14" 
 					}, 
 					{ 
 						"Id": "59f9e7dd983a364298db5e38", 
@@ -689,7 +689,7 @@
 						"Requirement": 2, 
 						"ReferenceType": null, 
 						"Size": 4, 
-						"Specification": "displayPrecision=2" 
+						"Specification": "displayPrecision=2&layout.order=15" 
 					}, 
 					{ 
 						"Id": "59f9e7dd983a364298db5e37", 
@@ -703,7 +703,7 @@
 						"Requirement": 2, 
 						"ReferenceType": null, 
 						"Size": 4, 
-						"Specification": "displayPrecision=2" 
+						"Specification": "displayPrecision=2&layout.order=16" 
 					}, 
 					{ 
 						"Id": "59f9e7dd983a364298db5e36", 
@@ -717,7 +717,7 @@
 						"Requirement": 2, 
 						"ReferenceType": null, 
 						"Size": 4, 
-						"Specification": "displayPrecision=2" 
+						"Specification": "displayPrecision=2&layout.order=17" 
 					}, 
 					{ 
 						"Id": "59f9e7dd983a364298db5e35", 
@@ -731,7 +731,7 @@
 						"Requirement": 2, 
 						"ReferenceType": null, 
 						"Size": 4, 
-						"Specification": "displayPrecision=2" 
+						"Specification": "displayPrecision=2&layout.order=18" 
 					}, 
 					{ 
 						"Id": "59f9e7dc983a364298db5e34", 
@@ -745,7 +745,7 @@
 						"Requirement": 2, 
 						"ReferenceType": null, 
 						"Size": 4, 
-						"Specification": "displayPrecision=2" 
+						"Specification": "displayPrecision=2&layout.order=19" 
 					}, 
 					{ 
 						"Id": "59f9e7dc983a364298db5e33", 
@@ -759,14 +759,14 @@
 						"Requirement": 2, 
 						"ReferenceType": null, 
 						"Size": 4, 
-						"Specification": "displayPrecision=2" 
+						"Specification": "displayPrecision=2&layout.order=20" 
 					}, 
 					{ 
 						"Id": "59f9e7dc983a364298db5e32", 
 						"SharedProperty": null, 
 						"Name": "Armors", 
 						"DisplayName": "Armors", 
-						"Description": null, 
+						"Description": "", 
 						"DataType": 23, 
 						"DefaultValue": null, 
 						"Uniqueness": 0, 
@@ -776,14 +776,14 @@
 							"DisplayName": "Armor" 
 						}, 
 						"Size": 0, 
-						"Specification": null 
+						"Specification": "layout.order=21" 
 					}, 
 					{ 
 						"Id": "59f9e7dd983a364298db5e3d", 
 						"SharedProperty": null, 
 						"Name": "Weapons", 
 						"DisplayName": "Weapons", 
-						"Description": null, 
+						"Description": "", 
 						"DataType": 23, 
 						"DefaultValue": null, 
 						"Uniqueness": 0, 
@@ -793,7 +793,21 @@
 							"DisplayName": "Weapon1" 
 						}, 
 						"Size": 0, 
-						"Specification": null 
+						"Specification": "layout.order=22" 
+					}, 
+					{ 
+						"Id": "691365b58dc0b821b05738c3", 
+						"SharedProperty": null, 
+						"Name": "Picture", 
+						"DisplayName": "Picture", 
+						"Description": "", 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": "editor=asset&allowMultiple=false&layout.order=1&layout.rowName=picture-row" 
 					} 
 				] 
 			}, 
@@ -2020,7 +2034,7 @@
 				"Type": 0, 
 				"Description": null, 
 				"IdGenerator": 1, 
-				"Specification": "classgen=skip&type=component&group=Design", 
+				"Specification": "type=component&group=Metadata&icon=svg%2Fproperty&menuVisibility=hidden", 
 				"Properties": [ 
 					{ 
 						"Id": "dfd84fc9957e94f02f9f60cc", 
@@ -3667,7 +3681,8 @@
 						"CriticalStrikeChance": 0.95, 
 						"Speed": 5 
 					} 
-				] 
+				], 
+				"Picture": "\/Game\/Characters\/Portraits\/Crossbower_Portrait.Crossbower_Portrait" 
 			}, 
 			{ 
 				"Id": "Monstrosity", 
@@ -3799,7 +3814,8 @@
 						"CriticalStrikeChance": 0.045, 
 						"Speed": 9 
 					} 
-				] 
+				], 
+				"Picture": "\/Game\/Characters\/Portraits\/Monstrosity_Portrait.Monstrosity_Portrait" 
 			}, 
 			{ 
 				"Id": "Zealot", 
@@ -3938,7 +3954,8 @@
 						"CriticalStrikeChance": 0.07, 
 						"Speed": 3 
 					} 
-				] 
+				], 
+				"Picture": "\/Game\/Characters\/Portraits\/Zealot_Portrait.Zealot_Portrait" 
 			} 
 		], 
 		"Item": [ 
