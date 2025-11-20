@@ -23,7 +23,7 @@ TEST_CASE_NAMED(FGameDataTest, "Charon::TestGameData", "[Core]")
 		CHECK(GameData->ChangeNumber != 0);
 		CHECK(GameData->AllTestEntities.Num() == 3);
 		CHECK(GameData->AllRecursiveEntities.Num() == 6);
-		CHECK(GameData->AllNumberTestEntities.Num() == 2);
+		CHECK(GameData->AllNumberTestEntities.Num() == 4);
 		CHECK(GameData->AllUniqueAttributeEntities.Num() == 1);
 
 		GameData->SetLanguage(TEXT("fr-FR"), TEXT("fr-FR"), ELocalizedTextFallbackOption::OnNotDefined);
@@ -65,7 +65,7 @@ TEST_CASE_NAMED(FGameDataTest, "Charon::TestGameData", "[Core]")
 		CHECK(GameData->ChangeNumber != 0);
 		CHECK(GameData->AllTestEntities.Num() == 3);
 		CHECK(GameData->AllRecursiveEntities.Num() == 6);
-		CHECK(GameData->AllNumberTestEntities.Num() == 2);
+		CHECK(GameData->AllNumberTestEntities.Num() == 4);
 		CHECK(GameData->AllUniqueAttributeEntities.Num() == 1);
 
 		GameData->SetLanguage(TEXT("fr-FR"), TEXT("fr-FR"), ELocalizedTextFallbackOption::OnNotDefined);

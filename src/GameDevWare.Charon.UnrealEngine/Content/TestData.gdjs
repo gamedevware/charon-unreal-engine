@@ -1,7 +1,7 @@
 { 
 	"ToolsVersion": "2025.4.3.0", 
-	"RevisionHash": "691256520642d17fc832c717", 
-	"ChangeNumber": 31, 
+	"RevisionHash": "691f1767ed688d2ce80f4408", 
+	"ChangeNumber": 34, 
 	"Collections": { 
 		"ProjectSettings": [ 
 			{ 
@@ -1635,10 +1635,9 @@
 						"Id": 2, 
 						"TextLocalizable2": { 
 							"ru-RU": "Text", 
+							"en-GB": "Text", 
+							"fr-FR": "Text", 
 							"notes": { 
-								"comment": "", 
-								"stale": { 
-								} 
 							} 
 						} 
 					}, 
@@ -1674,12 +1673,12 @@
 						"Id": 10, 
 						"Document10": { 
 							"Id": 3, 
-							"Number32Bit": 0, 
-							"Number64Bit": 0, 
-							"Integer8Bit": 0, 
-							"Integer16Bit": 0, 
-							"Integer32Bit": 0, 
-							"Integer64Bit": 0, 
+							"Number32Bit": 3, 
+							"Number64Bit": 3, 
+							"Integer8Bit": 3, 
+							"Integer16Bit": 3, 
+							"Integer32Bit": 3, 
+							"Integer64Bit": 3, 
 							"PickList8Bit": 1, 
 							"PickList16Bit": 1, 
 							"PickList32Bit": 1, 
@@ -1695,12 +1694,12 @@
 						"CollectionofDocuments11": [ 
 							{ 
 								"Id": 4, 
-								"Number32Bit": 0, 
-								"Number64Bit": 0, 
-								"Integer8Bit": 0, 
-								"Integer16Bit": 0, 
-								"Integer32Bit": 0, 
-								"Integer64Bit": 0, 
+								"Number32Bit": 4, 
+								"Number64Bit": 4, 
+								"Integer8Bit": 4, 
+								"Integer16Bit": 4, 
+								"Integer32Bit": 4, 
+								"Integer64Bit": 4, 
 								"PickList8Bit": 1, 
 								"PickList16Bit": 1, 
 								"PickList32Bit": 1, 

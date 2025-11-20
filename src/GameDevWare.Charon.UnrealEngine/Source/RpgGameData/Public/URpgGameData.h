@@ -28,6 +28,7 @@
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonTypes.h"
 #include "Serialization/Archive.h"
+#include "Runtime/Launch/Resources/Version.h"
 #include "URpgGameDataProjectSettings.h"
 #include "UParameter.h"
 #include "UParameterValue.h"
@@ -203,7 +204,7 @@ public:
 	virtual void GetDocumentIds(const FString& SchemaNameOrId, TArray<FString>& OutAllIds) override;
 	virtual void GetDocumentSchemaNames(TArray<FString>& OutAllSchemaNames) override;
 	virtual void SetSupportedLanguages(const TArray<FString>& LanguageIds) override;
-	
+
 #if defined(CHARON_PLUGIN_MAJOR_VERSION) && defined(CHARON_PLUGIN_MINOR_VERSION)
 	#if (CHARON_PLUGIN_MAJOR_VERSION > 2025 || (CHARON_PLUGIN_MAJOR_VERSION == 2025 && CHARON_PLUGIN_MINOR_VERSION >= 3))
 	virtual FStringView GetRevisionHash() override
@@ -212,7 +213,7 @@ public:
 	}
 	#endif
 #endif
-	
+
 	UFUNCTION(BlueprintCallable)
 	void SetLanguage(
 		FString LanguageId,

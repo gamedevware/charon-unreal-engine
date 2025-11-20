@@ -28,6 +28,7 @@
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonTypes.h"
 #include "Serialization/Archive.h"
+#include "Runtime/Launch/Resources/Version.h"
 #include "UTestDataProjectSettings.h"
 #include "UTestEntity.h"
 #include "URecursiveEntity.h"

@@ -1406,7 +1406,14 @@ bool URpgGameData::ReadDocument
 			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
 			NewName.InsertAt(0, TEXT("RpgGameDataProjectSettings_"));
 
-			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName,
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7)
+				EFindObjectFlags::ExactClass
+#else
+				true
+#endif
+			);
+
 			if (ExistingObject)
 			{
 				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document
@@ -1559,7 +1566,14 @@ bool URpgGameData::ReadDocument
 			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
 			NewName.InsertAt(0, TEXT("Parameter_"));
 
-			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName,
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7)
+				EFindObjectFlags::ExactClass
+#else
+				true
+#endif
+			);
+
 			if (ExistingObject)
 			{
 				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document
@@ -1698,7 +1712,14 @@ bool URpgGameData::ReadDocument
 			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
 			NewName.InsertAt(0, TEXT("ParameterValue_"));
 
-			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName,
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7)
+				EFindObjectFlags::ExactClass
+#else
+				true
+#endif
+			);
+
 			if (ExistingObject)
 			{
 				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document
@@ -1809,7 +1830,14 @@ bool URpgGameData::ReadDocument
 			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
 			NewName.InsertAt(0, TEXT("Provision_"));
 
-			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName,
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7)
+				EFindObjectFlags::ExactClass
+#else
+				true
+#endif
+			);
+
 			if (ExistingObject)
 			{
 				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document
@@ -1906,7 +1934,14 @@ bool URpgGameData::ReadDocument
 			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
 			NewName.InsertAt(0, TEXT("Hero_"));
 
-			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName,
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7)
+				EFindObjectFlags::ExactClass
+#else
+				true
+#endif
+			);
+
 			if (ExistingObject)
 			{
 				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document
@@ -2269,7 +2304,14 @@ bool URpgGameData::ReadDocument
 			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
 			NewName.InsertAt(0, TEXT("Item_"));
 
-			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName,
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7)
+				EFindObjectFlags::ExactClass
+#else
+				true
+#endif
+			);
+
 			if (ExistingObject)
 			{
 				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document
@@ -2408,7 +2450,14 @@ bool URpgGameData::ReadDocument
 			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
 			NewName.InsertAt(0, TEXT("Location_"));
 
-			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName,
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7)
+				EFindObjectFlags::ExactClass
+#else
+				true
+#endif
+			);
+
 			if (ExistingObject)
 			{
 				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document
@@ -2505,7 +2554,14 @@ bool URpgGameData::ReadDocument
 			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
 			NewName.InsertAt(0, TEXT("Trinket_"));
 
-			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName,
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7)
+				EFindObjectFlags::ExactClass
+#else
+				true
+#endif
+			);
+
 			if (ExistingObject)
 			{
 				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document
@@ -2644,7 +2700,14 @@ bool URpgGameData::ReadDocument
 			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
 			NewName.InsertAt(0, TEXT("Monster_"));
 
-			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName,
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7)
+				EFindObjectFlags::ExactClass
+#else
+				true
+#endif
+			);
+
 			if (ExistingObject)
 			{
 				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document
@@ -2783,7 +2846,14 @@ bool URpgGameData::ReadDocument
 			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
 			NewName.InsertAt(0, TEXT("Loot_"));
 
-			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName,
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7)
+				EFindObjectFlags::ExactClass
+#else
+				true
+#endif
+			);
+
 			if (ExistingObject)
 			{
 				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document
@@ -2880,7 +2950,14 @@ bool URpgGameData::ReadDocument
 			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
 			NewName.InsertAt(0, TEXT("CombatEffect_"));
 
-			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName,
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7)
+				EFindObjectFlags::ExactClass
+#else
+				true
+#endif
+			);
+
 			if (ExistingObject)
 			{
 				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document
@@ -2991,7 +3068,14 @@ bool URpgGameData::ReadDocument
 			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
 			NewName.InsertAt(0, TEXT("CurioCleansingOption_"));
 
-			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName,
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7)
+				EFindObjectFlags::ExactClass
+#else
+				true
+#endif
+			);
+
 			if (ExistingObject)
 			{
 				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document
@@ -3158,7 +3242,14 @@ bool URpgGameData::ReadDocument
 			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
 			NewName.InsertAt(0, TEXT("Curio_"));
 
-			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName,
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7)
+				EFindObjectFlags::ExactClass
+#else
+				true
+#endif
+			);
+
 			if (ExistingObject)
 			{
 				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document
@@ -3311,7 +3402,14 @@ bool URpgGameData::ReadDocument
 			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
 			NewName.InsertAt(0, TEXT("Disease_"));
 
-			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName,
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7)
+				EFindObjectFlags::ExactClass
+#else
+				true
+#endif
+			);
+
 			if (ExistingObject)
 			{
 				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document
@@ -3408,7 +3506,14 @@ bool URpgGameData::ReadDocument
 			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
 			NewName.InsertAt(0, TEXT("Quirk_"));
 
-			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName,
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7)
+				EFindObjectFlags::ExactClass
+#else
+				true
+#endif
+			);
+
 			if (ExistingObject)
 			{
 				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document
@@ -3519,7 +3624,14 @@ bool URpgGameData::ReadDocument
 			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
 			NewName.InsertAt(0, TEXT("Condition_"));
 
-			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName,
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7)
+				EFindObjectFlags::ExactClass
+#else
+				true
+#endif
+			);
+
 			if (ExistingObject)
 			{
 				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document
@@ -3632,7 +3744,14 @@ bool URpgGameData::ReadDocument
 			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
 			NewName.InsertAt(0, TEXT("Weapon_"));
 
-			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName,
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7)
+				EFindObjectFlags::ExactClass
+#else
+				true
+#endif
+			);
+
 			if (ExistingObject)
 			{
 				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document
@@ -3771,7 +3890,14 @@ bool URpgGameData::ReadDocument
 			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
 			NewName.InsertAt(0, TEXT("Armor_"));
 
-			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName,
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7)
+				EFindObjectFlags::ExactClass
+#else
+				true
+#endif
+			);
+
 			if (ExistingObject)
 			{
 				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document
@@ -3882,7 +4008,14 @@ bool URpgGameData::ReadDocument
 			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
 			NewName.InsertAt(0, TEXT("ItemWithCount_"));
 
-			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName,
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7)
+				EFindObjectFlags::ExactClass
+#else
+				true
+#endif
+			);
+
 			if (ExistingObject)
 			{
 				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document
@@ -3979,7 +4112,14 @@ bool URpgGameData::ReadDocument
 			FGameDataDocumentIdConvert::ConvertToString(Document->Id, NewName);
 			NewName.InsertAt(0, TEXT("StartingSet_"));
 
-			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName, true);
+			UObject* ExistingObject = StaticFindObject(/*Class=*/ nullptr, Outer, *NewName,
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7)
+				EFindObjectFlags::ExactClass
+#else
+				true
+#endif
+			);
+
 			if (ExistingObject)
 			{
 				ExistingObject->Rename(nullptr, GetTransientPackage(), 0); // detach existing document

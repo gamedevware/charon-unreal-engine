@@ -8,8 +8,8 @@ public class CharonPluginEditorTarget : TargetRules
 	public CharonPluginEditorTarget(TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Editor;
-		DefaultBuildSettings = BuildSettingsVersion.V5;
-		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_4;
+		DefaultBuildSettings = BuildSettingsVersion.V6;
+		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_7;
 		ExtraModuleNames.Add("RpgGameData");
 		ExtraModuleNames.Add("TestData");
 		ExtraModuleNames.Add("Charon");
