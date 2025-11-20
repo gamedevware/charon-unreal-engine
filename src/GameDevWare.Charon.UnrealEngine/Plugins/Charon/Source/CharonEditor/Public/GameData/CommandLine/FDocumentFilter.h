@@ -21,6 +21,12 @@ public:
 	EDocumentFilterOperation Operation;
 	FString Value;
 
+	FDocumentFilter(const FString& PropertyName, const EDocumentFilterOperation Operation, const FString& Value)
+		:PropertyName(PropertyName), Operation(Operation), Value(Value)
+	{
+		
+	}
+	
 	FString GetOperationName() const
 	{
 		switch (Operation)

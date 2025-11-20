@@ -47,7 +47,7 @@ TEST_CASE_NAMED(FGameDataTest, "Charon::TestGameData", "[Core]")
 		REQUIRE(TestEntity->DocumentField != nullptr);
 		CHECK(TestEntity->DocumentField->NumberField + 0.1 < FMathf::Epsilon);
 		CHECK(TestEntity->DocumentField->NumberFieldX64 == -9007199254740992);
-		CHECK(TestEntity->DocumentField->IntegerField == -2147483648);
+		CHECK(TestEntity->DocumentField->IntegerField == static_cast<int32_t>(-2147483648LL));
 		CHECK(TestEntity->DocumentField->IntegerFieldX64 == -9223372036854775807 - 1);
 	}
 
@@ -89,7 +89,7 @@ TEST_CASE_NAMED(FGameDataTest, "Charon::TestGameData", "[Core]")
 		REQUIRE(TestEntity->DocumentField != nullptr);
 		CHECK(TestEntity->DocumentField->NumberField + 0.1 < FMathf::Epsilon);
 		CHECK(TestEntity->DocumentField->NumberFieldX64 == -9007199254740992);
-		CHECK(TestEntity->DocumentField->IntegerField == -2147483648);
+		CHECK(TestEntity->DocumentField->IntegerField == static_cast<int32_t>(-2147483648LL));
 		CHECK(TestEntity->DocumentField->IntegerFieldX64 == -9223372036854775807 - 1);
 	}
 

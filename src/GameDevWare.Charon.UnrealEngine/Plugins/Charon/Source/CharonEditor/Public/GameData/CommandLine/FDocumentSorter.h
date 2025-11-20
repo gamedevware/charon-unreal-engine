@@ -14,6 +14,12 @@ public:
 	FString PropertyName;
 	EDocumentSortDirection Direction;
 
+	FDocumentSorter(const FString& PropertyName, const EDocumentSortDirection Direction)
+		:PropertyName(PropertyName), Direction(Direction)
+	{
+		
+	}
+	
 	FString GetDirectionName() const
 	{
 		switch (Direction)

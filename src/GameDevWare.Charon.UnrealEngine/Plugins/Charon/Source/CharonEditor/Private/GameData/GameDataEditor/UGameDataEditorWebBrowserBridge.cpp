@@ -234,7 +234,9 @@ void WaitForAssetLoading(UObject* Asset)
 {
 	if (UTexture* Texture = Cast<UTexture>(Asset))
 	{
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 6) 
 		Texture->BlockOnAnyAsyncBuild();
+#endif
 		Texture->WaitForStreaming();
 	}
 
