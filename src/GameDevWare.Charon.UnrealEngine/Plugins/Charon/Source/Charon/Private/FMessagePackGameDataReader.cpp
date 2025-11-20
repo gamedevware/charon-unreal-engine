@@ -287,11 +287,11 @@ bool FMessagePackGameDataReader::ReadNext()
 					Utf8StringSize = ReadBeUInt32();
 				}
 
-				if (Utf8StringSize > MAX_BINARY_LENGTH)
+				if (Utf8StringSize > MAX_STRING_LENGTH)
 				{
 					Notation = EJsonNotation::Error;
 					CurrentToken = EJsonToken::None;
-					SetErrorMessage(TEXT("Binary data is too long."));
+					SetErrorMessage(TEXT("String data is too long."));
 					return true;
 				}
 
@@ -312,6 +312,7 @@ bool FMessagePackGameDataReader::ReadNext()
 				StringValue = Utf8String;
 				Notation = EJsonNotation::String;
 				CurrentToken = EJsonToken::String;
+				break;
 			}
 		case EMessagePackType::Bin32:
 		case EMessagePackType::Bin16:
