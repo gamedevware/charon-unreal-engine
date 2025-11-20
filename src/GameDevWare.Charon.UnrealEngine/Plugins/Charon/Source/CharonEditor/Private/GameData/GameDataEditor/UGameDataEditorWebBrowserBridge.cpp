@@ -5,12 +5,10 @@
 #include "DesktopPlatformModule.h"
 #include "EditorDirectories.h"
 #include "IAssetTools.h"
-#include "IImageWrapper.h"
 #include "JsonObjectConverter.h"
 #include "ObjectTools.h"
 #include "AssetRegistry/AssetRegistryModule.h"
-#include "Engine/TextureRenderTarget2D.h"
-#include "ThumbnailRendering/ThumbnailManager.h"
+#include "Runtime/Launch/Resources/Version.h"
 
 // ReSharper disable CppMemberFunctionMayBeConst, CppParameterNeverUsed
 DEFINE_LOG_CATEGORY(LogUGameDataEditorWebBrowserBridge);
@@ -162,7 +160,6 @@ FString UGameDataEditorWebBrowserBridge::ListAssets(int32 Skip, int32 Take, FStr
                                                     TArray<FString> Types)
 {
 	FListAssetsResult Result;
-	Result.Total = 0;
 	Result.Assets.Empty();
 
 	// Get the Asset Registry module
@@ -248,7 +245,13 @@ void WaitForAssetLoading(UObject* Asset)
 		SlowTask.MakeDialog();
 
 		// Block until the shader maps that we will save have finished being compiled
-		FMaterialResource* CurrentResource = InMaterial->GetMaterialResource(GMaxRHIFeatureLevel);
+		FMaterialResource* CurrentResource = InMaterial->GetMaterialResource(
+#if ENGINE_MAJOR_VERSION > 5  || (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7) 
+			GMaxRHIShaderPlatform
+#else
+			GMaxRHIFeatureLevel
+#endif
+		);
 		if (CurrentResource)
 		{
 			if (!CurrentResource->IsGameThreadShaderMapComplete())
