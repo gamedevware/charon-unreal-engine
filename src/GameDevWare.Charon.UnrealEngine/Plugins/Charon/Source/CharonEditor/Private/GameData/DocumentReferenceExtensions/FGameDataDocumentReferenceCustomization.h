@@ -29,8 +29,10 @@ private:
 	UGameDataBase* GetGameData() const;
 	
 	void OnGetDocumentIds(TArray< TSharedPtr<FString> >& OutStrings, TArray<TSharedPtr<SToolTip>>& OutToolTips, TArray<bool>& OutRestrictedItems) const;
+	FString OnGetCurrentDocumentIdDisplayString() const;
 	FString OnGetCurrentDocumentIdString() const;
-
+	
 	void OnGetSchemaNames(TArray< TSharedPtr<FString> >& OutStrings, TArray<TSharedPtr<SToolTip>>& OutToolTips, TArray<bool>& OutRestrictedItems) const;
+	FString OnGetCurrentSchemaNameDisplayString() const;
 	FString OnGetCurrentSchemaNameString() const;
 };

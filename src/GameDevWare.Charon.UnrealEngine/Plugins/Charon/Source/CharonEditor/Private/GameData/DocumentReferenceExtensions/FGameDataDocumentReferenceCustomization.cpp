@@ -59,8 +59,8 @@ void FGameDataDocumentReferenceCustomization::CustomizeChildren(
 
 	if (ReadOnly && IsValidHandles)
 	{
-		FString SchemaName = OnGetCurrentSchemaNameString();
-		FString DocumentId = OnGetCurrentDocumentIdString();
+		FString SchemaName = OnGetCurrentSchemaNameDisplayString();
+		FString DocumentId = OnGetCurrentDocumentIdDisplayString();
 
 		ChildBuilder.AddCustomRow(PropertyName)
 		    .NameContent()
@@ -98,7 +98,7 @@ void FGameDataDocumentReferenceCustomization::CustomizeChildren(
 
 		auto SchemaComboBox = FPropertyComboBoxArgs(SchemaPropertyHandle,
 	         FOnGetPropertyComboBoxStrings::CreateSP(this, &FGameDataDocumentReferenceCustomization::OnGetSchemaNames),
-	         FOnGetPropertyComboBoxValue::CreateSP(this, &FGameDataDocumentReferenceCustomization::OnGetCurrentSchemaNameString));
+	         FOnGetPropertyComboBoxValue::CreateSP(this, &FGameDataDocumentReferenceCustomization::OnGetCurrentSchemaNameDisplayString));
 		SchemaComboBox.ShowSearchForItemCount = 1;
 
 		ReferenceGroup.AddPropertyRow(SchemaPropertyHandle.ToSharedRef())
@@ -117,7 +117,7 @@ void FGameDataDocumentReferenceCustomization::CustomizeChildren(
 
 		auto IdComboBox = FPropertyComboBoxArgs(IdPropertyHandle,
 		                                 FOnGetPropertyComboBoxStrings::CreateSP(this, &FGameDataDocumentReferenceCustomization::OnGetDocumentIds),
-		                                 FOnGetPropertyComboBoxValue::CreateSP(this, &FGameDataDocumentReferenceCustomization::OnGetCurrentDocumentIdString));
+		                                 FOnGetPropertyComboBoxValue::CreateSP(this, &FGameDataDocumentReferenceCustomization::OnGetCurrentDocumentIdDisplayString));
 		IdComboBox.ShowSearchForItemCount = 1;
 
 		ReferenceGroup.AddPropertyRow(IdPropertyHandle.ToSharedRef())
@@ -179,7 +179,7 @@ void FGameDataDocumentReferenceCustomization::OnGetDocumentIds(
 	}
 }
 
-FString FGameDataDocumentReferenceCustomization::OnGetCurrentDocumentIdString() const
+FString FGameDataDocumentReferenceCustomization::OnGetCurrentDocumentIdDisplayString() const
 {
 	if (!IdPropertyHandle.IsValid() || !IdPropertyHandle->IsValidHandle())
 	{
@@ -206,6 +206,23 @@ FString FGameDataDocumentReferenceCustomization::OnGetCurrentDocumentIdString() 
 	}
 }
 
+FString FGameDataDocumentReferenceCustomization::OnGetCurrentDocumentIdString() const
+{
+	if (!IdPropertyHandle.IsValid() || !IdPropertyHandle->IsValidHandle())
+	{
+		return FString();
+	}
+
+	FString DocumentId;
+	const FPropertyAccess::Result IdResult = IdPropertyHandle->GetValue(DocumentId);
+	if (IdResult == FPropertyAccess::Success)
+	{
+		return DocumentId;
+	}
+	
+	return FString();
+}
+
 void FGameDataDocumentReferenceCustomization::OnGetSchemaNames(
 	TArray<TSharedPtr<FString>>& OutStrings,
 	TArray<TSharedPtr<SToolTip>>& OutToolTips,
@@ -230,7 +247,7 @@ void FGameDataDocumentReferenceCustomization::OnGetSchemaNames(
 	}
 }
 
-FString FGameDataDocumentReferenceCustomization::OnGetCurrentSchemaNameString() const
+FString FGameDataDocumentReferenceCustomization::OnGetCurrentSchemaNameDisplayString() const
 {
 	if (!SchemaPropertyHandle.IsValid() || !SchemaPropertyHandle->IsValidHandle())
 	{
@@ -269,4 +286,23 @@ FString FGameDataDocumentReferenceCustomization::OnGetCurrentSchemaNameString() 
 	{
 		return TEXT("Multiple (Invalid)");
 	}
+}
+
+FString FGameDataDocumentReferenceCustomization::OnGetCurrentSchemaNameString() const
+{
+	if (!SchemaPropertyHandle.IsValid() || !SchemaPropertyHandle->IsValidHandle())
+	{
+		return FString();
+	}
+	
+	FString SchemaNameOrId;
+	const FPropertyAccess::Result IdResult = SchemaPropertyHandle->GetValue(SchemaNameOrId);
+	if (IdResult == FPropertyAccess::Success)
+	{
+		if (!SchemaNameOrId.IsEmpty())
+		{
+			return SchemaNameOrId;
+		}
+	}
+	return FString();
 }
