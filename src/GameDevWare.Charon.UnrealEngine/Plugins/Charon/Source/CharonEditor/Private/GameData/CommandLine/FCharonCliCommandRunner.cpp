@@ -117,7 +117,19 @@ FString FCharonCliCommandRunner::GetOrCreateCharonIntermediateDirectory()
 		PlatformFile.FindFiles(FoundFiles, *PluginScriptsDirectory, nullptr);
 		for (const FString SourceFilePath : FoundFiles)
 		{
-			const FString TargetFileName = CharonIntermediateDirectory / FPaths::GetCleanFilename(SourceFilePath);
+			FString FileName = FPaths::GetCleanFilename(SourceFilePath);
+
+			// Replace neutral extensions with platform-specific ones
+			if (FileName.EndsWith(TEXT(".windows")))
+			{
+				FileName = FPaths::GetBaseFilename(FileName) + TEXT(".bat");
+			}
+			else if (FileName.EndsWith(TEXT(".unix")))
+			{
+				FileName = FPaths::GetBaseFilename(FileName) + TEXT(".sh");
+			}
+			
+			const FString TargetFileName = CharonIntermediateDirectory / FileName;
 			/*if (PlatformFile.FileExists(*TargetFileName))
 			{
 				continue;
