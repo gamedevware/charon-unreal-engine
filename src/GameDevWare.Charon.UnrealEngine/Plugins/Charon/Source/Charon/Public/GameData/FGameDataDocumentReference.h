@@ -29,17 +29,17 @@ public:
 	/*
 	 * Id of referenced document. Should be non-empty text to be valid.
 	 */
-	UPROPERTY(EditDefaultsOnly, Category="Game Data")
+	UPROPERTY(EditAnywhere, Category="Game Data")
 	FString Id;
 	/*
 	 * Schema Id or Name of referenced document. UClass name IS NOT valid for this purpose. Should be non-empty text to be valid.
 	 */
-	UPROPERTY(EditDefaultsOnly, Category="Game Data")
+	UPROPERTY(EditAnywhere, Category="Game Data")
 	FString SchemaIdOrName;
 	/*
 	 * Game data asset to look into.
 	 */
-	UPROPERTY(EditDefaultsOnly, Category="Game Data")
+	UPROPERTY(EditAnywhere, Category="Game Data")
 	TObjectPtr<UGameDataBase> GameData;
 
 	/*
