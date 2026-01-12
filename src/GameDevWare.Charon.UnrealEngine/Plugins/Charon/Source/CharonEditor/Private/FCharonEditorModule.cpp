@@ -44,9 +44,13 @@ void FCharonEditorModule::StartupModule()
 	StyleSet->Set("Icon128", new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Icon128"), TEXT(".png")), Icon128));
 	FSlateStyleRegistry::RegisterSlateStyle(*StyleSet.Get());
 
-	FEditorDelegates::OnEditorInitialized.AddLambda([](double _)
+	FEditorDelegates::OnEditorInitialized.AddLambda([](double)
 	{
-		FDeferredGameDataImporter::ContinueDeferredImports();	
+		FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([](float)
+		{
+			FDeferredGameDataImporter::ContinueDeferredImports();
+			return false; // Return false so the ticker only runs once
+		}), 1.0f); // 1s delay is usually enough for the subsystem to register
 	});
 }
 

@@ -36,7 +36,8 @@ bool UImportGameDataFactory::PickClass()
 
 	const FText TitleText = FText::FromString(TEXT("Game Data Class"));
 	UClass* ChosenClass = nullptr;
-	const bool bPressedOk = SClassPickerDialog::PickClass(TitleText, Options, ChosenClass, UGameDataBase::StaticClass());
+	const bool bPressedOk =
+		SClassPickerDialog::PickClass(TitleText, Options, ChosenClass, UGameDataBase::StaticClass());
 
 	if (bPressedOk)
 	{
@@ -56,6 +57,7 @@ UImportGameDataFactory::UImportGameDataFactory(const FObjectInitializer& ObjectI
 
 	bCreateNew = false;
 	bEditorImport = true;
+	ImportPriority = 1;
 }
 
 bool UImportGameDataFactory::DoesSupportClass(UClass* Class)
@@ -88,7 +90,8 @@ UObject* UImportGameDataFactory::FactoryCreateFile
 	bool& bOutOperationCanceled
 )
 {
-	const auto GameData = Cast<UGameDataBase>(Super::FactoryCreateFile(InClass, InParent, InName, Flags, Filename, Params, Warn, bOutOperationCanceled));
+	const auto GameData = Cast<UGameDataBase>(
+		Super::FactoryCreateFile(InClass, InParent, InName, Flags, Filename, Params, Warn, bOutOperationCanceled));
 	if (GameData != nullptr)
 	{
 		GameData->AssetImportData->UpdateFilenameOnly(Filename);
@@ -113,7 +116,8 @@ UObject* UImportGameDataFactory::FactoryCreateBinary
 	EGameDataFormat Format;
 
 	const double StartTime = FPlatformTime::Seconds();
-	UE_LOG(LogUImportGameDataFactory, Log, TEXT("Importing game data with name '%s' from file type '%s'."), *InName.ToString(), InType);
+	UE_LOG(LogUImportGameDataFactory, Log, TEXT("Importing game data with name '%s' from file type '%s'."),
+	       *InName.ToString(), InType);
 
 	const FString FileName = InName.ToString();
 	const FString Extension = FPaths::GetExtension(FileName);
@@ -128,16 +132,20 @@ UObject* UImportGameDataFactory::FactoryCreateBinary
 	}
 	else
 	{
-		Warn->Logf(ELogVerbosity::Error, TEXT("Import failed due to an unknown extension '%s' of the game data file. Expected extensions are '.gdjs, .json, .gdmp, .msgpack, .msgpck'."), *FileName);
+		Warn->Logf(ELogVerbosity::Error,
+		           TEXT(
+			           "Import failed due to an unknown extension '%s' of the game data file. Expected extensions are '.gdjs, .json, .gdmp, .msgpack, .msgpck'."),
+		           *FileName);
 		return nullptr;
 	}
 
 	if (GameDataClass == nullptr && IsAutomatedImport())
 	{
-		Warn->Logf(ELogVerbosity::Error, TEXT("Import failed because game data class is unknown and import is not interactive."));
-		return  nullptr;
+		Warn->Logf(ELogVerbosity::Error,
+		           TEXT("Import failed because game data class is unknown and import is not interactive."));
+		return nullptr;
 	}
-	
+
 	if (GameDataClass == nullptr && !PickClass())
 	{
 		Warn->Logf(ELogVerbosity::Error, TEXT("Import failed because class picking was cancelled by the user."));
@@ -162,23 +170,28 @@ UObject* UImportGameDataFactory::FactoryCreateBinary
 		check(InClass->IsChildOf(UGameDataBase::StaticClass()));
 		GameData = NewObject<UGameDataBase>(InParent, InClass, InName, Flags);
 	}
-	
+
 	FBufferReader Stream((void*)Buffer, BufferEnd - Buffer, false);
 	if (!GameData->TryLoad(&Stream, Format))
 	{
-		Warn->Logf(ELogVerbosity::Error, TEXT("Failed to import the game data file '%s'. Detailed information is provided in the Output Log."), *FileName);
+		Warn->Logf(ELogVerbosity::Error,
+		           TEXT(
+			           "Failed to import the game data file '%s'. Detailed information is provided in the Output Log."),
+		           *FileName);
 		return nullptr;
 	}
 
-	UE_LOG(LogUImportGameDataFactory, Log, TEXT("Successfully imported the game data file '%s' with the extension '%s' in %f seconds."), *InName.ToString(), InType, FPlatformTime::Seconds() - StartTime);
+	UE_LOG(LogUImportGameDataFactory, Log,
+	       TEXT("Successfully imported the game data file '%s' with the extension '%s' in %f seconds."),
+	       *InName.ToString(), InType, FPlatformTime::Seconds() - StartTime);
 
 	ImportSubsystem->BroadcastAssetPostImport(this, GameData);
 
 	if (!GameData->AssetImportData->PublishLanguages.IsEmpty())
 	{
-		GameData->SetSupportedLanguages(GameData->AssetImportData->PublishLanguages);	
+		GameData->SetSupportedLanguages(GameData->AssetImportData->PublishLanguages);
 	}
-	
+
 	return GameData;
 }
 

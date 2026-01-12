@@ -32,7 +32,7 @@ void FDeferredGameDataImporter::ContinueDeferredImports()
 
 	for (auto ImportRecord : ImportRecords)
 	{
-		if (TryToImportGameData(ImportRecord.FileName, ImportRecord.ModuleName, ImportRecord.ClassName))
+		if (!TryToImportGameData(ImportRecord.FileName, ImportRecord.ModuleName, ImportRecord.ClassName))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Failed to import game data at '%s'. Review 'Output Log' for detauls."), *ImportRecord.FileName);
 		}

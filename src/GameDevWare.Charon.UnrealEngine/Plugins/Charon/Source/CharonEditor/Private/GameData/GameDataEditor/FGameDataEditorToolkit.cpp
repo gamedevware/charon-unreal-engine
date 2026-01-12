@@ -14,6 +14,7 @@
 #include "Math/UnrealMathUtility.h"
 #include "SSetApiKeyDialog.h"
 #include "UGameDataEditorWebBrowserBridge.h"
+#include "GameData/FDeferredGameDataImporter.h"
 #include "Widgets/Notifications/SNotificationList.h"
 #include "GameData/UGameDataImportData.h"
 #include "GenericPlatform/GenericPlatformHttp.h"
@@ -391,8 +392,10 @@ void FGameDataEditorToolkit::GenerateSourceCode_Execute()
 	FString SourceCodePath = FPaths::ConvertRelativePathToFull(GameDataClassPath / "../../");
 	FPaths::NormalizeDirectoryName(SourceCodePath);
 	FPaths::CollapseRelativeDirectories(SourceCodePath);
+	FString ModuleName = FPaths::GetCleanFilename(SourceCodePath);
 	
 	FString GameDataUrl = GameData->AssetImportData->GetNormalizedGameDataPath();
+	FString GameDataFilePath = GameDataUrl; 
 	FString ApiKey;
 	if (GameData->AssetImportData->IsConnected())
 	{
@@ -410,6 +413,7 @@ void FGameDataEditorToolkit::GenerateSourceCode_Execute()
 		GameDataUrl = ServerApiClient.GetGameDataUrl(ProjectId, GameData->AssetImportData->BranchId);
 	}
 
+	FString GameDataClassNameWithoutPrefix = GameData->GetClass()->GetName();
 	FString GameDataClassName = GameData->AssetImportData->GameDataClassName;
 	FString GameDataDocumentClassName = GameData->AssetImportData->GameDataDocumentClassName;
 	const FString DefineConstants = GameData->AssetImportData->DefineConstants;
@@ -447,7 +451,6 @@ void FGameDataEditorToolkit::GenerateSourceCode_Execute()
 		/* can cancel */ true
 	);
 
-
 	ICharonEditorModule& CharonEditorModule = ICharonEditorModule::Get(); 
 	TArray<TSharedRef<ICharonTask>> AllTasks;
 	auto PreTasks = MakeShared<TArray<TSharedRef<ICharonTask>>>();
@@ -458,6 +461,9 @@ void FGameDataEditorToolkit::GenerateSourceCode_Execute()
 
 	AllTasks.Append(PreTasks.Get());
 	AllTasks.Add(GenerateSourceCodeCommand);
+	AllTasks.Add(ICharonTask::FromSimpleDelegate(
+		FSimpleDelegate::CreateStatic(&FGameDataEditorToolkit::DeferredImportGameData, ModuleName, GameDataClassNameWithoutPrefix, GameDataFilePath),
+		FText::Format(INVTEXT("Registering for re-import '{0}' ..."), FText::FromString(GameDataFilePath))));
 	AllTasks.Append(PostTasks.Get());
 
 	CurrentRunningCommand = ICharonTask::AsSequentialRunner(AllTasks);
@@ -784,4 +790,13 @@ void FGameDataEditorToolkit::OnBrowserConsoleMessage(const FString& Message, con
 
 	}
 	
+}
+
+void FGameDataEditorToolkit::DeferredImportGameData(FString ModuleName, FString ClassName, FString GameDataFile)
+{
+	FPaths::MakePathRelativeTo(GameDataFile, *FPaths::ProjectDir());
+
+	UE_LOG(LogFGameDataEditorToolkit, Log, TEXT("Setting auto-import of game data file '%s' after Unreal Editor restart."), *GameDataFile);
+
+	FDeferredGameDataImporter::RegisterGameDataToImport(GameDataFile, ModuleName, ClassName);
 }

@@ -54,7 +54,7 @@ private:
 	void AddModuleToProjectFile(const FName ModuleName) const;
 	void UpdateCodeProjectFiles() const;
 	void CompileModule(FName ModuleName) const;
-	void TryImportGameData(FName ModuleName, FString GameDataPath);
+	void TryImportGameData(FName ModuleName, FString GameDataFile);
 
 	FText GetFinishText() const;
 	bool CanFinish() const;
