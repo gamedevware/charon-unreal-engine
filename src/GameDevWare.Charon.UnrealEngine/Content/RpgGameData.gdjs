@@ -1715,7 +1715,7 @@
 						"Requirement": 2, 
 						"ReferenceType": null, 
 						"Size": 0, 
-						"Specification": "resultType=System.Boolean&knownType=Assets.Scripts.AttackType&param.context=Assets.Scripts.CheckContext" 
+						"Specification": "resultType=System.Boolean&knownType=FColor&param.context=UObject" 
 					}, 
 					{ 
 						"Id": "8268c35b36363a980100001c", 

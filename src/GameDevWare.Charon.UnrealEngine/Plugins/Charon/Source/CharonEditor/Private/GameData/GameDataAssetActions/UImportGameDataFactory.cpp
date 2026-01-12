@@ -155,7 +155,7 @@ UObject* UImportGameDataFactory::FactoryCreateBinary
 	ImportSubsystem->BroadcastAssetPreImport(this, InClass, InParent, InName, InType);
 
 	UGameDataBase* GameData;
-	UObject* ExistingGameData = StaticFindObject(nullptr, InParent, *InName.ToString(), true);
+	UObject* ExistingGameData = StaticFindObject(nullptr, InParent, *InName.ToString(), EFindObjectFlags::ExactClass);
 	if (ExistingGameData != nullptr && (GameDataClass != nullptr || ExistingGameData->GetClass() == GameDataClass))
 	{
 		GameData = Cast<UGameDataBase>(ExistingGameData);
