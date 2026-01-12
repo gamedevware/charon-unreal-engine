@@ -394,7 +394,7 @@ void SCreateGameDataDialog::CodeGenerationCompleted()
 		FText::FromString(GameDataFilePath),
 		FText::FromString(Name),
 		FText::FromString(bRestartRequired ? TEXT("❌") : TEXT("✅")),
-		FText::FromString(bRestartRequired ? TEXT("Game data will be automatically imported after Unreal Editor restarts.") : TEXT(""))
+		FText::FromString(TEXT("Game data will be automatically imported after Unreal Editor restarts."))
 	);
 }
 
@@ -510,7 +510,7 @@ void SCreateGameDataDialog::TryImportGameData(FName ModuleName, FString GameData
 
 FText SCreateGameDataDialog::GetFinishText() const
 {
-	return bRestartRequired ? INVTEXT("Restart Editor") : INVTEXT("Finish");
+	return INVTEXT("Restart Editor");
 }
 
 bool SCreateGameDataDialog::CanFinish() const
@@ -544,13 +544,6 @@ void SCreateGameDataDialog::CancelClicked()
 void SCreateGameDataDialog::FinishClicked()
 {
 	auto _ = this->OnFinished.ExecuteIfBound(true);
-	if (this->bRestartRequired)
-	{
-		const bool bWarn = false;
-		FUnrealEdMisc::Get().RestartEditor(bWarn);;
-	}
-	else
-	{
-		CloseWindow();
-	}
+	const bool bWarn = false;
+	FUnrealEdMisc::Get().RestartEditor(bWarn);
 }
