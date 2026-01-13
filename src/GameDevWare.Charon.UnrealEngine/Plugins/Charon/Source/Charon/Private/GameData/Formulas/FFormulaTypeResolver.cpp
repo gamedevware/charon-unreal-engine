@@ -1,5 +1,6 @@
 #include "GameData/Formulas/FFormulaTypeResolver.h"
 #include "GameData/Formulas/FFormulaTypeReference.h"
+#include "GameData/Formulas/FFormulaVariableValue.h"
 
 FFormulaTypeResolver::FFormulaTypeResolver(const TSharedPtr<FFormulaTypeResolver> Parent,
                                            const TArray<UObject*>& KnownTypes)
@@ -56,51 +57,51 @@ UEnum* FFormulaTypeResolver::GetEnum(TSharedPtr<FFormulaTypeReference> TypeRefer
 	return Parent->GetEnum(TypeReference);
 }
 
-static TMap<FString, EPropertyType> PrimitivePropertyTypes = {
-	{TEXT("int"), EPropertyType::CPT_Int},
-	{TEXT("int32"), EPropertyType::CPT_Int},
-	{TEXT("int32_t"), EPropertyType::CPT_Int},
-	{TEXT("int64"), EPropertyType::CPT_Int64},
-	{TEXT("int64_t"), EPropertyType::CPT_Int64},
-	{TEXT("int16"), EPropertyType::CPT_Int16},
-	{TEXT("int16_t"), EPropertyType::CPT_Int16},
-	{TEXT("int8"), EPropertyType::CPT_Int8},
-	{TEXT("int8_t"), EPropertyType::CPT_Int8},
-	{TEXT("byte"), EPropertyType::CPT_Byte},
-	{TEXT("uint8"), EPropertyType::CPT_Byte},
-	{TEXT("uint32"), EPropertyType::CPT_UInt32},
-	{TEXT("uint64"), EPropertyType::CPT_UInt64},
+static TMap<FString, EFormulaVariableType> PrimitivePropertyTypes = {
+	{TEXT("int"), EFormulaVariableType::Int32},
+	{TEXT("int32"), EFormulaVariableType::Int32},
+	{TEXT("int32_t"), EFormulaVariableType::Int32},
+	{TEXT("int64"), EFormulaVariableType::Int64},
+	{TEXT("int64_t"), EFormulaVariableType::Int64},
+	{TEXT("int16"), EFormulaVariableType::Int32},
+	{TEXT("int16_t"), EFormulaVariableType::Int32},
+	{TEXT("int8"), EFormulaVariableType::Int32},
+	{TEXT("int8_t"), EFormulaVariableType::Int32},
+	{TEXT("byte"), EFormulaVariableType::UInt32},
+	{TEXT("uint8"), EFormulaVariableType::UInt32},
+	{TEXT("uint32"), EFormulaVariableType::UInt32},
+	{TEXT("uint64"), EFormulaVariableType::UInt64},
 
-	{TEXT("float"), EPropertyType::CPT_Float},
-	{TEXT("float32"), EPropertyType::CPT_Float},
-	{TEXT("double"), EPropertyType::CPT_Double},
-	{TEXT("float64"), EPropertyType::CPT_Double},
+	{TEXT("float"), EFormulaVariableType::Float},
+	{TEXT("float32"), EFormulaVariableType::Float},
+	{TEXT("double"), EFormulaVariableType::Double},
+	{TEXT("float64"), EFormulaVariableType::Double},
 
-	{TEXT("bool"), EPropertyType::CPT_Bool},
-	{TEXT("boolean"), EPropertyType::CPT_Bool},
+	{TEXT("bool"), EFormulaVariableType::Bool},
+	{TEXT("boolean"), EFormulaVariableType::Bool},
 
-	{TEXT("fstring"), EPropertyType::CPT_String},
-	{TEXT("string"), EPropertyType::CPT_String},
-	{TEXT("fname"), EPropertyType::CPT_Name},
-	{TEXT("ftext"), EPropertyType::CPT_Text},
+	{TEXT("fstring"), EFormulaVariableType::FString},
+	{TEXT("string"), EFormulaVariableType::FString},
+	{TEXT("fname"), EFormulaVariableType::FName},
+	{TEXT("ftext"), EFormulaVariableType::FText},
 };
 
-EPropertyType FFormulaTypeResolver::GetPropertyType(TSharedPtr<FFormulaTypeReference> TypeReference)
+EFormulaVariableType GetPropertyType(TSharedPtr<FFormulaTypeReference> TypeReference)
 {
 	if (!TypeReference.IsValid())
 	{
-		return EPropertyType::CPT_None;
+		return EFormulaVariableType::Null;
 	}
 
 	// Get the name and convert to lowercase for case-insensitive lookup
 	const FString FullName = TypeReference->GetFullName(false).ToLower();
 
 	// Look for the string in our primitive map
-	if (const EPropertyType* FoundType = PrimitivePropertyTypes.Find(FullName))
+	if (const EFormulaVariableType* FoundType = PrimitivePropertyTypes.Find(FullName))
 	{
 		return *FoundType;
 	}
 
 	// Default fallback: If it's not a primitive, it's likely a complex type or invalid
-	return EPropertyType::CPT_None;
+	return EFormulaVariableType::Null;
 }

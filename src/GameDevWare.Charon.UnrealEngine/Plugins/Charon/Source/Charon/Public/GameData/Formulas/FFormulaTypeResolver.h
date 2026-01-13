@@ -13,6 +13,5 @@ public:
 
 	UClass* GetClass(TSharedPtr<FFormulaTypeReference> TypeReference);
 	UEnum* GetEnum(TSharedPtr<FFormulaTypeReference> TypeReference);
-	EPropertyType GetPropertyType(TSharedPtr<FFormulaTypeReference> TypeReference);
 };
 
