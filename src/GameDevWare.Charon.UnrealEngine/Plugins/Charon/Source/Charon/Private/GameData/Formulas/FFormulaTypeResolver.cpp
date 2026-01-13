@@ -37,26 +37,6 @@ UClass* FFormulaTypeResolver::GetClass(TSharedPtr<FFormulaTypeReference> TypeRef
 	return Parent->GetClass(TypeReference);
 }
 
-UEnum* FFormulaTypeResolver::GetEnum(TSharedPtr<FFormulaTypeReference> TypeReference)
-{
-	if (!TypeReference.IsValid())
-	{
-		return nullptr;
-	}
-
-	const FString FullName = TypeReference->GetFullName(false);
-	for (auto KnownType : KnownTypes)
-	{
-		UEnum* KnownTypeEnum = Cast<UEnum>(KnownType.Get());
-		if (KnownTypeEnum && (KnownTypeEnum->GetName() == FullName ||
-			TEXT("E") + KnownTypeEnum->GetName() == FullName))
-		{
-			return KnownTypeEnum;
-		}
-	}
-	return Parent->GetEnum(TypeReference);
-}
-
 static TMap<FString, EFormulaVariableType> PrimitivePropertyTypes = {
 	{TEXT("int"), EFormulaVariableType::Int32},
 	{TEXT("int32"), EFormulaVariableType::Int32},

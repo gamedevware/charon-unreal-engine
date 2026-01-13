@@ -19,6 +19,5 @@ public:
 	virtual ~FFormulaTypeResolver() = default;
 
 	UClass* GetClass(TSharedPtr<FFormulaTypeReference> TypeReference);
-	UEnum* GetEnum(TSharedPtr<FFormulaTypeReference> TypeReference);
 };
 
