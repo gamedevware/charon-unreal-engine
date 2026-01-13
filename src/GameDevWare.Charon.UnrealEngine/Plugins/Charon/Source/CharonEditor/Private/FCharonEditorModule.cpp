@@ -8,6 +8,7 @@
 #include "GameData/DocumentReferenceExtensions/FGameDataDocumentReferenceCustomization.h"
 #include "GameData/GameDataEditor/FGameDataEditorCommands.h"
 #include "PropertyEditorModule.h"
+#include "Interfaces/IPluginManager.h"
 #include "Modules/ModuleInterface.h"
 #include "Modules/ModuleManager.h"
 #include "Styling/SlateStyle.h"
@@ -37,8 +38,19 @@ void FCharonEditorModule::StartupModule()
 	GameDataAssetTypeActions = MakeShared<FGameDataAssetTypeActions>();
 	AssetToolsModule.Get().RegisterAssetTypeActions(GameDataAssetTypeActions.ToSharedRef());
 
+	const auto PluginName = TEXT("Charon");
+	const auto Plugin = IPluginManager::Get().FindPlugin(PluginName);
+	FString PluginBaseDir;
+	if (Plugin)
+	{
+		PluginBaseDir = Plugin->GetBaseDir();
+	}
+	else
+	{
+		PluginBaseDir = FPaths::ProjectPluginsDir() / TEXT("Charon");
+	}
 	StyleSet = MakeShared<FSlateStyleSet>("CharonEditor");
-	StyleSet->SetContentRoot(FPaths::ProjectPluginsDir() / TEXT("Charon/Resources"));
+	StyleSet->SetContentRoot(PluginBaseDir / TEXT("Resources"));
 	const FVector2D Icon128(128.0f, 128.0f);
 	StyleSet->Set("Cpp128", new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Cpp128"), TEXT(".png")), Icon128));
 	StyleSet->Set("Icon128", new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Icon128"), TEXT(".png")), Icon128));
