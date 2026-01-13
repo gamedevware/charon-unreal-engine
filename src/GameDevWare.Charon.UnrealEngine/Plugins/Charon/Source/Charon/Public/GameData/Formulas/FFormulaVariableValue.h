@@ -1,5 +1,14 @@
 ﻿#pragma once
 
+#include "CoreMinimal.h"
+#include "CoreTypes.h"
+#include "Templates/SharedPointer.h"
+#include "Misc/TVariant.h"
+#include "Internationalization/Text.h"
+#include "UObject/NameTypes.h"
+#include "UObject/Object.h"
+#include "Containers/UnrealString.h"
+
 enum class EFormulaVariableType
 {
 	Null,

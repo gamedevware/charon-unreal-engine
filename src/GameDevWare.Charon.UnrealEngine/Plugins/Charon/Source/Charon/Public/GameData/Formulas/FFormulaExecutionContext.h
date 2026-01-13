@@ -1,4 +1,9 @@
 ﻿#pragma once
+
+#include "CoreMinimal.h"
+#include "CoreTypes.h"
+#include "Containers/Map.h"
+#include "Templates/SharedPointer.h"
 #include "FFormulaTypeResolver.h"
 #include "FFormulaVariableValue.h"
 

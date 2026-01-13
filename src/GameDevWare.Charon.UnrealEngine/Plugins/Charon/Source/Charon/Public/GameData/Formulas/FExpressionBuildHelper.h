@@ -1,5 +1,12 @@
 ﻿#pragma once
 
+#include "CoreMinimal.h"
+#include "CoreTypes.h"
+#include "Templates/SharedPointer.h"
+#include "Containers/Map.h"
+#include "Containers/Array.h"
+#include "Dom/JsonObject.h"
+
 class FFormulaTypeReference;
 class FFormulaExpression;
 

@@ -1,5 +1,11 @@
 ﻿#pragma once
 
+#include "CoreMinimal.h"
+#include "CoreTypes.h"
+#include "Containers/Array.h"
+#include "Templates/SharedPointer.h"
+#include "Dom/JsonObject.h"
+
 DECLARE_LOG_CATEGORY_EXTERN(LogFormulaTypeReference, Log, All);
 
 class CHARON_API FFormulaTypeReference

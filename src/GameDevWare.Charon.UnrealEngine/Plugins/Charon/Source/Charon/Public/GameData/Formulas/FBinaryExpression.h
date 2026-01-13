@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "CoreTypes.h"
 #include "FFormulaExpression.h"
 #include "EBinaryOperationType.h"
 

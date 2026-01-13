@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "CoreMinimal.h"
+#include "Misc/TVariant.h"
 #include "FFormulaExpression.h"
 #include "FFormulaTypeReference.h"
 

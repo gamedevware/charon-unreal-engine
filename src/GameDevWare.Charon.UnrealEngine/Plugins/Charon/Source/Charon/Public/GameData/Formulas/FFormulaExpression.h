@@ -1,6 +1,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CoreTypes.h"
+#include "Templates/SharedPointer.h"
+#include "Containers/Map.h"
+#include "Containers/Array.h"
 #include "EFormulaExpressionType.h"
 #include "FFormulaExecutionContext.h"
 #include "FFormulaVariableValue.h"

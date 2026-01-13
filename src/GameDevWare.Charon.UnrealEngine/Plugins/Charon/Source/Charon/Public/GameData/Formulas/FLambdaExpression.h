@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 #include "FFormulaExpression.h"
 
 class CHARON_API FLambdaExpression : public FFormulaExpression

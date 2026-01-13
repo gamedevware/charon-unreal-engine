@@ -11,6 +11,7 @@ public class Charon : ModuleRules
 		this.PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		this.DefinePluginVersion();
+		this.PublicDefinitions.Add("CHARON_FEATURE_FORMULAS=1");
 
 		this.PublicIncludePaths.AddRange(
 			new string[] {

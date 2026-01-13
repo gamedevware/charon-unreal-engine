@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include "CoreMinimal.h"
 #include "FFormulaExpression.h"
 
 class CHARON_API FInvokeExpression : public FFormulaExpression
