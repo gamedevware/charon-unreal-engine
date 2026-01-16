@@ -1,44 +1,44 @@
 {
-	"FileVersion": 3,
-	"Version": 17,
-	"VersionName": "2026.1.1",
-	"FriendlyName": "Charon",
-	"Description": "Charon automates game data workflows by replacing manual JSON/CSV handling with type-safe code generation. Model complex entities in a structured editor and get instant C++ access with zero boilerplate.",
-	"Category": "Other",
-	"CreatedBy": "Denis Zykov",
-	"CreatedByURL": "https://www.gamedevware.com/",
-	"DocsURL": "https://gamedevware.github.io/charon/",
-	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/b4231a79707e491ba96b9842d971e6f4",
-	"SupportURL": "https://www.gamedevware.com/",
-	"EngineVersion": "5.7.0", 
-	"CanContainContent": true,
-	"IsBetaVersion": true,
-	"IsExperimentalVersion": false,
-	"Installed": false,
-	"Modules": [
-		{
-			"Name": "Charon",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"PlatformAllowList": [ "Win64", "Mac", "Linux", "IOS", "Android", "LinuxArm64" ]
-		},
-		{
-			"Name": "CharonEditor",
-			"Type": "Editor",
-			"LoadingPhase": "Default",
-			"PlatformAllowList": [ "Win64", "Mac", "Linux" ]
-		}
-	],
-	"Plugins": [
-		{
-			"Name": "EditorScriptingUtilities",
-			"Enabled": true,
-			"Optional": false
-		},
-		{
-			"Name": "WebBrowserWidget",
-			"Enabled": true,
-			"Optional": false
-		}
-	]
+  "FileVersion": 3,
+  "Version": 17,
+  "VersionName": "2026.1.0",
+  "FriendlyName": "Charon",
+  "Description": "Charon automates game data workflows by replacing manual JSON/CSV handling with type-safe code generation. Model complex entities in a structured editor and get instant C++ access with zero boilerplate.",
+  "Category": "Other",
+  "CreatedBy": "Denis Zykov",
+  "CreatedByURL": "https://www.gamedevware.com/",
+  "DocsURL": "https://gamedevware.github.io/charon/",
+  "MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/b4231a79707e491ba96b9842d971e6f4",
+  "SupportURL": "https://www.gamedevware.com/",
+  "EngineVersion": "5.7.0",
+  "CanContainContent": true,
+  "IsBetaVersion": true,
+  "IsExperimentalVersion": false,
+  "Installed": false,
+  "Modules": [
+    {
+      "Name": "Charon",
+      "Type": "Runtime",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [ "Win64", "Mac", "Linux" ]
+    },
+    {
+      "Name": "CharonEditor",
+      "Type": "Editor",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [ "Win64", "Mac", "Linux" ]
+    }
+  ],
+  "Plugins": [
+    {
+      "Name": "EditorScriptingUtilities",
+      "Enabled": true,
+      "Optional": false
+    },
+    {
+      "Name": "WebBrowserWidget",
+      "Enabled": true,
+      "Optional": false
+    }
+  ]
 }
