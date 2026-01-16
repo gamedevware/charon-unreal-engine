@@ -3,12 +3,12 @@
 
 class CHARON_API FConditionExpression : public FFormulaExpression
 {
-private:
+
+public:
 	TSharedPtr<FFormulaExpression> Test;
 	TSharedPtr<FFormulaExpression> IfTrue;
 	TSharedPtr<FFormulaExpression> IfFalse;
-
-public:
+	
 	explicit FConditionExpression(const TSharedRef<FJsonObject>& ExpressionObj);
 
 	virtual EFormulaExpressionType GetType() const override  { return EFormulaExpressionType::ConditionExpression; }

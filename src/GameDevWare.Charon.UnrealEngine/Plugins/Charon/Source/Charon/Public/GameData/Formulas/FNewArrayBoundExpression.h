@@ -5,11 +5,10 @@
 
 class CHARON_API FNewArrayBoundExpression : public FFormulaExpression
 {
-private:
+public:
 	TMap<FString, TSharedPtr<FFormulaExpression>> Arguments;
 	TSharedPtr<FFormulaTypeReference> Type;
-
-public:
+	
 	explicit FNewArrayBoundExpression(const TSharedRef<FJsonObject>& ExpressionObj);
 
 	virtual EFormulaExpressionType GetType() const override  { return EFormulaExpressionType::NewArrayBoundExpression; }

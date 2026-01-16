@@ -4,12 +4,11 @@
 
 class CHARON_API FConvertExpression : public FFormulaExpression
 {
-private:
+public:
 	TSharedPtr<class FFormulaTypeReference> Type;
 	TSharedPtr<FFormulaExpression> Expression;
 	FString ExpressionType;
-
-public:
+	
 	explicit FConvertExpression(const TSharedRef<FJsonObject>& ExpressionObj);
 
 	virtual EFormulaExpressionType GetType() const override  { return EFormulaExpressionType::ConvertExpression; }

@@ -4,14 +4,13 @@
 
 class CHARON_API FMemberExpression : public FFormulaExpression
 {
-private:
+public:
 	bool bUseNullPropagation;
 	TSharedPtr<FFormulaExpression> Expression;
 	FString RawMemberName;
 	FString MemberName;
 	TArray<TSharedPtr<class FFormulaTypeReference>> TypeArguments;
-
-public:
+	
 	explicit FMemberExpression(const TSharedRef<FJsonObject>& ExpressionObj);
 
 	virtual EFormulaExpressionType GetType() const override  { return EFormulaExpressionType::MemberExpression; }

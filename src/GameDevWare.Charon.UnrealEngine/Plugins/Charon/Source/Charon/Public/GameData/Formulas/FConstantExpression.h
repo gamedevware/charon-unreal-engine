@@ -13,11 +13,10 @@ using FConstantVariant = TVariant<
 
 class CHARON_API FConstantExpression : public FFormulaExpression
 {
-private:
+public:
 	TSharedPtr<FFormulaTypeReference> Type;
 	FConstantVariant Value;
-
-public:
+	
 	explicit FConstantExpression(const TSharedRef<FJsonObject>& ExpressionObj);
 
 	virtual EFormulaExpressionType GetType() const override  { return EFormulaExpressionType::ConstantExpression; }

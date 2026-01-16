@@ -9,21 +9,9 @@
 #include "UObject/Object.h"
 #include "Containers/UnrealString.h"
 
-enum class EFormulaVariableType
-{
-	Null,
-	Bool,
-	UInt32,
-	UInt64,
-	Int32,
-	Int64,
-	Float,
-	Double,
-	FString,
-	FName,
-	FText,
-	UObjectPointer,
-};
+DECLARE_LOG_CATEGORY_EXTERN(LogFormulaVariableValue, Log, All);
+
+using FByteArray = TArray<uint8>;
 
 using FFormulaVariant = TVariant<
 	bool,
@@ -37,6 +25,7 @@ using FFormulaVariant = TVariant<
 	FName,
 	FText,
 	UObject*,
+	FByteArray, // Structs, Unknown, Types etc
 	/*
 		FTimespan,
 		FDateTime,
@@ -56,12 +45,14 @@ class CHARON_API FFormulaVariableValue
 	
 private:
 	FFormulaVariant Value;
-
+	FProperty* Type;
+	
 public:
-	EFormulaVariableType Type;
+	FProperty* GetFieldType() const { return this->Type; }
 
 	FFormulaVariableValue();
-
+	FFormulaVariableValue(FProperty* FieldType, const void* ValuePtr);
+	
 	static FFormulaVariableValue Create(const bool Value);
 	static FFormulaVariableValue Create(const int8 Value);
 	static FFormulaVariableValue Create(const int16 Value);
@@ -79,23 +70,8 @@ public:
 	static FFormulaVariableValue Create(const TObjectPtr<UObject> Value);
 	static FFormulaVariableValue Create(UObject* Value);
 
-	bool TryGet(bool& OutValue) const;
-
+	bool TryCopyCompleteValue(const FProperty* OutType, void* OutValue) const;
+	void CopyCompleteValue(void* DestinationPtr) const;
+	
 	FString ToString() const;
-
-private:
-	template <typename U>
-	void Set(typename TIdentity<U>::Type&& Value, const EFormulaVariableType Type)
-	{
-		this->Value.Set<U>(Value);
-		this->Type = Type;
-	}
-
-	/** Set a specifically-typed value into the variant */
-	template <typename U>
-	void Set(const typename TIdentity<U>::Type& Value, const EFormulaVariableType Type)
-	{
-		this->Value.Set<U>(Value);
-		this->Type = Type;
-	}
 };

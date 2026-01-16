@@ -5,10 +5,9 @@
 
 class CHARON_API FDefaultExpression : public FFormulaExpression
 {
-private:
-	TSharedPtr<FFormulaTypeReference> Type;
-
 public:
+	TSharedPtr<FFormulaTypeReference> Type;
+	
 	explicit FDefaultExpression(const TSharedRef<FJsonObject>& ExpressionObj);
 
 	virtual EFormulaExpressionType GetType() const override  { return EFormulaExpressionType::DefaultExpression; }
