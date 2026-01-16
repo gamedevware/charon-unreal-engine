@@ -4,9 +4,12 @@
 #include "UObject/UnrealType.h"
 #include "UObject/TextProperty.h"
 #include "UObject/EnumProperty.h"
+#if __has_include("UObject/StrProperty.h")
 #include "UObject/StrProperty.h"
+#endif
 #include "UObject/FieldPathProperty.h"
 #include "FFormulaVariableValueStruct.h"
+#include "Misc/EngineVersionComparison.h"
 
 DEFINE_LOG_CATEGORY(LogFormulaVariableValue);
 
@@ -29,6 +32,11 @@ FFormulaVariableValue::FFormulaVariableValue()
 FFormulaVariableValue::FFormulaVariableValue(FProperty* FieldType, const void* ValuePtr)
 {
 	this->Type = FieldType;
+#if UE_VERSION_NEWER_THAN(5, 5, -1)
+	const int32 ElementSize = FieldType->GetElementSize();
+#else
+	const int32 ElementSize = FieldType->ElementSize;
+#endif
 	if (const FBoolProperty* BoolProp = CastField<FBoolProperty>(FieldType))
 	{
 		const bool BoolValue = BoolProp->GetPropertyValue(ValuePtr);
@@ -38,7 +46,7 @@ FFormulaVariableValue::FFormulaVariableValue(FProperty* FieldType, const void* V
 	{
 		if (NumericProp->IsFloatingPoint())
 		{
-			if (NumericProp->GetElementSize() <= 4)
+			if (ElementSize <= 4)
 			{
 				const float SingleValue = NumericProp->GetFloatingPointPropertyValue(ValuePtr);
 				this->Value.Set<float>(SingleValue);
@@ -52,7 +60,7 @@ FFormulaVariableValue::FFormulaVariableValue(FProperty* FieldType, const void* V
 		else if (NumericProp->CanHoldValue(-1))
 		{
 			const int64 Int64Value = NumericProp->GetSignedIntPropertyValue(ValuePtr);
-			switch (NumericProp->GetElementSize())
+			switch (ElementSize)
 			{
 			case 1:
 				this->Value.Set<int32>(static_cast<int8>(Int64Value));
@@ -71,7 +79,7 @@ FFormulaVariableValue::FFormulaVariableValue(FProperty* FieldType, const void* V
 		else
 		{
 			const uint64 UInt64Value = NumericProp->GetUnsignedIntPropertyValue(ValuePtr);
-			switch (NumericProp->GetElementSize())
+			switch (ElementSize)
 			{
 			case 1:
 				this->Value.Set<uint32>(static_cast<uint8>(UInt64Value));
@@ -117,7 +125,7 @@ FFormulaVariableValue::FFormulaVariableValue(FProperty* FieldType, const void* V
 	else
 	{
 		FByteArray Buffer;
-		Buffer.AddZeroed(FieldType->GetElementSize());
+		Buffer.AddZeroed(ElementSize);
 		FieldType->CopyCompleteValue(Buffer.GetData(), ValuePtr);
 		this->Value.Set<FByteArray>(Buffer);
 	}
@@ -256,6 +264,7 @@ FFormulaVariableValue FFormulaVariableValue::Create(UObject* Value)
 
 bool FFormulaVariableValue::TryCopyCompleteValue(const FProperty* OutType, void* OutValue) const
 {
+#if UE_VERSION_NEWER_THAN(5, 5, -1)
 	if (const FOptionalProperty* OptionalProp = CastField<FOptionalProperty>(OutType))
 	{
 		if (this->Value.IsType<nullptr_t>())
@@ -281,6 +290,7 @@ bool FFormulaVariableValue::TryCopyCompleteValue(const FProperty* OutType, void*
 			}
 		}
 	}
+#endif
 	if (const FObjectPropertyBase* OutObjectProp = CastField<FObjectPropertyBase>(OutType))
 	{
 		if (this->Value.IsType<nullptr_t>())

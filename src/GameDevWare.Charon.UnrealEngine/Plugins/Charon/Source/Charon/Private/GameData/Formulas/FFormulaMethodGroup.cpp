@@ -14,7 +14,7 @@ void FFormulaMethodGroup::AddFunction(UFunction* Function)
 		return;
 	}
 
-	Functions.Add(TWeakObjectPtr(Function));
+	Functions.Add(TWeakObjectPtr<UFunction>(Function));
 }
 
 bool FFormulaMethodGroup::TryInvoke(const FFormulaVariableValue& Target,

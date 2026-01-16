@@ -1,7 +1,7 @@
 {
   "FileVersion": 3,
-  "Version": 17,
-  "VersionName": "2026.1.0",
+  "Version": 18,
+  "VersionName": "2026.1.1",
   "FriendlyName": "Charon",
   "Description": "Charon automates game data workflows by replacing manual JSON/CSV handling with type-safe code generation. Model complex entities in a structured editor and get instant C++ access with zero boilerplate.",
   "Category": "Other",
@@ -12,7 +12,7 @@
   "SupportURL": "https://www.gamedevware.com/",
   "EngineVersion": "5.7.0",
   "CanContainContent": true,
-  "IsBetaVersion": true,
+  "IsBetaVersion": false,
   "IsExperimentalVersion": false,
   "Installed": false,
   "Modules": [
@@ -20,7 +20,7 @@
       "Name": "Charon",
       "Type": "Runtime",
       "LoadingPhase": "Default",
-      "PlatformAllowList": [ "Win64", "Mac", "Linux" ]
+      "PlatformAllowList": [ "Win64", "Mac", "Linux", "IOS", "Android", "LinuxArm64" ]
     },
     {
       "Name": "CharonEditor",

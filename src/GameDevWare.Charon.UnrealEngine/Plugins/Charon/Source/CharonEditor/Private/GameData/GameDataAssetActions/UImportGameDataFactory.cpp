@@ -1,6 +1,7 @@
 // Copyright GameDevWare, Denis Zykov 2025
 
 #include "GameData/GameDataAssetActions/UImportGameDataFactory.h"
+#include "Misc/EngineVersionComparison.h"
 #include "UObject/Class.h"
 #include "Misc/FeedbackContext.h"
 #include "JsonObjectConverter.h"
@@ -155,7 +156,13 @@ UObject* UImportGameDataFactory::FactoryCreateBinary
 	ImportSubsystem->BroadcastAssetPreImport(this, InClass, InParent, InName, InType);
 
 	UGameDataBase* GameData;
-	UObject* ExistingGameData = StaticFindObject(nullptr, InParent, *InName.ToString(), EFindObjectFlags::ExactClass);
+	UObject* ExistingGameData = StaticFindObject(nullptr, InParent, *InName.ToString(),
+#if UE_VERSION_NEWER_THAN(5, 7, -1)
+		EFindObjectFlags::ExactClass
+#else
+		true
+#endif
+	);
 	if (ExistingGameData != nullptr && (GameDataClass != nullptr || ExistingGameData->GetClass() == GameDataClass))
 	{
 		GameData = Cast<UGameDataBase>(ExistingGameData);
