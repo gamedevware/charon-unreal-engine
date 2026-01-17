@@ -6,3 +6,8 @@ FTypeOfExpression::FTypeOfExpression(const TSharedRef<FJsonObject>& ExpressionOb
 {
 	Type = FExpressionBuildHelper::GetTypeRef(ExpressionObj, FormulaConstants::TYPE_ATTRIBUTE);
 }
+
+FFormulaInvokeResult FTypeOfExpression::Invoke(const FFormulaExecutionContext& Context)
+{
+	
+}

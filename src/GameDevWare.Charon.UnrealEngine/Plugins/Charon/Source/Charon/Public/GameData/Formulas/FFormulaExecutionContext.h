@@ -5,21 +5,21 @@
 #include "Containers/Map.h"
 #include "Templates/SharedPointer.h"
 #include "FFormulaTypeResolver.h"
-#include "FFormulaVariableValue.h"
+#include "FFormulaValue.h"
 
 class CHARON_API FFormulaExecutionContext
 {
 public:
 	bool AutoNullPropagation;
-	TMap<FString, FFormulaVariableValue> Arguments;
-	FFormulaVariableValue Global;
+	TMap<FString, FFormulaValue> Arguments;
+	FFormulaValue Global;
 	TSharedRef<FFormulaTypeResolver> TypeResolver;
 	
 	FFormulaExecutionContext
 	(
 		bool bAutoNullPropagation,
-		const TMap<FString, FFormulaVariableValue>& Arguments,
-		const FFormulaVariableValue& Global,
+		const TMap<FString, FFormulaValue>& Arguments,
+		const FFormulaValue& Global,
 		const TSharedRef<FFormulaTypeResolver>& TypeResolver
 	);
 };

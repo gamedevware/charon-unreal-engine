@@ -5,17 +5,21 @@
 #include "EBinaryOperationType.h"
 #include "EUnaryOperationType.h"
 #include "FFormulaMethodGroup.h"
-#include "FFormulaVariableValue.h"
+#include "FFormulaValue.h"
 #include "Containers/Array.h"
 #include "Templates/SharedPointer.h"
+#include "UObject/Class.h"
 
 class CHARON_API IFormulaTypeDescription : public TSharedFromThis<IFormulaTypeDescription>
 {
 public:
 	virtual ~IFormulaTypeDescription() = default;
 	
-	virtual bool CanBeNull() = 0; 
-	virtual FFormulaVariableValue GetDefaultValue() = 0;
+	virtual bool CanBeNull() const = 0;
+	virtual bool IsAssignableFrom(UStruct* Type) const = 0;
+	virtual FString GetCPPType() const = 0;
+	virtual EFormulaValueType GetTypeCode() const = 0;
+	virtual FFormulaValue GetDefaultValue() const = 0;
 	virtual const TArray<FString>& GetPropertyNames(bool bStatic) = 0;
 	virtual const TArray<FString>& GetFunctionNames(bool bStatic) = 0;
 

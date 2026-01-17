@@ -21,9 +21,13 @@ struct FFormulaVariableValueStruct
 	UPROPERTY()
 	int64 Int64Value = 0;
 	UPROPERTY()
-	float SingleValue = 0;
+	float FloatValue = 0;
 	UPROPERTY()
 	double DoubleValue = 0;
+	UPROPERTY()
+	FTimespan FTimespanValue;
+	UPROPERTY()
+	FDateTime FDateTimeValue;
 	UPROPERTY()
 	FString FStringValue;
 	UPROPERTY()
@@ -32,4 +36,6 @@ struct FFormulaVariableValueStruct
 	FText FTextValue;
 	UPROPERTY()
 	UObject* ObjectPtrValue = nullptr;
+	UPROPERTY()
+	UObject* NullPtrValue = nullptr;
 };

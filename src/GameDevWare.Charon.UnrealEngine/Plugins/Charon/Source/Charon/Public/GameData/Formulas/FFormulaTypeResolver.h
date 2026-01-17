@@ -20,4 +20,5 @@ public:
 	virtual ~FFormulaTypeResolver() = default;
 
 	TSharedPtr<IFormulaTypeDescription> GetTypeDescription(const TSharedPtr<FFormulaTypeReference>& TypeReference);
+	TSharedPtr<IFormulaTypeDescription> GetTypeDescription(const FProperty* Type);
 };

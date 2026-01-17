@@ -12,4 +12,6 @@ public:
 	explicit FConvertExpression(const TSharedRef<FJsonObject>& ExpressionObj);
 
 	virtual EFormulaExpressionType GetType() const override  { return EFormulaExpressionType::ConvertExpression; }
+
+	virtual FFormulaInvokeResult Invoke(const FFormulaExecutionContext& Context) override; 
 };

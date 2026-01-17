@@ -11,4 +11,6 @@ public:
 	explicit FTypeOfExpression(const TSharedRef<FJsonObject>& ExpressionObj);
 
 	virtual EFormulaExpressionType GetType() const override  { return EFormulaExpressionType::TypeOfExpression; }
+
+	virtual FFormulaInvokeResult Invoke(const FFormulaExecutionContext& Context) override; 
 };

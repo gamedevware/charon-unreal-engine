@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "CoreTypes.h"
-#include "FFormulaVariableValue.h"
+#include "FFormulaValue.h"
 #include "Containers/Array.h"
 #include "Containers/Map.h"
 #include "Templates/SharedPointer.h"
@@ -25,10 +25,10 @@ public:
 	void AddFunction(UFunction* Function);
 	
 	bool TryInvoke(
-		const FFormulaVariableValue& Target,
-		const TMap<FString, FFormulaVariableValue>& CallArguments,
-		const FProperty* ExpectedType,
+		const FFormulaValue& Target,
+		const TMap<FString, FFormulaValue>& CallArguments,
+		const IFormulaTypeDescription* ExpectedType,
 		const TArray<UClass*>& TypeArguments,
-		FFormulaVariableValue& Result
+		FFormulaValue& Result
 	);
 };

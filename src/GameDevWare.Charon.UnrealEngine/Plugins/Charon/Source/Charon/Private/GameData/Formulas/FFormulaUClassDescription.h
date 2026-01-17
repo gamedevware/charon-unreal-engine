@@ -19,8 +19,11 @@ public:
 	explicit FFormulaUClassDescription(UClass* ClassPtr);
 	virtual ~FFormulaUClassDescription() override { }
 
-	virtual bool CanBeNull() override { return true; }
-	virtual FFormulaVariableValue GetDefaultValue() override;
+	virtual bool CanBeNull() const override { return true; }
+	virtual bool IsAssignableFrom(UStruct* Type) const override;
+	virtual EFormulaValueType GetTypeCode() const override { return EFormulaValueType::ObjectPtr; }
+	virtual FString GetCPPType() const override;
+	virtual FFormulaValue GetDefaultValue() const override { return FFormulaValue::Null(); }
 	virtual const TArray<FString>& GetPropertyNames(bool bStatic) override;
 	virtual const TArray<FString>& GetFunctionNames(bool bStatic) override;
 

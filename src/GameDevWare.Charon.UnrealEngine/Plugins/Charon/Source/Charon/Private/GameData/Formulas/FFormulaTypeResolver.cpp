@@ -47,3 +47,8 @@ TSharedPtr<IFormulaTypeDescription> FFormulaTypeResolver::GetTypeDescription(
 	}
 	return Parent->GetTypeDescription(TypeReference);
 }
+
+TSharedPtr<IFormulaTypeDescription> FFormulaTypeResolver::GetTypeDescription(const FProperty* Type)
+{
+
+}

@@ -6,10 +6,6 @@ static TArray<FString> NoMembers;
 FFormulaUClassDescription::FFormulaUClassDescription(UClass* ClassPtr)
 	: ClassPtr(ClassPtr) { }
 
-FFormulaVariableValue FFormulaUClassDescription::GetDefaultValue()
-{
-	return FFormulaVariableValue(); // null
-}
 
 FString GetMemberName(const FField* Field)
 {
@@ -44,6 +40,16 @@ FString GetMemberName(const UField* Field)
 #else
 	return FString();
 #endif
+}
+
+bool FFormulaUClassDescription::IsAssignableFrom(UStruct* Type) const
+{
+	return Type->IsChildOf(this->ClassPtr.Get());
+}
+
+FString FFormulaUClassDescription::GetCPPType() const
+{
+	return this->ClassPtr->GetPrefixCPP() + this->ClassPtr->GetName();
 }
 
 const TArray<FString>& FFormulaUClassDescription::GetPropertyNames(bool bStatic)

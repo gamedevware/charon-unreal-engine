@@ -12,4 +12,6 @@ public:
 	explicit FConditionExpression(const TSharedRef<FJsonObject>& ExpressionObj);
 
 	virtual EFormulaExpressionType GetType() const override  { return EFormulaExpressionType::ConditionExpression; }
+
+	virtual FFormulaInvokeResult Invoke(const FFormulaExecutionContext& Context) override;
 };
