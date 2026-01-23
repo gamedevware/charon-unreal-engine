@@ -17,6 +17,7 @@ class CHARON_API FExpressionBuildHelper
 public:
 	static TSharedPtr<FFormulaExpression> CreateExpression(const TSharedPtr<FJsonObject>* ExpressionObj);
 	static TSharedPtr<FFormulaExpression> GetExpression(const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName, bool bOptional = false);
+	static bool GetUseNullPropagation(const TSharedPtr<FJsonObject>& ExpressionObj, bool bOptional = true);
 	static FString GetString(const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName, bool bOptional = false);
 	static TSharedPtr<FFormulaTypeReference> GetTypeRef(const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName, bool bOptional = false);
 	static TMap<FString, TSharedPtr<FFormulaExpression>> GetArguments(const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName);

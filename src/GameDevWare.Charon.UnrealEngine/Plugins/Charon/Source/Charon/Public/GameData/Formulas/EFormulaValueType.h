@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "CoreMinimal.h"
+#include "UObject/UnrealType.h"
 
 enum class EFormulaValueType
 {
@@ -24,5 +24,4 @@ enum class EFormulaValueType
 	ObjectPtr,
 	Struct,
 	Enum,
-	Optional,
 };

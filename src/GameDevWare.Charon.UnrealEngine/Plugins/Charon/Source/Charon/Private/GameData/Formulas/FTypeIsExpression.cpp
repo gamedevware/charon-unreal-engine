@@ -1,27 +1,32 @@
-﻿#include "GameData/Formulas/FTypeIsExpression.h"
+﻿#include "GameData/Formulas/Expressions/FTypeIsExpression.h"
 #include "GameData/Formulas/FExpressionBuildHelper.h"
-#include "GameData/Formulas/FFormulaConstants.h"
+#include "GameData/Formulas/FFormulaNotation.h"
 #include "GameData/Formulas/IFormulaTypeDescription.h"
 
-FTypeIsExpression::FTypeIsExpression(const TSharedRef<FJsonObject>& ExpressionObj)
-{
-	Type = FExpressionBuildHelper::GetTypeRef(ExpressionObj, FormulaConstants::TYPE_ATTRIBUTE);
-	Expression = FExpressionBuildHelper::GetExpression(ExpressionObj, FormulaConstants::EXPRESSION_ATTRIBUTE);
-}
+FTypeIsExpression::FTypeIsExpression(const TSharedRef<FJsonObject>& ExpressionObj):
+	CheckType(FExpressionBuildHelper::GetTypeRef(ExpressionObj, FFormulaNotation::TYPE_ATTRIBUTE)),
+	Expression(FExpressionBuildHelper::GetExpression(ExpressionObj, FFormulaNotation::EXPRESSION_ATTRIBUTE))
+{}
 
-FFormulaInvokeResult FTypeIsExpression::Invoke(const FFormulaExecutionContext& Context)
+FFormulaInvokeResult FTypeIsExpression::Execute(const FFormulaExecutionContext& Context) const
 {
-	const auto Result = this->Expression->Invoke(Context);
-	if (Result.IsType<FFormulaInvokeError>())
+	if (!this->Expression.IsValid() || !this->CheckType.IsValid())
+	{
+		return FFormulaInvokeError::ExpressionIsInvalid();
+	}
+	
+	const auto Result = this->Expression->Execute(Context);
+	if (Result.HasError())
 	{
 		return Result; // propagate error
 	}
-	const auto ToType = Context.TypeResolver->GetTypeDescription(this->Type);
+	const auto ToType = Context.TypeResolver->GetTypeDescription(this->CheckType);
 	if (!ToType)
 	{
-		return MakeErrorResult(FFormulaInvokeError::UnableToResolveType(this->Type->GetFullName(/* include generics */ true)));
+		return FFormulaInvokeError::UnableToResolveType(this->CheckType->GetFullName(/* include generics */ true));
 	}
 
-	FFormulaValue Target = Result.Get<FFormulaValue>();
-	bool bIsAssignable = ToType->IsAssignableFrom(Context.TypeResolver->GetTypeDescription(Target.GetType()));
+	const auto Target = Result.GetValue();
+	const bool bIsAssignable = ToType->IsAssignableFrom(Target->GetType());
+	return MakeShared<FFormulaValue>(bIsAssignable);
 }

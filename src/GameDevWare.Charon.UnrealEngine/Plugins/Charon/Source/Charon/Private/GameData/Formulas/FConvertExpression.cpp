@@ -1,35 +1,39 @@
-﻿#include "GameData/Formulas/FConvertExpression.h"
+﻿#include "GameData/Formulas/Expressions/FConvertExpression.h"
 #include "GameData/Formulas/FExpressionBuildHelper.h"
-#include "GameData/Formulas/FFormulaConstants.h"
+#include "GameData/Formulas/FFormulaNotation.h"
 #include "GameData/Formulas/IFormulaTypeDescription.h"
 #include "GameData/Formulas/FFormulaTypeReference.h"
 
-FConvertExpression::FConvertExpression(const TSharedRef<FJsonObject>& ExpressionObj)
-{
-	ExpressionObj->TryGetStringField(FormulaConstants::EXPRESSION_TYPE_ATTRIBUTE, ExpressionType);
-	Type = FExpressionBuildHelper::GetTypeRef(ExpressionObj, FormulaConstants::TYPE_ATTRIBUTE);
-	Expression = FExpressionBuildHelper::GetExpression(ExpressionObj, FormulaConstants::EXPRESSION_ATTRIBUTE);
-}
+FConvertExpression::FConvertExpression(const TSharedRef<FJsonObject>& ExpressionObj):
+	ConversionType(FExpressionBuildHelper::GetTypeRef(ExpressionObj, FFormulaNotation::TYPE_ATTRIBUTE)),
+	Expression(FExpressionBuildHelper::GetExpression(ExpressionObj, FFormulaNotation::EXPRESSION_ATTRIBUTE)),
+	ExpressionType(FExpressionBuildHelper::GetString(ExpressionObj, FFormulaNotation::EXPRESSION_TYPE_ATTRIBUTE))
+{}
 
-static TArray<UClass*> EmptyTypeArgument;
-FFormulaInvokeResult FConvertExpression::Invoke(const FFormulaExecutionContext& Context)
+static TArray<UField*> EmptyTypeArgument;
+FFormulaInvokeResult FConvertExpression::Execute(const FFormulaExecutionContext& Context) const
 {
-	const auto Result = this->Expression->Invoke(Context);
-	if (Result.IsType<FFormulaInvokeError>())
+	if (!this->Expression.IsValid() || !this->ConversionType.IsValid())
+	{
+		return FFormulaInvokeError::ExpressionIsInvalid();
+	}
+	
+	const auto Result = this->Expression->Execute(Context);
+	if (Result.HasError())
 	{
 		return Result; // propagate error
 	}
 
-	const auto FromValue = Result.Get<FFormulaValue>();
-	const auto ToType = Context.TypeResolver->GetTypeDescription(this->Type);
+	const auto FromValue = Result.GetValue();
+	const auto ToType = Context.TypeResolver->GetTypeDescription(this->ConversionType);
 	if (!ToType)
 	{
-		return MakeErrorResult(FFormulaInvokeError::UnableToResolveType(this->Type->GetFullName(/* include generics */ true)));
+		return FFormulaInvokeError::UnableToResolveType(this->ConversionType->GetFullName(/* include generics */ true));
 	}
 	
 	const auto ToTypeCode = ToType->GetTypeCode();
 	
-	if (FromValue.IsNull())
+	if (FromValue->IsNull())
 	{
 		if (ToType->CanBeNull())
 		{
@@ -37,45 +41,46 @@ FFormulaInvokeResult FConvertExpression::Invoke(const FFormulaExecutionContext& 
 		}
 		else
 		{
-			return MakeErrorResult(
-				FFormulaInvokeError::CanConvertNullToType(ToType->GetCPPType())
-			);
+			return FFormulaInvokeError::CanConvertNullToType(ToType->GetCPPType());
 		}
 	}
 	
-	if (const FObjectPropertyBase* FromObjectProp = CastField<FObjectPropertyBase>(FromValue.GetType());
+	if (const FObjectPropertyBase* FromObjectProp = CastField<FObjectPropertyBase>(FromValue->GetType());
 		ToTypeCode == EFormulaValueType::ObjectPtr)
 	{
 		if (ToType->IsAssignableFrom(FromObjectProp->PropertyClass))
 		{
 			return Result; // UClass cast success
 		}
-		if (ExpressionType == FormulaConstants::EXPRESSION_TYPE_TYPE_AS)
+		if (ExpressionType == FFormulaNotation::EXPRESSION_TYPE_TYPE_AS)
 		{
 			// this is not an error in `x as ClassName` expression
-			return MakeValueResult(FFormulaValue::Null()); // UClass cast failure
+			return FFormulaValue::Null(); // UClass cast failure
 		}
 		else
 		{
-			return MakeErrorResult(
-				FFormulaInvokeError::InvalidCastError(FromValue.GetType()->GetCPPType(), ToType->GetCPPType()));
+			return FFormulaInvokeError::InvalidCastError(FromValue->GetType()->GetCPPType(), ToType->GetCPPType());
 		}
 	}
 
-	FFormulaMethodGroup* ConversionOperation;
-	FFormulaValue ResultValue;
-	const TMap<FString, FFormulaValue> ConversionArguments {
-		{ TEXT("0"), FromValue }
-	};
-	if (ToType->TryGetConversionOperation(ConversionOperation) &&
-		ConversionOperation &&
-		ConversionOperation->TryInvoke(
-			FFormulaValue::Null(), ConversionArguments, ToType.Get(), EmptyTypeArgument, ResultValue
-		))
+	const FFormulaFunction* ConversionOperation;
+	if (ToType->TryGetConversionOperation(ConversionOperation) && ConversionOperation)
 	{
-		return MakeValueResult(ResultValue);
+		const TMap<FString, TSharedRef<FFormulaValue>> ConversionArguments {
+			{ TEXT("0"), FromValue }
+		};
+		TSharedPtr<FFormulaValue> ResultValue;
+		if (ConversionOperation->TryInvoke(
+			FFormulaValue::Null(),
+			ConversionArguments,
+			ToType.Get(),
+			EmptyTypeArgument,
+			ResultValue
+		))
+		{
+			return ResultValue;
+		}
 	}
 
-	return MakeErrorResult(
-		FFormulaInvokeError::CantConvertToType(FromValue.GetType()->GetCPPType(), ToType->GetCPPType()));
+	return FFormulaInvokeError::CantConvertToType(FromValue->GetType()->GetCPPType(), ToType->GetCPPType());
 }

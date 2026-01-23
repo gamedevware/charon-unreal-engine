@@ -10,15 +10,17 @@ DECLARE_LOG_CATEGORY_EXTERN(LogFormulaTypeReference, Log, All);
 
 class CHARON_API FFormulaTypeReference
 {
-public:
-	TSharedPtr<FFormulaTypeReference> Expression;
-	TArray<TSharedPtr<FFormulaTypeReference>> TypeArguments;
-	FString Name;
+private:
 	// Cache variables for lazy initialization
 	mutable FString FullName;
+	mutable FString FullNameWithGenerics;
+public:
+	const TSharedPtr<FFormulaTypeReference> Expression;
+	const TArray<TSharedPtr<FFormulaTypeReference>> TypeArguments;
+	const FString Name;
 
 	explicit FFormulaTypeReference(const TSharedRef<FJsonObject>& ExpressionObj);
-	explicit FFormulaTypeReference(FString Name);
+	explicit FFormulaTypeReference(const FString& Name);
 
 	bool IsEmpty() const;
 

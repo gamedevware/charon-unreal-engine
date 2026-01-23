@@ -10,16 +10,16 @@
 class CHARON_API FFormulaExecutionContext
 {
 public:
-	bool AutoNullPropagation;
-	TMap<FString, FFormulaValue> Arguments;
-	FFormulaValue Global;
-	TSharedRef<FFormulaTypeResolver> TypeResolver;
+	const bool AutoNullPropagation;
+	const TMap<FString, const TSharedRef<FFormulaValue>> Arguments;
+	const TSharedRef<FFormulaValue> Global;
+	const TSharedRef<FFormulaTypeResolver> TypeResolver;
 	
 	FFormulaExecutionContext
 	(
 		bool bAutoNullPropagation,
-		const TMap<FString, FFormulaValue>& Arguments,
-		const FFormulaValue& Global,
+		const TMap<FString, const TSharedRef<FFormulaValue>>& Arguments,
+		const TSharedRef<FFormulaValue>& Global,
 		const TSharedRef<FFormulaTypeResolver>& TypeResolver
 	);
 };

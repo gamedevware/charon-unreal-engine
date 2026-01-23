@@ -1,39 +1,34 @@
-﻿#include "GameData/Formulas/FConditionExpression.h"
-#include "FDotNetBoolean.h"
+﻿#include "GameData/Formulas/Expressions/FConditionExpression.h"
 #include "GameData/Formulas/FExpressionBuildHelper.h"
-#include "GameData/Formulas/FFormulaConstants.h"
+#include "GameData/Formulas/FFormulaNotation.h"
 
-FConditionExpression::FConditionExpression(const TSharedRef<FJsonObject>& ExpressionObj)
+FConditionExpression::FConditionExpression(const TSharedRef<FJsonObject>& ExpressionObj) :
+	Test(FExpressionBuildHelper::GetExpression(ExpressionObj, FFormulaNotation::TEST_ATTRIBUTE)),
+	IfTrue(FExpressionBuildHelper::GetExpression(ExpressionObj, FFormulaNotation::IF_TRUE_ATTRIBUTE)),
+	IfFalse(FExpressionBuildHelper::GetExpression(ExpressionObj, FFormulaNotation::IF_FALSE_ATTRIBUTE))
 {
-	Test = FExpressionBuildHelper::GetExpression(ExpressionObj, FormulaConstants::TEST_ATTRIBUTE);
-	IfTrue = FExpressionBuildHelper::GetExpression(ExpressionObj, FormulaConstants::IF_TRUE_ATTRIBUTE);
-	IfFalse = FExpressionBuildHelper::GetExpression(ExpressionObj, FormulaConstants::IF_FALSE_ATTRIBUTE);
 }
 
-FFormulaInvokeResult FConditionExpression::Invoke(const FFormulaExecutionContext& Context)
+FFormulaInvokeResult FConditionExpression::Execute(const FFormulaExecutionContext& Context) const
 {
-	const auto Result = this->Test->Invoke(Context);
-	if (Result.IsType<FFormulaInvokeError>())
+	const auto Result = this->Test->Execute(Context);
+	if (Result.HasError())
 	{
 		return Result; // propagate error
 	}
 
-	const auto TestValue = Result.Get<FFormulaValue>();
-	bool ConditionResult = false;
-	if (TestValue.GetTypeCode() == EFormulaValueType::Boolean)
+	const auto TestValue = Result.GetValue();
+	if (bool ConditionResult = false; TestValue->TryGetBoolean(ConditionResult))
 	{
-		TestValue.TryCopyCompleteValue(FDotNetBoolean::GetLiteralProperty(), &ConditionResult);
 		if (ConditionResult)
 		{
-			return this->IfTrue->Invoke(Context);
+			return this->IfTrue->Execute(Context);
 		}
 		else
 		{
-			return this->IfFalse->Invoke(Context);
+			return this->IfFalse->Execute(Context);
 		}
 	}
-	
-	return this->MakeErrorResult(
-		FFormulaInvokeError::InvalidConditionResultType(TestValue.GetType()->GetCPPType())
-	);
+
+	return FFormulaInvokeError::InvalidConditionResultType(TestValue->GetType()->GetCPPType());
 }
