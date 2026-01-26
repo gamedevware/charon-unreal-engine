@@ -1,5 +1,7 @@
-﻿#pragma once
-#include "GameData/Formulas/IFormulaTypeDescription.h"
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#pragma once
+#include "GameData/Formulas/IFormulaType.h"
 #include "UObject/StrongObjectPtr.h"
 #include "Containers/Array.h"
 #include "Containers/Map.h"
@@ -9,10 +11,10 @@
 
 class FFormulaFunction;
 
-class FFormulaUnrealType : public IFormulaTypeDescription
+class FFormulaUnrealType : public IFormulaType
 {
 private:
-	TStrongObjectPtr<UStruct> StructOrClassPtr;
+	TStrongObjectPtr<UStruct> const StructOrClassPtr;
 	
 	TSharedPtr<TArray<FString>> PropertyNames;
 	TSharedPtr<TArray<FString>> FunctionNames;
@@ -34,12 +36,14 @@ public:
 	virtual UField* GetTypeClassOrStruct() const override { return StructOrClassPtr.Get(); }
 	virtual EFormulaValueType GetTypeCode() const override { return Cast<UClass>(StructOrClassPtr.Get()) ? EFormulaValueType::ObjectPtr : EFormulaValueType::Struct; }
 	virtual FString GetCPPType() const override;
+	virtual TSharedPtr<IFormulaType> GetUnderlyingType() const override { return nullptr; }
+	
 	virtual const TArray<FString>& GetPropertyNames(bool bStatic) override;
 	virtual const TArray<FString>& GetFunctionNames(bool bStatic) override;
 
-	virtual bool TryGetBinaryOperation(EBinaryOperationType Operation, const FFormulaFunction*& FoundOperations) override { return false; }
-	virtual bool TryGetUnaryOperation(EUnaryOperationType Operation, const FFormulaFunction*& FoundMOperations) override { return false; }
+	virtual bool TryGetBinaryOperation(EBinaryOperationType Operation, const FFormulaFunction*& FoundOperation) override { FoundOperation = nullptr; return false; }
+	virtual bool TryGetUnaryOperation(EUnaryOperationType Operation, const FFormulaFunction*& FoundOperation) override { FoundOperation = nullptr; return false; }
+	virtual bool TryGetConversionOperation(const FFormulaFunction*& FoundOperation) override { FoundOperation = nullptr; return false; }
 	virtual bool TryGetFunction(const FString& MemberName, bool bStatic, const FFormulaFunction*& FoundFunction) override;
 	virtual bool TryGetProperty(const FString& MemberName, bool bStatic, const FFormulaProperty*& FoundProperty) override;
-	virtual bool TryGetConversionOperation(const FFormulaFunction*& FoundMember) override { return false; }
 };

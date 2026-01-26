@@ -1,4 +1,6 @@
-﻿#pragma once
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#pragma once
 
 #include "CoreMinimal.h"
 
@@ -10,7 +12,9 @@ namespace FFormulaNotation
     // Attributes
     static const FString EXPRESSION_TYPE_ATTRIBUTE = TEXT("expressionType");
     static const FString EXPRESSION_ATTRIBUTE = TEXT("expression");
+    static const FString BINDINGS_ATTRIBUTE = TEXT("bindings");
     static const FString ARGUMENTS_ATTRIBUTE = TEXT("arguments");
+    static const FString NEW_ATTRIBUTE = TEXT("new");
     static const FString LEFT_ATTRIBUTE = TEXT("left");
     static const FString RIGHT_ATTRIBUTE = TEXT("right");
     static const FString TEST_ATTRIBUTE = TEXT("test");
@@ -38,6 +42,11 @@ namespace FFormulaNotation
     static const FString EXPRESSION_TYPE_DEFAULT = TEXT("Default");
     static const FString EXPRESSION_TYPE_NEW = TEXT("New");
     static const FString EXPRESSION_TYPE_NEW_ARRAY_BOUNDS = TEXT("NewArrayBounds");
+    static const FString EXPRESSION_TYPE_NEW_ARRAY_INIT = TEXT("NewArrayInit");
+    static const FString EXPRESSION_TYPE_MEMBER_INIT = TEXT("MemberInit");
+    static const FString EXPRESSION_TYPE_LIST_BINDING = TEXT("ListBinding");
+    static const FString EXPRESSION_TYPE_MEMBER_BINDING = TEXT("MemberBinding");
+    static const FString EXPRESSION_TYPE_ASSIGNMENT_BINDING = TEXT("Assignment");
     static const FString EXPRESSION_TYPE_ADD = TEXT("Add");
     static const FString EXPRESSION_TYPE_ADD_CHECKED = TEXT("AddChecked");
     static const FString EXPRESSION_TYPE_SUBTRACT = TEXT("Subtract");

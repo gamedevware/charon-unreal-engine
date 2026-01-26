@@ -1,11 +1,12 @@
-﻿#include "GameData/Formulas/Expressions/FUnaryExpression.h"
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#include "GameData/Formulas/Expressions/FUnaryExpression.h"
 #include "GameData/Formulas/FExpressionBuildHelper.h"
 #include "GameData/Formulas/FFormulaNotation.h"
-#include "GameData/Formulas/IFormulaTypeDescription.h"
+#include "GameData/Formulas/IFormulaType.h"
 
 DEFINE_LOG_CATEGORY(LogUnaryExpression);
 
-static TArray<UField*> EmptyTypeArgument;
 EUnaryOperationType MapUnaryOperationType(const FString& ExpressionType)
 {
 	EUnaryOperationType UnaryOperationType = EUnaryOperationType::Group;
@@ -71,14 +72,19 @@ FUnaryExpression::FUnaryExpression(const TSharedPtr<FJsonObject>& ExpressionObj)
 {
 }
 
-FFormulaInvokeResult FUnaryExpression::Execute(const FFormulaExecutionContext& Context) const
+FUnaryExpression::FUnaryExpression(const TSharedPtr<FFormulaExpression>& Expression, const EUnaryOperationType UnaryOperationType):
+	Expression(Expression), UnaryOperationType(UnaryOperationType)
 {
-	if (!this->Expression.IsValid())
+}
+
+FFormulaExecutionResult FUnaryExpression::Execute(const FFormulaExecutionContext& Context, FProperty* ExpectedType) const
+{
+	if (!this->IsValid())
 	{
-		return FFormulaInvokeError::ExpressionIsInvalid();
+		return FFormulaExecutionError::ExpressionIsInvalid();
 	}
 
-	const auto Result = this->Expression->Execute(Context);
+	const auto Result = this->Expression->Execute(Context, nullptr);
 	if (Result.HasError())
 	{
 		return Result; // propagate error
@@ -100,7 +106,7 @@ FFormulaInvokeResult FUnaryExpression::Execute(const FFormulaExecutionContext& C
 		break;
 	}
 
-	return Operand->VisitValue([this, Context]<typename ValueType>(const FProperty* Property, const ValueType& InValue) -> FFormulaInvokeResult
+	return Operand->VisitValue([this, &Operand, &Context]<typename ValueType>(FProperty& Property, const ValueType& InValue) -> FFormulaExecutionResult
 	{
 		using T = std::decay_t<ValueType>;
 		constexpr bool bIsBool = std::is_same_v<bool, T>;
@@ -132,20 +138,19 @@ FFormulaInvokeResult FUnaryExpression::Execute(const FFormulaExecutionContext& C
 		}
 
 		// fallback to custom operations
-		const auto OperandType = Context.TypeResolver->GetTypeDescription(Property);
+		const auto OperandType = Context.TypeResolver->GetTypeDescription(&Property);
 		const FFormulaFunction* UnaryOperation;
-		if (OperandType && OperandType->TryGetUnaryOperation(this->UnaryOperationType, UnaryOperation))
+		if (OperandType->TryGetUnaryOperation(this->UnaryOperationType, UnaryOperation))
 		{
-			const TMap<FString, TSharedRef<FFormulaValue>> ConversionArguments {
-				{ TEXT("0"), MakeShared<FFormulaValue>(InValue) }
+			FFormulaInvokeArguments CallArguments {
+				FFormulaInvokeArguments::InvokeArgument(TEXT("0"), MakeShared<FFormulaValue>(InValue), FFormulaInvokeArguments::GetArgumentFlags(Expression, Operand, Context))
 			};
-			
 			TSharedPtr<FFormulaValue> ResultValue;
 			if (UnaryOperation && UnaryOperation->TryInvoke(
 				FFormulaValue::Null(),
-				ConversionArguments,
+				CallArguments,
 				nullptr,
-				EmptyTypeArgument,
+				nullptr,
 				ResultValue
 			))
 			{
@@ -154,8 +159,56 @@ FFormulaInvokeResult FUnaryExpression::Execute(const FFormulaExecutionContext& C
 		}
 
 		// failed to perform binary operation
-		return FFormulaInvokeError::MissingUnaryOperation(
-			Property->GetCPPType(),
+		return FFormulaExecutionError::MissingUnaryOperation(
+			Property.GetCPPType(),
 			GetUnaryOperationName(this->UnaryOperationType));
 	});
+}
+
+bool FUnaryExpression::IsValid() const
+{
+	return this->Expression.IsValid();
+}
+
+void FUnaryExpression::DebugPrintTo(FString& OutValue) const
+{
+	bool bEnclose = this->Expression->GetType() != EFormulaExpressionType::ConstantExpression;
+	switch (this->UnaryOperationType)
+	{
+	case EUnaryOperationType::UnaryPlus: OutValue.Append("+"); break;
+	case EUnaryOperationType::Negate:
+	case EUnaryOperationType::NegateChecked: OutValue.Append("-"); break;
+	case EUnaryOperationType::Not: OutValue.Append("!"); break;
+	case EUnaryOperationType::Complement: OutValue.Append("~"); break;
+	case EUnaryOperationType::UncheckedScope:
+		bEnclose = true;
+		OutValue.Append("unchecked");
+		break;
+	case EUnaryOperationType::CheckedScope:
+		bEnclose = true;
+		OutValue.Append("checked");
+		break;
+	case EUnaryOperationType::Group:
+		bEnclose = true;
+		break;
+	default:
+		OutValue.AppendInt(static_cast<int32>(this->UnaryOperationType));
+		break;
+	}
+	if (bEnclose)
+	{
+		OutValue.Append("(");
+	}
+	if (this->Expression.IsValid())
+	{
+		this->Expression->DebugPrintTo(OutValue);
+	}
+	else
+	{
+		OutValue.Append(TEXT("#INVALID#"));
+	}
+	if (bEnclose)
+	{
+		OutValue.Append(")");
+	}
 }

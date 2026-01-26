@@ -1,3 +1,5 @@
+// Copyright GameDevWare, Denis Zykov 2025
+
 #pragma once
 
 #include "CoreMinimal.h"
@@ -14,8 +16,13 @@ enum class EFormulaExpressionType : uint8
 	LambdaExpression,
 	MemberExpression,
 	NewArrayBoundExpression,
+	NewArrayInitExpression,
 	NewExpression,
 	TypeIsExpression,
 	TypeOfExpression,
-	UnaryExpression
+	UnaryExpression,
+	MemberInitExpression,
+	MemberAssignmentBinding,
+	MemberMemberBinding,
+	MemberListBinding,
 };

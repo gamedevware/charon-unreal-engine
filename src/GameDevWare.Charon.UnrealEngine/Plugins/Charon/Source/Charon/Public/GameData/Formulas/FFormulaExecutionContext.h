@@ -1,4 +1,6 @@
-﻿#pragma once
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#pragma once
 
 #include "CoreMinimal.h"
 #include "CoreTypes.h"
@@ -11,7 +13,7 @@ class CHARON_API FFormulaExecutionContext
 {
 public:
 	const bool AutoNullPropagation;
-	const TMap<FString, const TSharedRef<FFormulaValue>> Arguments;
+	TMap<FString, const TSharedRef<FFormulaValue>> Arguments; // TODO update OUT parameters when they are used in FFormulaFunction::Invoke
 	const TSharedRef<FFormulaValue> Global;
 	const TSharedRef<FFormulaTypeResolver> TypeResolver;
 	

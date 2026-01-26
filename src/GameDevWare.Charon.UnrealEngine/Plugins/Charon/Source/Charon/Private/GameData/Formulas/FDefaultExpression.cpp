@@ -1,9 +1,11 @@
-﻿#include "GameData/Formulas/Expressions/FDefaultExpression.h"
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#include "GameData/Formulas/Expressions/FDefaultExpression.h"
 #include "CoreMinimal.h"
 #include "CoreTypes.h"
 #include "GameData/Formulas/FExpressionBuildHelper.h"
 #include "GameData/Formulas/FFormulaNotation.h"
-#include "GameData/Formulas/IFormulaTypeDescription.h"
+#include "GameData/Formulas/IFormulaType.h"
 #include "Misc/DateTime.h"
 #include "Misc/Timespan.h"
 #include "Templates/SharedPointer.h"
@@ -14,17 +16,21 @@ FDefaultExpression::FDefaultExpression(const TSharedRef<FJsonObject>& Expression
 	ValueType(FExpressionBuildHelper::GetTypeRef(ExpressionObj, FFormulaNotation::TYPE_ATTRIBUTE))
 {}
 
-FFormulaInvokeResult FDefaultExpression::Execute(const FFormulaExecutionContext& Context) const
+FDefaultExpression::FDefaultExpression(const TSharedPtr<FFormulaTypeReference>& ValueType) : ValueType(ValueType)
 {
-	if (!this->ValueType.IsValid())
+}
+
+FFormulaExecutionResult FDefaultExpression::Execute(const FFormulaExecutionContext& Context, FProperty* ExpectedType) const
+{
+	if (!this->IsValid())
 	{
-		return FFormulaInvokeError::ExpressionIsInvalid();
+		return FFormulaExecutionError::ExpressionIsInvalid();
 	}
 	
 	const auto ToType = Context.TypeResolver->GetTypeDescription(this->ValueType);
-	if (!ToType)
+	if (!ToType.IsValid())
 	{
-		return FFormulaInvokeError::UnableToResolveType(this->ValueType->GetFullName(/* include generics */ true));
+		return FFormulaExecutionError::UnableToResolveType(this->ValueType->GetFullName(/* include generics */ true));
 	}
 
 	switch (ToType->GetTypeCode()) {
@@ -48,7 +54,27 @@ FFormulaInvokeResult FDefaultExpression::Execute(const FFormulaExecutionContext&
 	case EFormulaValueType::Enum: return 0;
 	case EFormulaValueType::ObjectPtr: return FFormulaValue::Null();
 	case EFormulaValueType::Struct:
-	default: return FFormulaInvokeError::UnsupportedObjectType(ToType->GetCPPType());
+	default: return FFormulaExecutionError::UnsupportedObjectType(ToType->GetCPPType());
 	
 	}
+}
+
+bool FDefaultExpression::IsValid() const
+{
+	return this->ValueType.IsValid();
+}
+
+void FDefaultExpression::DebugPrintTo(FString& OutValue) const
+{
+	OutValue.Append(TEXT("default("));
+	if (this->ValueType.IsValid())
+	{
+		OutValue.Append(this->ValueType->GetFullName(true));
+	}
+	else
+	{
+		OutValue.Append(TEXT("#INVALID#"));
+	}
+	OutValue.Append(TEXT(") "));
+
 }

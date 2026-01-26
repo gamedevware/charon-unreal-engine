@@ -1,7 +1,9 @@
-﻿#include "GameData/Formulas/Expressions/FConvertExpression.h"
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#include "GameData/Formulas/Expressions/FConvertExpression.h"
 #include "GameData/Formulas/FExpressionBuildHelper.h"
 #include "GameData/Formulas/FFormulaNotation.h"
-#include "GameData/Formulas/IFormulaTypeDescription.h"
+#include "GameData/Formulas/IFormulaType.h"
 #include "GameData/Formulas/FFormulaTypeReference.h"
 
 FConvertExpression::FConvertExpression(const TSharedRef<FJsonObject>& ExpressionObj):
@@ -10,15 +12,28 @@ FConvertExpression::FConvertExpression(const TSharedRef<FJsonObject>& Expression
 	ExpressionType(FExpressionBuildHelper::GetString(ExpressionObj, FFormulaNotation::EXPRESSION_TYPE_ATTRIBUTE))
 {}
 
-static TArray<UField*> EmptyTypeArgument;
-FFormulaInvokeResult FConvertExpression::Execute(const FFormulaExecutionContext& Context) const
+FConvertExpression::FConvertExpression(const TSharedPtr<FFormulaExpression>& Expression, const TSharedPtr<FFormulaTypeReference>& ConversionType, const FString& ExpressionType) :
+	ConversionType(ConversionType),
+	Expression(Expression),
+	ExpressionType(ExpressionType)
 {
-	if (!this->Expression.IsValid() || !this->ConversionType.IsValid())
+}
+
+bool IsCoercible(EFormulaValueType TypeCode)
+{
+	return  TypeCode != EFormulaValueType::DateTime && TypeCode != EFormulaValueType::Timespan &&
+		TypeCode != EFormulaValueType::Struct && 
+		TypeCode != EFormulaValueType::ObjectPtr &&	TypeCode != EFormulaValueType::Null; // objects and null are castable
+}
+
+FFormulaExecutionResult FConvertExpression::Execute(const FFormulaExecutionContext& Context, FProperty* ExpectedType) const
+{
+	if (!this->IsValid())
 	{
-		return FFormulaInvokeError::ExpressionIsInvalid();
+		return FFormulaExecutionError::ExpressionIsInvalid();
 	}
 	
-	const auto Result = this->Expression->Execute(Context);
+	const auto Result = this->Expression->Execute(Context, nullptr);
 	if (Result.HasError())
 	{
 		return Result; // propagate error
@@ -26,13 +41,12 @@ FFormulaInvokeResult FConvertExpression::Execute(const FFormulaExecutionContext&
 
 	const auto FromValue = Result.GetValue();
 	const auto ToType = Context.TypeResolver->GetTypeDescription(this->ConversionType);
-	if (!ToType)
+	if (!ToType.IsValid())
 	{
-		return FFormulaInvokeError::UnableToResolveType(this->ConversionType->GetFullName(/* include generics */ true));
+		return FFormulaExecutionError::UnableToResolveType(this->ConversionType->GetFullName(/* include generics */ true));
 	}
 	
 	const auto ToTypeCode = ToType->GetTypeCode();
-	
 	if (FromValue->IsNull())
 	{
 		if (ToType->CanBeNull())
@@ -41,14 +55,15 @@ FFormulaInvokeResult FConvertExpression::Execute(const FFormulaExecutionContext&
 		}
 		else
 		{
-			return FFormulaInvokeError::CanConvertNullToType(ToType->GetCPPType());
+			return FFormulaExecutionError::CanConvertNullToType(ToType->GetCPPType());
 		}
 	}
-	
+
+	TSharedPtr<FFormulaValue> ResultValue;
 	if (const FObjectPropertyBase* FromObjectProp = CastField<FObjectPropertyBase>(FromValue->GetType());
-		ToTypeCode == EFormulaValueType::ObjectPtr)
+		FromObjectProp && ToTypeCode == EFormulaValueType::ObjectPtr)
 	{
-		if (ToType->IsAssignableFrom(FromObjectProp->PropertyClass))
+		if (FromValue->IsNull() || ToType->IsAssignableFrom(FromObjectProp->PropertyClass))
 		{
 			return Result; // UClass cast success
 		}
@@ -59,22 +74,25 @@ FFormulaInvokeResult FConvertExpression::Execute(const FFormulaExecutionContext&
 		}
 		else
 		{
-			return FFormulaInvokeError::InvalidCastError(FromValue->GetType()->GetCPPType(), ToType->GetCPPType());
+			return FFormulaExecutionError::InvalidCastError(FromValue->GetCPPType(), ToType->GetCPPType());
 		}
+	}
+	else if (IsCoercible(FromValue->GetTypeCode()) && IsCoercible(ToTypeCode) && this->TryCoerceValue(FromValue, ToType, ResultValue))
+	{
+		return ResultValue;
 	}
 
 	const FFormulaFunction* ConversionOperation;
 	if (ToType->TryGetConversionOperation(ConversionOperation) && ConversionOperation)
 	{
-		const TMap<FString, TSharedRef<FFormulaValue>> ConversionArguments {
-			{ TEXT("0"), FromValue }
+		FFormulaInvokeArguments ConversionArguments {
+			FFormulaInvokeArguments::InvokeArgument(TEXT("0"), FromValue, FFormulaInvokeArguments::GetArgumentFlags(Expression, FromValue, Context))
 		};
-		TSharedPtr<FFormulaValue> ResultValue;
 		if (ConversionOperation->TryInvoke(
 			FFormulaValue::Null(),
 			ConversionArguments,
-			ToType.Get(),
-			EmptyTypeArgument,
+			ToType->GetTypeClassOrStruct(),
+			nullptr,
 			ResultValue
 		))
 		{
@@ -82,5 +100,166 @@ FFormulaInvokeResult FConvertExpression::Execute(const FFormulaExecutionContext&
 		}
 	}
 
-	return FFormulaInvokeError::CantConvertToType(FromValue->GetType()->GetCPPType(), ToType->GetCPPType());
+	return FFormulaExecutionError::CantConvertToType(FromValue->GetCPPType(), ToType->GetCPPType());
+}
+
+bool FConvertExpression::IsValid() const
+{
+	return this->ConversionType.IsValid() && this->Expression.IsValid() && !this->ExpressionType.IsEmpty();
+}
+
+void FConvertExpression::DebugPrintTo(FString& OutValue) const
+{
+	if (this->ExpressionType == FFormulaNotation::EXPRESSION_TYPE_TYPE_AS)
+	{
+		if (this->Expression.IsValid())
+		{
+			this->Expression->DebugPrintTo(OutValue);
+		}
+		else
+		{
+			OutValue.Append(TEXT("#INVALID#"));
+		}
+		
+		OutValue.Append(" as ");
+		if (this->ConversionType.IsValid())
+		{
+			OutValue.Append(this->ConversionType->GetFullName(true));
+		}
+		else
+		{
+			OutValue.Append(TEXT("#INVALID#"));
+		}
+	}
+	else
+	{
+		OutValue.Append("(");
+		if (this->ConversionType.IsValid())
+		{
+			OutValue.Append(this->ConversionType->GetFullName(true));
+		}
+		else
+		{
+			OutValue.Append(TEXT("#INVALID#"));
+		}
+		OutValue.Append(") ");
+		if (this->Expression.IsValid())
+		{
+			this->Expression->DebugPrintTo(OutValue);
+		}
+		else
+		{
+			OutValue.Append(TEXT("#INVALID#"));
+		}
+	}
+}
+
+bool FConvertExpression::TryCoerceValue(const TSharedRef<FFormulaValue>& FromValue, const TSharedPtr<IFormulaType>& InToType,
+	TSharedPtr<FFormulaValue>& OutResultValue)
+{
+	return FromValue->VisitValue([&InToType, &OutResultValue, &FromValue]<typename ValueType>(FProperty&, const ValueType& FromValuePtr) -> bool {
+
+		using InT = std::decay_t<ValueType>;
+		
+		constexpr bool bIsInteger = std::is_integral_v<InT>;
+		constexpr bool bIsFloat = std::is_floating_point_v<InT>;
+		constexpr bool bIsBool = std::is_same_v<InT, bool>;
+		
+		auto ToTypeCode = InToType->GetTypeCode();
+		if (ToTypeCode == EFormulaValueType::Enum && InToType->GetUnderlyingType().IsValid())
+		{
+			ToTypeCode = InToType->GetUnderlyingType()->GetTypeCode();
+		}
+		
+		if constexpr (bIsInteger || bIsFloat || bIsBool)
+		{ 
+			switch (ToTypeCode)
+			{
+			case EFormulaValueType::Boolean:
+				OutResultValue = !!FromValuePtr ? FFormulaValue::TrueBool() : FFormulaValue::FalseBool();
+				return true;
+			case EFormulaValueType::Int8:    
+				OutResultValue = MakeShared<FFormulaValue>(static_cast<int8>(FromValuePtr));
+				return true;
+			case EFormulaValueType::Int16:
+				OutResultValue = MakeShared<FFormulaValue>(static_cast<int16>(FromValuePtr));
+				return true;
+			case EFormulaValueType::Int32:
+				OutResultValue = MakeShared<FFormulaValue>(static_cast<int32>(FromValuePtr));
+				return true;
+			case EFormulaValueType::Int64:
+				OutResultValue = MakeShared<FFormulaValue>(static_cast<int64>(FromValuePtr));
+				return true;
+			case EFormulaValueType::UInt8:
+				OutResultValue = MakeShared<FFormulaValue>(static_cast<uint8>(FromValuePtr));
+				return true;
+			case EFormulaValueType::UInt16:
+				OutResultValue = MakeShared<FFormulaValue>(static_cast<uint16>(FromValuePtr));
+				return true;
+			case EFormulaValueType::UInt32:
+				OutResultValue = MakeShared<FFormulaValue>(static_cast<uint32>(FromValuePtr));
+				return true;
+			case EFormulaValueType::UInt64:
+				OutResultValue = MakeShared<FFormulaValue>(static_cast<uint64>(FromValuePtr));
+				return true;
+			case EFormulaValueType::Float:
+				OutResultValue = MakeShared<FFormulaValue>(static_cast<float>(FromValuePtr));
+				return true;
+			case EFormulaValueType::Double:
+				OutResultValue = MakeShared<FFormulaValue>(static_cast<double>(FromValuePtr));
+				return true;
+			default: break;
+			}
+		}
+		else if constexpr (std::is_same_v<InT, FString>)
+		{
+			switch (ToTypeCode)
+			{
+			case EFormulaValueType::String:
+				OutResultValue = FromValue;
+				return true;
+			case EFormulaValueType::Text:
+				OutResultValue = MakeShared<FFormulaValue>(FText::FromString(FromValuePtr));
+				return true;
+			case EFormulaValueType::Name:
+				OutResultValue = MakeShared<FFormulaValue>(FName(FromValuePtr));
+				return true;
+			default: break;
+			}
+		}
+		else if constexpr (std::is_same_v<InT, FName>)
+		{
+			switch (ToTypeCode)
+			{
+			case EFormulaValueType::String:
+				OutResultValue = MakeShared<FFormulaValue>(FromValuePtr.ToString());
+				return true;
+			case EFormulaValueType::Text:
+				OutResultValue = MakeShared<FFormulaValue>(FText::FromName(FromValuePtr));
+				return true;
+			case EFormulaValueType::Name:
+				OutResultValue = FromValue;
+				return true;
+			default: break;
+			}
+		}
+		else if constexpr (std::is_same_v<InT, FText>)
+		{
+			switch (ToTypeCode)
+			{
+			case EFormulaValueType::String:
+				OutResultValue = MakeShared<FFormulaValue>(FromValuePtr.ToString());
+				return true;
+			case EFormulaValueType::Text:
+				OutResultValue = FromValue;
+				return true;
+			case EFormulaValueType::Name:
+				OutResultValue = MakeShared<FFormulaValue>(FName(FromValuePtr.ToString()));
+				return true;
+			default: break;
+			}
+		}
+		
+		return false;
+	});
 }

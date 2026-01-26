@@ -1,25 +1,27 @@
+// Copyright GameDevWare, Denis Zykov 2025
+
 #pragma once
 
 #include "CoreMinimal.h"
 #include "CoreTypes.h"
 #include "EFormulaValueType.h"
-#include "DotNetTypes/FDotNetBoolean.h"
-#include "DotNetTypes/FDotNetDateTime.h"
-#include "DotNetTypes/FDotNetDouble.h"
-#include "DotNetTypes/FDotNetInt16.h"
-#include "DotNetTypes/FDotNetInt32.h"
-#include "DotNetTypes/FDotNetInt64.h"
-#include "DotNetTypes/FDotNetInt8.h"
-#include "DotNetTypes/FDotNetName.h"
-#include "DotNetTypes/FDotNetObject.h"
+#include "DotNetTypes/UDotNetBoolean.h"
+#include "DotNetTypes/UDotNetDateTime.h"
+#include "DotNetTypes/UDotNetDouble.h"
+#include "DotNetTypes/UDotNetInt16.h"
+#include "DotNetTypes/UDotNetInt32.h"
+#include "DotNetTypes/UDotNetInt64.h"
+#include "DotNetTypes/UDotNetInt8.h"
+#include "DotNetTypes/UDotNetName.h"
+#include "DotNetTypes/UDotNetObject.h"
 #include "DotNetTypes/UDotNetSingle.h"
-#include "DotNetTypes/FDotNetString.h"
-#include "DotNetTypes/FDotNetText.h"
-#include "DotNetTypes/FDotNetTimeSpan.h"
-#include "DotNetTypes/FDotNetUInt16.h"
-#include "DotNetTypes/FDotNetUInt32.h"
-#include "DotNetTypes/FDotNetUInt64.h"
-#include "DotNetTypes/FDotNetUInt8.h"
+#include "DotNetTypes/UDotNetString.h"
+#include "DotNetTypes/UDotNetText.h"
+#include "DotNetTypes/UDotNetTimeSpan.h"
+#include "DotNetTypes/UDotNetUInt16.h"
+#include "DotNetTypes/UDotNetUInt32.h"
+#include "DotNetTypes/UDotNetUInt64.h"
+#include "DotNetTypes/UDotNetUInt8.h"
 #include "utility"
 #include "Containers/Array.h"
 #include "Containers/Map.h"
@@ -38,24 +40,30 @@
 #endif
 
 template<typename T> struct TFormulaTypeMap;
-template<> struct TFormulaTypeMap<bool>			{ using Type = FDotNetBoolean; };
-template<> struct TFormulaTypeMap<int8>			{ using Type = FDotNetInt8; };
-template<> struct TFormulaTypeMap<int16>		{ using Type = FDotNetInt16; };
-template<> struct TFormulaTypeMap<int32>		{ using Type = FDotNetInt32; };
-template<> struct TFormulaTypeMap<int64>		{ using Type = FDotNetInt64; };
-template<> struct TFormulaTypeMap<uint8>		{ using Type = FDotNetUInt8; };
-template<> struct TFormulaTypeMap<uint16>		{ using Type = FDotNetUInt16; };
-template<> struct TFormulaTypeMap<uint32>		{ using Type = FDotNetUInt32; };
-template<> struct TFormulaTypeMap<uint64>		{ using Type = FDotNetUInt64; };
+template<> struct TFormulaTypeMap<bool>			{ using Type = UDotNetBoolean; };
+template<> struct TFormulaTypeMap<int8>			{ using Type = UDotNetInt8; };
+template<> struct TFormulaTypeMap<int16>		{ using Type = UDotNetInt16; };
+template<> struct TFormulaTypeMap<int32>		{ using Type = UDotNetInt32; };
+template<> struct TFormulaTypeMap<int64>		{ using Type = UDotNetInt64; };
+template<> struct TFormulaTypeMap<uint8>		{ using Type = UDotNetUInt8; };
+template<> struct TFormulaTypeMap<uint16>		{ using Type = UDotNetUInt16; };
+template<> struct TFormulaTypeMap<uint32>		{ using Type = UDotNetUInt32; };
+template<> struct TFormulaTypeMap<uint64>		{ using Type = UDotNetUInt64; };
 template<> struct TFormulaTypeMap<float>		{ using Type = UDotNetSingle; };
-template<> struct TFormulaTypeMap<double>		{ using Type = FDotNetDouble; };
-template<> struct TFormulaTypeMap<FString>		{ using Type = FDotNetString; };
-template<> struct TFormulaTypeMap<FName>		{ using Type = FDotNetName; };
-template<> struct TFormulaTypeMap<FText>		{ using Type = FDotNetText; };
-template<> struct TFormulaTypeMap<FTimespan>	{ using Type = FDotNetTimeSpan; };
-template<> struct TFormulaTypeMap<FDateTime>	{ using Type = FDotNetDateTime; };
-template<> struct TFormulaTypeMap<UObject*>		{ using Type = FDotNetObject; };
-template<> struct TFormulaTypeMap<nullptr_t>	{ using Type = FDotNetObject; };
+template<> struct TFormulaTypeMap<double>		{ using Type = UDotNetDouble; };
+template<> struct TFormulaTypeMap<FString>		{ using Type = UDotNetString; };
+template<> struct TFormulaTypeMap<FName>		{ using Type = UDotNetName; };
+template<> struct TFormulaTypeMap<FText>		{ using Type = UDotNetText; };
+template<> struct TFormulaTypeMap<FTimespan>	{ using Type = UDotNetTimeSpan; };
+template<> struct TFormulaTypeMap<FDateTime>	{ using Type = UDotNetDateTime; };
+template<> struct TFormulaTypeMap<UObject*>		{ using Type = UDotNetObject; };
+template<> struct TFormulaTypeMap<nullptr_t>	{ using Type = UDotNetObject; };
+
+template<typename T, typename = void>
+struct TIsFormulaTypeMapped : std::false_type {};
+
+template<typename T>
+struct TIsFormulaTypeMapped<T, std::void_t<typename TFormulaTypeMap<T>::Type>> : std::true_type {};
 
 inline EFormulaValueType GetPropertyTypeCode(const FProperty* FieldType)
 {
@@ -70,42 +78,21 @@ inline EFormulaValueType GetPropertyTypeCode(const FProperty* FieldType)
 	}
 	else if (const FNumericProperty* NumericProp = CastField<FNumericProperty>(FieldType))
 	{
-		if (NumericProp->IsFloatingPoint())
-		{
-			return ElementSize <= 4 ? EFormulaValueType::Float : EFormulaValueType::Double;
-		}
-		else if (NumericProp->CanHoldValue(-1))
-		{
-			switch (ElementSize)
-			{
-			case 1:
-				return EFormulaValueType::Int8;
-			case 2:
-				return EFormulaValueType::Int16;
-			case 4:
-				return EFormulaValueType::Int32;
-			default:
-				return EFormulaValueType::Int64;
-			}
-		}
-		else
-		{
-			switch (ElementSize)
-			{
-			case 1:
-				return EFormulaValueType::UInt8;
-			case 2:
-				return EFormulaValueType::UInt16;
-			case 4:
-				return EFormulaValueType::UInt32;
-			default:
-				return EFormulaValueType::UInt64;
-			}
-		}
+		if (CastField<FDoubleProperty>(NumericProp)) { return EFormulaValueType::Double; }
+		else if (CastField<FFloatProperty>(NumericProp)) { return EFormulaValueType::Float; }
+		else if (CastField<FInt8Property>(NumericProp))	{ return EFormulaValueType::Int8; }
+		else if (CastField<FInt16Property>(NumericProp)) { return EFormulaValueType::Int16; }
+		else if (CastField<FIntProperty>(NumericProp)) { return EFormulaValueType::Int32; }
+		else if (CastField<FInt64Property>(NumericProp)) { return EFormulaValueType::Int64; }
+		else if (CastField<FByteProperty>(NumericProp)) { return EFormulaValueType::UInt8; }
+		else if (CastField<FUInt16Property>(NumericProp)) { return EFormulaValueType::UInt16; }
+		else if (CastField<FUInt32Property>(NumericProp)) { return EFormulaValueType::UInt32; }
+		else if (CastField<FUInt64Property>(NumericProp)) { return EFormulaValueType::UInt64; }
+		else { return EFormulaValueType::UInt64; } // fallback to universal type
 	}
 	else if (CastField<FObjectPropertyBase>(FieldType))
 	{
-		if (FieldType == FDotNetObject::GetNullLiteralProperty())
+		if (FieldType == UDotNetObject::GetNullLiteralProperty())
 		{
 			return EFormulaValueType::Null;
 		}
@@ -116,8 +103,8 @@ inline EFormulaValueType GetPropertyTypeCode(const FProperty* FieldType)
 	}
 	else if (const FStructProperty* StructProp = CastField<FStructProperty>(FieldType))
 	{
-		const auto TimespanStruct =  FDotNetTimeSpan::GetLiteralProperty()->Struct;
-		const auto DateTimeStruct = FDotNetDateTime::GetLiteralProperty()->Struct;
+		const auto TimespanStruct =  UDotNetTimeSpan::GetLiteralProperty()->Struct;
+		const auto DateTimeStruct = UDotNetDateTime::GetLiteralProperty()->Struct;
 
 		if (StructProp->Struct == TimespanStruct)
 		{

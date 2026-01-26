@@ -1,31 +1,29 @@
-﻿#include "GameData/Formulas/Expressions/FMemberExpression.h"
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#include "GameData/Formulas/Expressions/FMemberExpression.h"
 #include "GameData/Formulas/FExpressionBuildHelper.h"
 #include "GameData/Formulas/FFormulaNotation.h"
 #include "GameData/Formulas/FFormulaTypeReference.h"
-#include "GameData/Formulas/IFormulaTypeDescription.h"
+#include "GameData/Formulas/IFormulaType.h"
 
-FString GetExpressionMemberName(const TSharedRef<FJsonObject>& ExpressionObj, const bool bRaw)
-{
-	// Equivalent to ExpressionBuildHelper.GetString logic
-	FString MemberName;
-	if (!ExpressionObj->TryGetStringField(FFormulaNotation::PROPERTY_OR_FIELD_NAME_ATTRIBUTE, MemberName))
-	{
-		ExpressionObj->TryGetStringField(FFormulaNotation::NAME_ATTRIBUTE, MemberName);
-	}
-	if (!bRaw)
-	{
-		return MemberName.Len() > 0 && MemberName[0] == '@' ? MemberName.RightChop(1) : MemberName;
-	}
-	return MemberName;
-}
+
 
 FMemberExpression::FMemberExpression(const TSharedRef<FJsonObject>& ExpressionObj) :
 	bUseNullPropagation(FExpressionBuildHelper::GetUseNullPropagation(ExpressionObj)),
 	Expression(FExpressionBuildHelper::GetExpression(ExpressionObj, FFormulaNotation::EXPRESSION_ATTRIBUTE, true)),
-	RawMemberName(GetExpressionMemberName(ExpressionObj, true)),
-	MemberName(GetExpressionMemberName(ExpressionObj, false)),
+	RawMemberName(GetExpressionRawMemberName(ExpressionObj)),
+	MemberName(GetMemberName(GetExpressionRawMemberName(ExpressionObj))),
 	TypeArguments(FExpressionBuildHelper::GetTypeRefArguments(ExpressionObj, FFormulaNotation::ARGUMENTS_ATTRIBUTE))
 {
+}
+
+FMemberExpression::FMemberExpression(const TSharedPtr<FFormulaExpression>& Expression, const FString& RawMemberName,
+	const TArray<TSharedPtr<FFormulaTypeReference>>& TypeArguments, const bool bUseNullPropagation) :
+	bUseNullPropagation(bUseNullPropagation), Expression(Expression),
+	RawMemberName(RawMemberName), MemberName(GetMemberName(RawMemberName)),
+	TypeArguments(TypeArguments)
+{
+	
 }
 
 bool FMemberExpression::IsNullPropagationEnabled() const
@@ -42,15 +40,15 @@ bool FMemberExpression::IsNullPropagationEnabled() const
 	return false;
 }
 
-FFormulaInvokeResult FMemberExpression::Execute(const FFormulaExecutionContext& Context) const
+FFormulaExecutionResult FMemberExpression::Execute(const FFormulaExecutionContext& Context, FProperty* ExpectedType) const
 {
-	if (MemberName.IsEmpty())
+	if (!this->IsValid())
 	{
-		return FFormulaInvokeError::ExpressionIsInvalid();
+		return FFormulaExecutionError::ExpressionIsInvalid();
 	}
 
 	TSharedPtr<FFormulaTypeReference> StaticTypeReference = nullptr;
-	TSharedPtr<IFormulaTypeDescription> StaticTypeDescription = nullptr;
+	TSharedPtr<IFormulaType> StaticTypeDescription = nullptr;
 	const FFormulaProperty* FormulaProperty = nullptr;
 	TSharedPtr<FFormulaValue> MemberValue;
 	if (TryGetTypeReference(StaticTypeReference, /*bSkipSelf*/ true) &&
@@ -65,7 +63,7 @@ FFormulaInvokeResult FMemberExpression::Execute(const FFormulaExecutionContext& 
 	}
 	else if (this->Expression.IsValid())
 	{
-		const auto Result = this->Expression->Execute(Context);
+		const auto Result = this->Expression->Execute(Context, nullptr);
 		if (Result.HasError())
 		{
 			return Result; // propagate error
@@ -80,22 +78,24 @@ FFormulaInvokeResult FMemberExpression::Execute(const FFormulaExecutionContext& 
 			}
 			else
 			{
-				return FFormulaInvokeError::NullReference();
+				return FFormulaExecutionError::NullReference();
 			}
 		}
 
-		const auto TargetTypeDescription = Context.TypeResolver->GetTypeDescription(Target->GetType());
-		if (TargetTypeDescription->TryGetProperty(this->MemberName, /* bStatic */ false, FormulaProperty))
+		const auto TargetType = Context.TypeResolver->GetTypeDescription(Target->GetType());
+		if (TargetType->TryGetProperty(this->MemberName, /* bStatic */ false, FormulaProperty))
 		{
 			check(FormulaProperty);
 			const bool bGetPropertySuccess = FormulaProperty->TryGetValue(Target, MemberValue);
-			check(bGetPropertySuccess);
-
+			if (!bGetPropertySuccess)
+			{
+				return FFormulaExecutionError::MemberAccessFailed(TargetType->GetCPPType(), this->MemberName);
+			}
 			return MemberValue;
 		}
 
-		FString AllMemberNames =  FString::Join(TargetTypeDescription->GetPropertyNames(/* bStatic */ false),TEXT(", "));
-		return FFormulaInvokeError::CantFindMember(TargetTypeDescription->GetCPPType(), this->MemberName, AllMemberNames);
+		FString AllMemberNames =  FString::Join(TargetType->GetPropertyNames(/* bStatic */ false),TEXT(", "));
+		return FFormulaExecutionError::CantFindMember(TargetType->GetCPPType(), this->MemberName, AllMemberNames);
 	}
 	else if (this->RawMemberName == FFormulaNotation::NOTATION_TRUE_STRING)
 	{
@@ -124,13 +124,13 @@ FFormulaInvokeResult FMemberExpression::Execute(const FFormulaExecutionContext& 
 	else if (StaticTypeDescription.IsValid())
 	{
 		const FString AllStaticMemberNames = FString::Join(StaticTypeDescription->GetPropertyNames(/* bStatic */ true), TEXT(", "));
-		return FFormulaInvokeError::CantFindStaticMember(StaticTypeDescription->GetCPPType(), this->MemberName, AllStaticMemberNames);
+		return FFormulaExecutionError::CantFindStaticMember(StaticTypeDescription->GetCPPType(), this->MemberName, AllStaticMemberNames);
 	}
 	else
 	{
 		TSet<FString> AllGlobalMemberNames;
 		GetGlobalMemberNames(AllGlobalMemberNames, Context);
-		return FFormulaInvokeError::UnableToResolveGlobalName(MemberName, FString::Join(AllGlobalMemberNames, TEXT(", ")));
+		return FFormulaExecutionError::UnableToResolveGlobalName(MemberName, FString::Join(AllGlobalMemberNames, TEXT(", ")));
 	}
 }
 
@@ -138,7 +138,7 @@ bool FMemberExpression::TryGetTypeReferenceAndMemberName(TSharedPtr<FFormulaType
                                                          FString& OutMemberName) const
 {
 	OutTypeReference = nullptr;
-	OutMemberName.Empty();
+	OutMemberName.Reset();
 
 	if (TryGetTypeReference(OutTypeReference, /*bSkipSelf*/ true))
 	{
@@ -147,6 +147,60 @@ bool FMemberExpression::TryGetTypeReferenceAndMemberName(TSharedPtr<FFormulaType
 	}
 
 	return false;
+}
+
+bool FMemberExpression::IsValid() const
+{
+	if (this->MemberName.IsEmpty())
+	{
+		return false;
+	}
+	for (auto ArgumentPair : this->TypeArguments)
+	{
+		if (!ArgumentPair.IsValid())
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+void FMemberExpression::DebugPrintTo(FString& OutValue) const
+{
+	if (this->Expression.IsValid())
+	{
+		this->Expression->DebugPrintTo(OutValue);
+		if (this->bUseNullPropagation)
+		{
+			OutValue.Append("?");
+		}
+		OutValue.Append(".");
+	}
+	OutValue.Append(this->MemberName);
+	
+	if (this->TypeArguments.Num() > 0)
+	{
+		OutValue.Append("<");
+		bool bFirstArgument = true;;
+		for (auto Argument : this->TypeArguments)
+		{
+			if (!bFirstArgument)
+			{
+				OutValue.Append(", ");
+			}
+			bFirstArgument = false;
+
+			if (Argument.IsValid())
+			{
+				OutValue.Append(Argument->GetFullName(true));
+			}
+			else
+			{
+				OutValue.Append(TEXT("#INVALID#"));
+			}
+		}
+		OutValue.Append(">");
+	}
 }
 
 bool FMemberExpression::TryGetTypeReference(TSharedPtr<FFormulaTypeReference>& OutTypeReference,
@@ -170,24 +224,32 @@ bool FMemberExpression::TryGetTypeReference(TSharedPtr<FFormulaTypeReference>& O
 		return true;
 	}
 
-	const FMemberExpression* MemberExpression = CastExpression<FMemberExpression>(this->Expression.Get());
-	if (!MemberExpression)
-	{
-		return false; // base expression is not member expression
-	}
-
-	if (MemberExpression->TryGetTypeReference(OutTypeReference, /*bSkipSelf*/ false))
-	{
-		return false; // base expression is not a type reference
-	}
-
+	const FMemberExpression* BaseMemberExpression = CastExpression<FMemberExpression>(this->Expression.Get());
 	if (bSkipSelf)
 	{
+		if (!BaseMemberExpression || !BaseMemberExpression->TryGetTypeReference(OutTypeReference, /*bSkipSelf*/ false))
+		{
+			return false; // base expression is not a type reference
+		}
+		
 		this->TypeReferenceSkippingSelf = OutTypeReference;
 	}
 	else
 	{
-		this->TypeReference = OutTypeReference = MakeShared<FFormulaTypeReference>(this->MemberName);
+		if (BaseMemberExpression && BaseMemberExpression->TryGetTypeReference(OutTypeReference, /*bSkipSelf*/ false))
+		{
+			// like System.Array
+			this->TypeReference = OutTypeReference = MakeShared<FFormulaTypeReference>(this->MemberName, OutTypeReference, this->TypeArguments);
+		}
+		else if (!BaseMemberExpression)
+		{
+			// like Array
+			this->TypeReference = OutTypeReference = MakeShared<FFormulaTypeReference>(this->MemberName, this->TypeArguments);
+		}
+		else
+		{
+			return false; // base expression is not a type reference
+		}
 	}
 
 	return !!OutTypeReference;

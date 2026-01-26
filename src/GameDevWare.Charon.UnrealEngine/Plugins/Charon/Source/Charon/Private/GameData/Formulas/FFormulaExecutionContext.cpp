@@ -1,4 +1,6 @@
-﻿#include "GameData/Formulas/FFormulaExecutionContext.h"
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#include "GameData/Formulas/FFormulaExecutionContext.h"
 
 FFormulaExecutionContext::FFormulaExecutionContext(
 	const bool bAutoNullPropagation,

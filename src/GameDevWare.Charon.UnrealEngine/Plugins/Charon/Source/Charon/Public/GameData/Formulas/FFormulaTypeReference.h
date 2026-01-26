@@ -1,4 +1,6 @@
-﻿#pragma once
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#pragma once
 
 #include "CoreMinimal.h"
 #include "CoreTypes.h"
@@ -21,6 +23,8 @@ public:
 
 	explicit FFormulaTypeReference(const TSharedRef<FJsonObject>& ExpressionObj);
 	explicit FFormulaTypeReference(const FString& Name);
+	explicit FFormulaTypeReference(const FString& Name, const TArray<TSharedPtr<FFormulaTypeReference>>& TypeArguments);
+	explicit FFormulaTypeReference(const FString& Name, const TSharedPtr<FFormulaTypeReference>& Expression, const TArray<TSharedPtr<FFormulaTypeReference>>& TypeArguments);
 
 	bool IsEmpty() const;
 

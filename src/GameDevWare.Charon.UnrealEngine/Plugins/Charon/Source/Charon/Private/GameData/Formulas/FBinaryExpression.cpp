@@ -1,12 +1,13 @@
-﻿#include "GameData/Formulas/Expressions/FBinaryExpression.h"
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#include "GameData/Formulas/Expressions/FBinaryExpression.h"
 #include "GameData/Formulas/FExpressionBuildHelper.h"
 #include "GameData/Formulas/FFormulaFunction.h"
 #include "GameData/Formulas/FFormulaNotation.h"
-#include "GameData/Formulas/IFormulaTypeDescription.h"
+#include "GameData/Formulas/IFormulaType.h"
 
 DEFINE_LOG_CATEGORY(LogBinaryExpression);
 
-static TArray<UField*> EmptyTypeArgument;
 EBinaryOperationType MapToBinaryOperationType(const FString& ExpressionType)
 {
 	EBinaryOperationType BinaryOperationType = EBinaryOperationType::Add;
@@ -155,11 +156,17 @@ FBinaryExpression::FBinaryExpression(const TSharedRef<FJsonObject>& ExpressionOb
 {
 }
 
-FFormulaInvokeResult FBinaryExpression::Execute(const FFormulaExecutionContext& Context) const
+FBinaryExpression::FBinaryExpression(const TSharedPtr<FFormulaExpression>& Left,
+	const TSharedPtr<FFormulaExpression>& Right, const EBinaryOperationType BinaryOperationType) :
+	Left(Left), Right(Right), BinaryOperationType(BinaryOperationType)
 {
-	if (!this->Left.IsValid() || !this->Right.IsValid())
+}
+
+FFormulaExecutionResult FBinaryExpression::Execute(const FFormulaExecutionContext& Context, FProperty* ExpectedType) const
+{
+	if (!this->IsValid())
 	{
-		return FFormulaInvokeError::ExpressionIsInvalid();
+		return FFormulaExecutionError::ExpressionIsInvalid();
 	}
 
 	// ReSharper disable once CppIncompleteSwitchStatement, CppDefaultCaseNotHandledInSwitchStatement
@@ -172,14 +179,14 @@ FFormulaInvokeResult FBinaryExpression::Execute(const FFormulaExecutionContext& 
 		return this->ExecuteJunction(Context);
 	}
 
-	const auto LeftResult = this->Left->Execute(Context);
+	const auto LeftResult = this->Left->Execute(Context, nullptr);
 	if (LeftResult.HasError())
 	{
 		return LeftResult; // propagate error
 	}
 	const auto LeftOperand = LeftResult.GetValue();
 
-	const auto RightResult = this->Right->Execute(Context);
+	const auto RightResult = this->Right->Execute(Context, nullptr);
 	if (RightResult.HasError())
 	{
 		return RightResult; // propagate error
@@ -204,9 +211,9 @@ FFormulaInvokeResult FBinaryExpression::Execute(const FFormulaExecutionContext& 
 
 	// TODO promote operands in case of FString + any
 	
-	return LeftOperand->VisitValue([this, RightOperand, Context]<typename LeftValueType>(const FProperty* LeftProperty, const LeftValueType& LeftValue) -> FFormulaInvokeResult
+	return LeftOperand->VisitValue([this, &LeftOperand, &RightOperand, &Context]<typename LeftValueType>(FProperty& LeftProperty, const LeftValueType& LeftValue) -> FFormulaExecutionResult
 	{
-		return RightOperand->VisitValue([this, LeftProperty, LeftValue, Context]<typename RightValueType>(const FProperty* RightProperty, const RightValueType& RightValue) -> FFormulaInvokeResult
+		return RightOperand->VisitValue([this, &LeftProperty, &LeftValue, &LeftOperand, &RightOperand, &Context]<typename RightValueType>(FProperty& RightProperty, const RightValueType& RightValue) -> FFormulaExecutionResult
 		{
 			using LeftT = std::decay_t<LeftValueType>;
 			using RightT = std::decay_t<RightValueType>;
@@ -222,9 +229,9 @@ FFormulaInvokeResult FBinaryExpression::Execute(const FFormulaExecutionContext& 
 				switch (this->BinaryOperationType)
 				{
 				case EBinaryOperationType::And:
-					if constexpr (requires { LeftValue + RightValue; } && bNotBoolOrBothBool)
+					if constexpr (requires { LeftValue & RightValue; } && bNotBoolOrBothBool)
 					{
-						return LeftValue + RightValue;
+						return LeftValue & RightValue;
 					}
 					break;
 				case EBinaryOperationType::Or:
@@ -325,37 +332,113 @@ FFormulaInvokeResult FBinaryExpression::Execute(const FFormulaExecutionContext& 
 			}
 
 			// fallback to custom operations
-			const auto LeftOperandType = Context.TypeResolver->GetTypeDescription(LeftProperty);
-			const auto RightOperandType = Context.TypeResolver->GetTypeDescription(RightProperty);
+			const auto LeftOperandType = Context.TypeResolver->GetTypeDescription(&LeftProperty);
+			const auto RightOperandType = Context.TypeResolver->GetTypeDescription(&RightProperty);
 			const FFormulaFunction* LeftBinaryOperation = nullptr;
 			const FFormulaFunction* RightBinaryOperation = nullptr;
-			if ((LeftOperandType && LeftOperandType->TryGetBinaryOperation(this->BinaryOperationType, LeftBinaryOperation)) ||
-				(RightOperandType && RightOperandType->TryGetBinaryOperation(this->BinaryOperationType, RightBinaryOperation)))
+			if (LeftOperandType->TryGetBinaryOperation(this->BinaryOperationType, LeftBinaryOperation) ||
+				RightOperandType->TryGetBinaryOperation(this->BinaryOperationType, RightBinaryOperation))
 			{
-				const TMap<FString, TSharedRef<FFormulaValue>> OperationArguments {
-					{ TEXT("0"), MakeShared<FFormulaValue>(LeftValue) },
-					{ TEXT("1"), MakeShared<FFormulaValue>(RightValue) }
+				FFormulaInvokeArguments CallArguments {
+					FFormulaInvokeArguments::InvokeArgument(TEXT("0"), MakeShared<FFormulaValue>(LeftValue), FFormulaInvokeArguments::GetArgumentFlags(Left, LeftOperand, Context)),
+					FFormulaInvokeArguments::InvokeArgument(TEXT("1"), MakeShared<FFormulaValue>(RightValue), FFormulaInvokeArguments::GetArgumentFlags(Right, RightOperand, Context))
 				};
 				TSharedPtr<FFormulaValue> ResultValue;
-				if (LeftBinaryOperation && LeftBinaryOperation->TryInvoke(FFormulaValue::Null(), OperationArguments, nullptr, EmptyTypeArgument, ResultValue ) ||
-					RightBinaryOperation && RightBinaryOperation->TryInvoke(FFormulaValue::Null(), OperationArguments, nullptr, EmptyTypeArgument, ResultValue))
+				if (LeftBinaryOperation && LeftBinaryOperation->TryInvoke(FFormulaValue::Null(), CallArguments, nullptr, nullptr, ResultValue ) ||
+					RightBinaryOperation && RightBinaryOperation->TryInvoke(FFormulaValue::Null(), CallArguments, nullptr, nullptr, ResultValue))
 				{
 					return ResultValue;
 				}
 			}
 
 			// failed to perform binary operation
-			return FFormulaInvokeError::MissingBinaryOperation(
-				LeftProperty->GetCPPType(),
-				RightProperty->GetCPPType(),
+			return FFormulaExecutionError::MissingBinaryOperation(
+				LeftProperty.GetCPPType(),
+				RightProperty.GetCPPType(),
 				GetBinaryOperationName(this->BinaryOperationType));
 		});
 	});
 }
 
-FFormulaInvokeResult FBinaryExpression::ExecuteCoalesce(const FFormulaExecutionContext& Context) const
+bool FBinaryExpression::IsValid() const
 {
-	const auto LeftResult = this->Left->Execute(Context);
+	return this->Left.IsValid() && this->Right.IsValid();
+}
+
+void FBinaryExpression::DebugPrintTo(FString& OutValue) const
+{
+	if (this->Left.IsValid())
+	{
+		if (this->Left->GetType() != EFormulaExpressionType::ConstantExpression)
+		{
+			OutValue.Append(TEXT("("));
+		}
+
+		this->Left->DebugPrintTo(OutValue);
+		if (this->Left->GetType() != EFormulaExpressionType::ConstantExpression)
+		{
+			OutValue.Append(TEXT(")"));
+		}
+	}
+	else
+	{
+		OutValue.Append(TEXT("#NULL#"));
+	}
+
+	OutValue.Append(TEXT(" "));
+	switch (this->BinaryOperationType)
+	{
+		case EBinaryOperationType::And: OutValue.Append(TEXT("&")); break;
+		case EBinaryOperationType::Or: OutValue.Append(TEXT("|")); break;
+		case EBinaryOperationType::ExclusiveOr: OutValue.Append(TEXT("^")); break;
+		case EBinaryOperationType::Multiply: OutValue.Append(TEXT("*")); break;
+		case EBinaryOperationType::MultiplyChecked: OutValue.Append(TEXT("*")); break;
+		case EBinaryOperationType::Divide: 
+		case EBinaryOperationType::DivideChecked: OutValue.Append("/"); break;
+		case EBinaryOperationType::Power: OutValue.Append((TEXT("**"))); break;
+		case EBinaryOperationType::Modulo: OutValue.Append(TEXT("%")); break;
+		case EBinaryOperationType::Add:
+		case EBinaryOperationType::AddChecked: OutValue.Append(TEXT("+")); break;
+		case EBinaryOperationType::Subtract: 
+		case EBinaryOperationType::SubtractChecked: OutValue.Append(TEXT("-")); break;
+		case EBinaryOperationType::LeftShift: OutValue.Append(TEXT("<<")); break;
+		case EBinaryOperationType::RightShift: OutValue.Append(TEXT(">>")); break;
+		case EBinaryOperationType::GreaterThan: OutValue.Append(TEXT(">")); break;
+		case EBinaryOperationType::GreaterThanOrEqual: OutValue.Append(TEXT(">=")); break;
+		case EBinaryOperationType::LessThan: OutValue.Append(TEXT("<")); break;
+		case EBinaryOperationType::LessThanOrEqual: OutValue.Append(TEXT("<=")); break;
+		case EBinaryOperationType::Equal: OutValue.Append(TEXT("==")); break;
+		case EBinaryOperationType::NotEqual: OutValue.Append(TEXT("!=")); break;
+		case EBinaryOperationType::AndAlso: OutValue.Append(TEXT("&&")); break;
+		case EBinaryOperationType::OrElse: OutValue.Append(TEXT("||")); break;
+		case EBinaryOperationType::Coalesce: OutValue.Append(TEXT("??")); break;
+		default: OutValue.AppendInt(static_cast<int32>(this->BinaryOperationType)); break;
+	}
+
+	OutValue.Append(" ");
+
+	if (this->Right.IsValid())
+	{
+		if (this->Right->GetType() != EFormulaExpressionType::ConstantExpression)
+		{
+			OutValue.Append(TEXT("("));
+		}
+
+		this->Right->DebugPrintTo(OutValue);
+		if (this->Right->GetType() != EFormulaExpressionType::ConstantExpression)
+		{
+			OutValue.Append(TEXT(")"));
+		}
+	}
+	else
+	{
+		OutValue.Append(TEXT("#NULL#"));
+	}
+}
+
+FFormulaExecutionResult FBinaryExpression::ExecuteCoalesce(const FFormulaExecutionContext& Context) const
+{
+	const auto LeftResult = this->Left->Execute(Context, nullptr);
 	if (LeftResult.HasError())
 	{
 		return LeftResult; // propagate error
@@ -366,13 +449,13 @@ FFormulaInvokeResult FBinaryExpression::ExecuteCoalesce(const FFormulaExecutionC
 		return LeftResult;
 	}
 	
-	const auto RightResult = this->Right->Execute(Context);
+	const auto RightResult = this->Right->Execute(Context, nullptr);
 	return RightResult;
 }
 
-FFormulaInvokeResult FBinaryExpression::ExecuteJunction(const FFormulaExecutionContext& Context) const
+FFormulaExecutionResult FBinaryExpression::ExecuteJunction(const FFormulaExecutionContext& Context) const
 {
-	const auto LeftResult = this->Left->Execute(Context);
+	const auto LeftResult = this->Left->Execute(Context, UDotNetBoolean::GetLiteralProperty());
 	if (LeftResult.HasError())
 	{
 		return LeftResult; // propagate error
@@ -382,22 +465,22 @@ FFormulaInvokeResult FBinaryExpression::ExecuteJunction(const FFormulaExecutionC
 	if (LeftOperand->GetTypeCode() != EFormulaValueType::Boolean ||
 			!LeftOperand->TryGetBoolean(LeftBool))
 	{
-		return FFormulaInvokeError::MissingBinaryOperation(
-			LeftOperand->GetType()->GetCPPType(),
+		return FFormulaExecutionError::MissingBinaryOperation(
+			LeftOperand->GetCPPType(),
 			TEXT("bool"),
 			GetBinaryOperationName(this->BinaryOperationType));
 	}
 
 	if (this->BinaryOperationType == EBinaryOperationType::AndAlso && !LeftBool)
 	{
-		return LeftBool;
+		return false;
 	}
 	else if (this->BinaryOperationType == EBinaryOperationType::OrElse && LeftBool)
 	{
-		return LeftBool;
+		return true;
 	}
 
-	const auto RightResult = this->Left->Execute(Context);
+	const auto RightResult = this->Right->Execute(Context, UDotNetBoolean::GetLiteralProperty());
 	if (RightResult.HasError())
 	{
 		return RightResult; // propagate error
@@ -407,18 +490,23 @@ FFormulaInvokeResult FBinaryExpression::ExecuteJunction(const FFormulaExecutionC
 	if (RightOperand->GetTypeCode() != EFormulaValueType::Boolean ||
 			!RightOperand->TryGetBoolean(RightBool))
 	{
-		return FFormulaInvokeError::MissingBinaryOperation(
-			LeftOperand->GetType()->GetCPPType(),
-			RightOperand->GetType()->GetCPPType(),
+		return FFormulaExecutionError::MissingBinaryOperation(
+			LeftOperand->GetCPPType(),
+			RightOperand->GetCPPType(),
 			GetBinaryOperationName(this->BinaryOperationType));
 	}
 
-	bool bResult = this->BinaryOperationType == EBinaryOperationType::AndAlso ?
-		LeftBool && RightBool :	LeftBool || RightBool;
-	return bResult;
+	if (this->BinaryOperationType == EBinaryOperationType::AndAlso)
+	{
+		return LeftBool && RightBool;
+	}
+	else
+	{
+		return LeftBool || RightBool;
+	}
 }
 
-FFormulaInvokeResult FBinaryExpression::ExecutePower(const TSharedPtr<FFormulaValue>& LeftOperand, const TSharedPtr<FFormulaValue>& RightOperand) const
+FFormulaExecutionResult FBinaryExpression::ExecutePower(const TSharedPtr<FFormulaValue>& LeftOperand, const TSharedPtr<FFormulaValue>& RightOperand) const
 {
 	if (LeftOperand->IsNull() || RightOperand->IsNull())
 	{
@@ -427,12 +515,12 @@ FFormulaInvokeResult FBinaryExpression::ExecutePower(const TSharedPtr<FFormulaVa
 
 	double LeftValue = 0;
 	double RightValue = 0;
-	if (!LeftOperand->TryGetDouble(LeftValue) ||
-		!RightOperand->TryGetDouble(RightValue))
+	if (!LeftOperand->TryCopyCompleteValue(UDotNetDouble::GetLiteralProperty(), &LeftValue) ||
+		!RightOperand->TryCopyCompleteValue(UDotNetDouble::GetLiteralProperty(), &RightValue))
 	{
-		return FFormulaInvokeError::MissingBinaryOperation(
-			LeftOperand->GetType()->GetCPPType(),
-			RightOperand->GetType()->GetCPPType(),
+		return FFormulaExecutionError::MissingBinaryOperation(
+			LeftOperand->GetCPPType(),
+			RightOperand->GetCPPType(),
 			GetBinaryOperationName(this->BinaryOperationType));
 	}
 	
@@ -440,7 +528,7 @@ FFormulaInvokeResult FBinaryExpression::ExecutePower(const TSharedPtr<FFormulaVa
 	return MakeShared<FFormulaValue>(Result);
 }
 
-FFormulaInvokeResult FBinaryExpression::ExecuteNullLiftedBoolean(const TSharedPtr<FFormulaValue>& LeftOperand, const TSharedPtr<FFormulaValue>& RightOperand) const
+FFormulaExecutionResult FBinaryExpression::ExecuteNullLiftedBoolean(const TSharedPtr<FFormulaValue>& LeftOperand, const TSharedPtr<FFormulaValue>& RightOperand) const
 {
 	bool LeftBool = false;
 	bool RightBool = false;
@@ -481,7 +569,7 @@ FFormulaInvokeResult FBinaryExpression::ExecuteNullLiftedBoolean(const TSharedPt
 	}
 }
 
-FFormulaInvokeResult FBinaryExpression::ExecuteNullLifted(const TSharedPtr<FFormulaValue>& LeftOperand,	const TSharedPtr<FFormulaValue>& RightOperand) const
+FFormulaExecutionResult FBinaryExpression::ExecuteNullLifted(const TSharedPtr<FFormulaValue>& LeftOperand,	const TSharedPtr<FFormulaValue>& RightOperand) const
 {
 	switch (this->BinaryOperationType)
 	{
@@ -512,9 +600,9 @@ FFormulaInvokeResult FBinaryExpression::ExecuteNullLifted(const TSharedPtr<FForm
 		return LeftOperand->IsNull() != RightOperand->IsNull();
 	default:
 		// failed to perform binary operation
-		return FFormulaInvokeError::MissingBinaryOperation(
-			LeftOperand->GetType()->GetCPPType(),
-			RightOperand->GetType()->GetCPPType(),
+		return FFormulaExecutionError::MissingBinaryOperation(
+			LeftOperand->GetCPPType(),
+			RightOperand->GetCPPType(),
 			GetBinaryOperationName(this->BinaryOperationType));
 	}
 }

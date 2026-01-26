@@ -1,24 +1,50 @@
-﻿#include "GameData/Formulas/Expressions/FTypeOfExpression.h"
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#include "GameData/Formulas/Expressions/FTypeOfExpression.h"
 #include "GameData/Formulas/FExpressionBuildHelper.h"
 #include "GameData/Formulas/FFormulaNotation.h"
-#include "GameData/Formulas/IFormulaTypeDescription.h"
+#include "GameData/Formulas/IFormulaType.h"
 
 FTypeOfExpression::FTypeOfExpression(const TSharedRef<FJsonObject>& ExpressionObj):
 	TypeRef(FExpressionBuildHelper::GetTypeRef(ExpressionObj, FFormulaNotation::TYPE_ATTRIBUTE))
 {}
 
-FFormulaInvokeResult FTypeOfExpression::Execute(const FFormulaExecutionContext& Context) const
+FTypeOfExpression::FTypeOfExpression(const TSharedPtr<FFormulaTypeReference>& TypeRef) :
+	TypeRef(TypeRef)
 {
-	if (!this->TypeRef.IsValid())
+}
+
+FFormulaExecutionResult FTypeOfExpression::Execute(const FFormulaExecutionContext& Context, FProperty* ExpectedType) const
+{
+	if (!this->IsValid())
 	{
-		return FFormulaInvokeError::ExpressionIsInvalid();
+		return FFormulaExecutionError::ExpressionIsInvalid();
 	}
 	
 	const auto ToType = Context.TypeResolver->GetTypeDescription(this->TypeRef);
-	if (!ToType)
+	if (!ToType.IsValid())
 	{
-		return FFormulaInvokeError::UnableToResolveType(this->TypeRef->GetFullName(/* include generics */ true));
+		return FFormulaExecutionError::UnableToResolveType(this->TypeRef->GetFullName(/* include generics */ true));
 	}
 	
 	return MakeShared<FFormulaValue>(static_cast<UObject*>(ToType->GetTypeClassOrStruct()));
+}
+
+bool FTypeOfExpression::IsValid() const
+{
+	return this->TypeRef.IsValid();
+}
+
+void FTypeOfExpression::DebugPrintTo(FString& OutValue) const
+{
+	OutValue.Append("typeof(");
+	if (this->TypeRef.IsValid())
+	{
+		OutValue.Append(this->TypeRef->GetFullName(true));
+	}
+	else
+	{
+		OutValue.Append(TEXT("#INVALID#"));
+	}
+	OutValue.Append(") ");
 }

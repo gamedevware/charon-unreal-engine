@@ -1,4 +1,8 @@
-﻿#include "GameData/Formulas/FFormulaProperty.h"
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#include "GameData/Formulas/FFormulaProperty.h"
+
+DEFINE_LOG_CATEGORY(LogFormulaProperty);
 
 UScriptStruct* GetScriptStruct(const FProperty* Property)
 {
@@ -14,6 +18,7 @@ UScriptStruct* GetScriptStruct(const FProperty* Property)
 }
 
 FFormulaProperty::FFormulaProperty(FProperty* Property, UField* DeclaringType, const bool bUseClassDefaultObject):
+	Property(Property),
 	DeclaringTypePtr(DeclaringType),
 	bUseClassDefaultObject(bUseClassDefaultObject),
 	GetterFunc(CreateDefaultPropertyGetter(TWeakFieldPtr<FProperty>(Property), TWeakObjectPtr(DeclaringType))),
@@ -23,35 +28,60 @@ FFormulaProperty::FFormulaProperty(FProperty* Property, UField* DeclaringType, c
 	check(DeclaringType);
 }
 
-FFormulaProperty::FFormulaProperty(FFormulaPropertyGetterFunc GetterFunc, FFormulaPropertySetterFunc SetterFunc, UField* DeclaringType, const bool bUseClassDefaultObject):
-	DeclaringTypePtr(DeclaringType), bUseClassDefaultObject(bUseClassDefaultObject), GetterFunc(MoveTemp(GetterFunc)), SetterFunc(MoveTemp(SetterFunc))
+FFormulaProperty::FFormulaProperty(FProperty* Property, FFormulaPropertyGetterFunc GetterFunc, FFormulaPropertySetterFunc SetterFunc, UField* DeclaringType, const bool bUseClassDefaultObject):
+	Property(Property),
+	DeclaringTypePtr(DeclaringType),
+	bUseClassDefaultObject(bUseClassDefaultObject),
+	GetterFunc(MoveTemp(GetterFunc)),
+	SetterFunc(MoveTemp(SetterFunc))
 {
 }
 
-bool FFormulaProperty::TryGetValue(const TSharedRef<FFormulaValue>& Target, TSharedPtr<FFormulaValue>& Result) const
+bool FFormulaProperty::TryGetValue(const TSharedRef<FFormulaValue>& InTarget, TSharedPtr<FFormulaValue>& OutValue) const
 {
-	TSharedRef<FFormulaValue> TargetOrDefault = Target;
+	TSharedRef<FFormulaValue> TargetOrDefault = InTarget;
 	if (UClass* DeclaringClass = Cast<UClass>(DeclaringTypePtr.Get()); bUseClassDefaultObject)
 	{
 		TargetOrDefault = MakeShared<FFormulaValue>(DeclaringClass->GetDefaultObject(/*bCreateIfNeeded*/ true));
 	}
-	return this->GetterFunc.IsSet() && this->GetterFunc(TargetOrDefault, Result);
+	return this->GetterFunc.IsSet() && this->GetterFunc(TargetOrDefault, OutValue);
 }
 
-bool FFormulaProperty::TrySetValue(const TSharedRef<FFormulaValue>& Target, const TSharedPtr<FFormulaValue>& Value) const
+bool FFormulaProperty::TrySetValue(const TSharedRef<FFormulaValue>& InTarget, const TSharedPtr<FFormulaValue>& InValue) const
 {
-	TSharedRef<FFormulaValue> TargetOrDefaultObject = Target;
+	TSharedRef<FFormulaValue> TargetOrDefaultObject = InTarget;
 	if (UClass* DeclaringClass = Cast<UClass>(DeclaringTypePtr.Get()); bUseClassDefaultObject)
 	{
 		TargetOrDefaultObject = MakeShared<FFormulaValue>(DeclaringClass->GetDefaultObject(/*bCreateIfNeeded*/ true));
 	}
-	return this->SetterFunc.IsSet() && this->SetterFunc(TargetOrDefaultObject, Value);
+	return this->SetterFunc.IsSet() && this->SetterFunc(TargetOrDefaultObject, InValue);
+}
+
+FFormulaPropertyGetterFunc FFormulaProperty::CreateGetterFromFunctionInvoker(FFormulaFunctionInvokeFunc FunctionInvoker)
+{
+	return FFormulaPropertyGetterFunc([FunctionInvoker](const TSharedRef<FFormulaValue>& Target, TSharedPtr<FFormulaValue>& Result) -> bool
+	{
+		FFormulaInvokeArguments OperationArguments;
+		return FunctionInvoker.IsSet() && FunctionInvoker(Target, OperationArguments, nullptr, nullptr, Result);
+	});
+}
+
+FFormulaPropertySetterFunc FFormulaProperty::CreateSetterFromFunctionInvoker(FFormulaFunctionInvokeFunc FunctionInvoker)
+{
+	return FFormulaPropertySetterFunc([FunctionInvoker](const TSharedRef<FFormulaValue>& Target, const TSharedPtr<FFormulaValue>& Value) -> bool
+	{
+		FFormulaInvokeArguments OperationArguments {
+			FFormulaInvokeArguments::InvokeArgument(TEXT("0"), Value.ToSharedRef(), EPropertyFlags::CPF_None),
+		};
+		TSharedPtr<FFormulaValue> Result; // discarded
+		return FunctionInvoker.IsSet() && FunctionInvoker(Target, OperationArguments, nullptr, nullptr, Result);
+	});
 }
 
 
 FFormulaPropertyGetterFunc FFormulaProperty::CreateDefaultPropertyGetter(TWeakFieldPtr<FProperty> PropertyPtr, TWeakObjectPtr<UField> DeclaringTypePtr)
 {
-	return FFormulaPropertyGetterFunc([PropertyPtr, DeclaringTypePtr](const TSharedRef<FFormulaValue>& Target, TSharedPtr<FFormulaValue>& Result) -> bool
+	return FFormulaPropertyGetterFunc([PropertyPtr, DeclaringTypePtr](const TSharedRef<FFormulaValue>& InTarget, TSharedPtr<FFormulaValue>& OutValue) -> bool
 	{
 		FProperty* Property = PropertyPtr.Get();
 		UField* DeclaringType = DeclaringTypePtr.Get();
@@ -60,45 +90,54 @@ FFormulaPropertyGetterFunc FFormulaProperty::CreateDefaultPropertyGetter(TWeakFi
 		
 		if (!Property || !DeclaringType)
 		{
+			UE_LOG(LogFormulaProperty, Warning, TEXT("Property get access failed because the metadata object was unloaded or garbage collected."));
+			
 			return false;  // metadata is gone
 		}
 
 		if (const UClass* DeclaringClass = Cast<UClass>(DeclaringTypePtr.Get()))
 		{
-			const UObject* ContainerPtr = nullptr;
-			if (Target->GetTypeCode() == EFormulaValueType::ObjectPtr &&
-				Target->TryCopyCompleteValue(Target->GetType(), &ContainerPtr) &&
+			UObject* ContainerPtr = nullptr;
+			if (InTarget->TryGetObjectPtr(ContainerPtr) &&
 				!ContainerPtr->GetClass()->IsChildOf(DeclaringClass))
 			{
+				UE_LOG(LogFormulaProperty, Warning, TEXT("Property get access failed because the call target of the wrong type."));
+				
 				ContainerPtr = nullptr; // invalid target class
 			}
 			
 			if (!ContainerPtr)
 			{
+				UE_LOG(LogFormulaProperty, Warning, TEXT("Property get access failed because the call target is null."));
+				
 				return false; // null reference target
 			}
 			
 			const void* ValuePtr = Property->ContainerPtrToValuePtr<void>(ContainerPtr);
-			Result = MakeShared<FFormulaValue>(Property, ValuePtr);
+			OutValue = MakeShared<FFormulaValue>(Property, ValuePtr);
 			return true;
 		}
 		else if (const UScriptStruct* DeclaringStruct = Cast<UScriptStruct>(DeclaringTypePtr.Get()))
 		{
 			void* ContainerPtr = nullptr;
-			if (Target->GetTypeCode() == EFormulaValueType::Struct &&
-				Target->TryGetContainerAddress(ContainerPtr) &&
-				GetScriptStruct(Target->GetType())->IsChildOf(DeclaringStruct))
+			if (InTarget->GetTypeCode() == EFormulaValueType::Struct &&
+				InTarget->TryGetContainerAddress(ContainerPtr) &&
+				GetScriptStruct(InTarget->GetType())->IsChildOf(DeclaringStruct))
 			{
+				UE_LOG(LogFormulaProperty, Warning, TEXT("Property get access failed because the call target of the wrong type."));
+				
 				ContainerPtr = nullptr; // invalid target class
 			}
 			
 			if (!ContainerPtr)
 			{
+				UE_LOG(LogFormulaProperty, Warning, TEXT("Property get access failed because the call target is null."));
+				
 				return false; // null reference target
 			}
 
 			const void* ValuePtr = Property->ContainerPtrToValuePtr<void>(ContainerPtr);
-			Result = MakeShared<FFormulaValue>(Property, ValuePtr);
+			OutValue = MakeShared<FFormulaValue>(Property, ValuePtr);
 			return true;
 		}
 		return false;
@@ -107,7 +146,7 @@ FFormulaPropertyGetterFunc FFormulaProperty::CreateDefaultPropertyGetter(TWeakFi
 
 FFormulaPropertySetterFunc FFormulaProperty::CreateDefaultPropertySetter(TWeakFieldPtr<FProperty> PropertyPtr, TWeakObjectPtr<UField> DeclaringTypePtr)
 {
-	return FFormulaPropertySetterFunc([PropertyPtr, DeclaringTypePtr](const TSharedRef<FFormulaValue>& Target, const TSharedPtr<FFormulaValue>& Value) -> bool
+	return FFormulaPropertySetterFunc([PropertyPtr, DeclaringTypePtr](const TSharedRef<FFormulaValue>& InTarget, const TSharedPtr<FFormulaValue>& InValue) -> bool
 	{
 		FProperty* Property = PropertyPtr.Get();
 		UField* DeclaringType = DeclaringTypePtr.Get();
@@ -116,41 +155,55 @@ FFormulaPropertySetterFunc FFormulaProperty::CreateDefaultPropertySetter(TWeakFi
 		
 		if (!Property || !DeclaringType)
 		{
+			UE_LOG(LogFormulaProperty, Warning, TEXT("Property set access failed because the metadata object was unloaded or garbage collected."));
+
 			return false; // metadata is gone
 		}
 
 		if (const UClass* DeclaringClass = Cast<UClass>(DeclaringType))
 		{
 			UObject* ContainerPtr = nullptr;
-			if (Target->GetTypeCode() == EFormulaValueType::ObjectPtr &&
-				Target->TryCopyCompleteValue(Target->GetType(), &ContainerPtr) &&
+			if (InTarget->TryGetObjectPtr(ContainerPtr) &&
 				!ContainerPtr->GetClass()->IsChildOf(DeclaringClass))
 			{
+				UE_LOG(LogFormulaProperty, Warning, TEXT("Property set access failed because the call target of the wrong type."));
+				
 				ContainerPtr = nullptr; // invalid target class
 			}
 		
 			if (!ContainerPtr)
 			{
+				UE_LOG(LogFormulaProperty, Warning, TEXT("Property set access failed because the call target is null."));
+				
 				return false; // null reference target
 			}
-			return Value->TrySetPropertyValue_InContainer(Property, ContainerPtr, 0);
+			return InValue->TrySetPropertyValue_InContainer(Property, ContainerPtr, 0);
 		}
 		else if (const UScriptStruct* DeclaringStruct = Cast<UScriptStruct>(DeclaringType))
 		{
 			void* ContainerPtr = nullptr;
-			if (Target->GetTypeCode() == EFormulaValueType::Struct &&
-				Target->TryGetContainerAddress(ContainerPtr) &&
-				GetScriptStruct(Target->GetType())->IsChildOf(DeclaringStruct))
+			if (InTarget->GetTypeCode() == EFormulaValueType::Struct &&
+				InTarget->TryGetContainerAddress(ContainerPtr) &&
+				GetScriptStruct(InTarget->GetType())->IsChildOf(DeclaringStruct))
 			{
+				UE_LOG(LogFormulaProperty, Warning, TEXT("Property set access failed because the call target of the wrong type."));
+				
 				ContainerPtr = nullptr; // invalid target class
 			}
 		
 			if (!ContainerPtr)
 			{
+				UE_LOG(LogFormulaProperty, Warning, TEXT("Property set access failed because the call target is null."));
+				
 				return false; // null reference target
 			}
 		
-			return Value->TrySetPropertyValue_InContainer(Property, ContainerPtr, 0);
+			auto bSetSuccess = InValue->TrySetPropertyValue_InContainer(Property, ContainerPtr, 0);
+			if (!bSetSuccess)
+			{
+				UE_LOG(LogFormulaProperty, Warning, TEXT("Property set access failed because the '%s' value of the %s value could not be cast/coerced to the %s type."), *InValue->GetCPPType(), *Property->GetName(), *FFormulaValue::GetExtendedCppName(Property) );
+			}
+			return bSetSuccess;
 		}
 		return false;
 	});

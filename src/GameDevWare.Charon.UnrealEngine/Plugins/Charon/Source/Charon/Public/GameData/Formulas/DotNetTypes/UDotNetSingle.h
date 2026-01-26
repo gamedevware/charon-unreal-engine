@@ -1,3 +1,5 @@
+// Copyright GameDevWare, Denis Zykov 2025
+
 #pragma once
 
 #include "GameData/Formulas/EFormulaValueType.h"
@@ -8,28 +10,40 @@
 /*
  * Internal struct used for reflection in formulas 
  */
-UCLASS(Abstract)
-class UDotNetSingle : public UObject
+UCLASS(Hidden, NotPlaceable, Abstract)
+class CHARON_API UDotNetSingle : public UObject
 {
 	GENERATED_BODY()
 
 private:
-	inline static FNumericProperty* LiteralProperty = nullptr;
-	
 	UPROPERTY()
 	float __Literal = 0;
+	UPROPERTY()
+	TArray<float> __ArrayLiteral;
+	
 public:
 	inline static EFormulaValueType TypeCode = EFormulaValueType::Float;
 	
 	static FNumericProperty* GetLiteralProperty()
 	{
+		static FNumericProperty* LiteralProperty = nullptr;
+		
 		if (LiteralProperty)
 		{
 			return LiteralProperty;
 		}
 		return LiteralProperty = CastFieldChecked<FNumericProperty>(StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UDotNetSingle, __Literal)));
 	}
-
+	static FArrayProperty* GetArrayProperty()
+	{
+		static FArrayProperty* ArrayProperty = nullptr;
+		if (ArrayProperty)
+		{
+			return ArrayProperty;
+		}
+		return ArrayProperty = CastFieldChecked<FArrayProperty>(StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UDotNetSingle, __ArrayLiteral)));
+	}
+	
 	//* static properties */
 	
 	UPROPERTY()

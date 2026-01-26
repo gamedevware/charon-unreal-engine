@@ -1,4 +1,6 @@
-﻿#include "GameData/Formulas/FFormulaTypeReference.h"
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#include "GameData/Formulas/FFormulaTypeReference.h"
 #include "GameData/Formulas/FExpressionBuildHelper.h"
 #include "GameData/Formulas/FFormulaNotation.h"
 
@@ -17,6 +19,16 @@ FFormulaTypeReference::FFormulaTypeReference(const FString& Name):
 {
 }
 
+FFormulaTypeReference::FFormulaTypeReference(const FString& Name, const TArray<TSharedPtr<FFormulaTypeReference>>& TypeArguments) :
+	Expression(nullptr), TypeArguments(TypeArguments), Name(Name)
+{
+}
+
+FFormulaTypeReference::FFormulaTypeReference(const FString& Name, const TSharedPtr<FFormulaTypeReference>& Expression,
+const TArray<TSharedPtr<FFormulaTypeReference>>& TypeArguments) : Expression(Expression), TypeArguments(TypeArguments), Name(Name)
+{
+}
+
 bool FFormulaTypeReference::IsEmpty() const
 {
 	return Name.IsEmpty() && !Expression.IsValid() && TypeArguments.Num() == 0;
@@ -24,21 +36,28 @@ bool FFormulaTypeReference::IsEmpty() const
 
 FString FFormulaTypeReference::GetFullName(bool bWriteGenerics) const
 {
-	if (FullName.IsEmpty())
+	if (bWriteGenerics)
 	{
-		TStringBuilder<256> Builder;
-		BuildFullNameInternal(Builder, bWriteGenerics);
-
-		if (bWriteGenerics)
+		if (FullNameWithGenerics.IsEmpty())
 		{
+			TStringBuilder<256> Builder;
+			BuildFullNameInternal(Builder, bWriteGenerics);
 			FullNameWithGenerics = Builder.ToString();
 		}
-		else
+	
+		return FullNameWithGenerics;
+	}
+	else
+	{
+		if (FullName.IsEmpty())
 		{
+			TStringBuilder<256> Builder;
+			BuildFullNameInternal(Builder, bWriteGenerics);
 			FullName = Builder.ToString();
 		}
+	
+		return FullName;
 	}
-	return FullName;
 }
 
 void FFormulaTypeReference::BuildFullNameInternal(FStringBuilderBase& Builder, bool bWriteGenerics) const

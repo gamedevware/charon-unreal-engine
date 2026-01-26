@@ -1,40 +1,14 @@
-﻿#include "GameData/Formulas/FFormulaFunction.h"
-#include "GameData/Formulas/IFormulaTypeDescription.h"
+﻿// Copyright GameDevWare, Denis Zykov 2025
 
-DEFINE_LOG_CATEGORY(LogFormulaMemberGroup);
+#include "GameData/Formulas/FFormulaFunction.h"
 
-bool IsAssignable(const IFormulaTypeDescription* BaseType, FProperty* DerivedType)
-{
-	if (const FObjectPropertyBase* ObjectDerivedType = CastField<FObjectPropertyBase>(DerivedType))
-	{
-		return BaseType->IsAssignableFrom(ObjectDerivedType->PropertyClass);
-	}
+#include "GameData/Formulas/FFormulaInvokeArguments.h"
+#include "GameData/Formulas/IFormulaType.h"
 
-	const auto BaseTypeCode = BaseType->GetTypeCode();
-	const auto DerivedTypeCode = GetPropertyTypeCode(DerivedType);
-	return BaseTypeCode == DerivedTypeCode &&
-		BaseTypeCode != EFormulaValueType::ObjectPtr &&
-		BaseTypeCode != EFormulaValueType::Struct;
-}
+DEFINE_LOG_CATEGORY(LogFormulaFunction);
 
-bool IsAssignable(const FProperty* BaseType, const FProperty* DerivedType)
-{
-	// TODO unwrap optional types?
-
-	if (const FObjectPropertyBase* ObjectBaseType = CastField<FObjectPropertyBase>(BaseType);
-		const FObjectPropertyBase* ObjectDerivedType = CastField<FObjectPropertyBase>(DerivedType))
-	{
-		return ObjectDerivedType->PropertyClass->IsChildOf(ObjectBaseType->PropertyClass);
-	}
-
-	// TODO better argument binding like
-	// constant narrowing or string lineral to UE types conversion
-	// or numeric promotion
-	return BaseType->SameType(DerivedType);
-}
-
-FFormulaFunction::FFormulaFunction(UFunction* Function, UClass* DeclaringClass, const bool bUseClassDefaultObject):
-	FunctionInvoker(CreateDefaultFunctionInvoker(TWeakObjectPtr(Function), TWeakObjectPtr(DeclaringClass))),
+FFormulaFunction::FFormulaFunction(UFunction* Function, UClass* DeclaringClass, const bool bUseClassDefaultObject) :
+	FunctionInvoker(CreateDefaultFunctionInvoker(Function, DeclaringClass)),
 	DeclaringTypePtr(TWeakObjectPtr(DeclaringClass)),
 	bUseClassDefaultObject(bUseClassDefaultObject)
 {
@@ -42,7 +16,11 @@ FFormulaFunction::FFormulaFunction(UFunction* Function, UClass* DeclaringClass, 
 	check(DeclaringClass);
 }
 
-FFormulaFunction::FFormulaFunction(FFormulaFunctionInvokeFunc FunctionInvoker, UField* DeclaringType,	const bool bUseClassDefaultObject):
+FFormulaFunction::FFormulaFunction(
+	FFormulaFunctionInvokeFunc FunctionInvoker,
+	UField* DeclaringType,
+	const bool bUseClassDefaultObject
+) :
 	FunctionInvoker(MoveTemp(FunctionInvoker)),
 	DeclaringTypePtr(TWeakObjectPtr(DeclaringType)),
 	bUseClassDefaultObject(bUseClassDefaultObject)
@@ -50,96 +28,105 @@ FFormulaFunction::FFormulaFunction(FFormulaFunctionInvokeFunc FunctionInvoker, U
 	check(DeclaringType);
 }
 
-bool FFormulaFunction::TryInvoke(const TSharedRef<FFormulaValue>& Target,
-                                 const TMap<FString, TSharedRef<FFormulaValue>>& CallArguments,
-                                 const IFormulaTypeDescription* ExpectedType, const TArray<UField*>& TypeArguments,
-                                 TSharedPtr<FFormulaValue>& Result) const
+bool FFormulaFunction::TryInvoke(
+	const TSharedRef<FFormulaValue>& Target,
+	FFormulaInvokeArguments& CallArguments,
+	const UField* ExpectedType,
+	const TArray<UField*>* TypeArguments,
+	TSharedPtr<FFormulaValue>& Result) const
 {
+	const UClass* DeclaringClass = Cast<UClass>(this->DeclaringTypePtr.Get());
+	check(DeclaringClass);
+
 	TSharedRef<FFormulaValue> TargetOrDefault = Target;
-	UClass* DeclaringClass = Cast<UClass>(this->DeclaringTypePtr.Get());
 	if (DeclaringClass && bUseClassDefaultObject)
 	{
 		TargetOrDefault = MakeShared<FFormulaValue>(DeclaringClass->GetDefaultObject(/*bCreateIfNeeded*/ true));
 	}
-	return this->FunctionInvoker.IsSet() && this->FunctionInvoker(TargetOrDefault, CallArguments, ExpectedType, TypeArguments, Result);
+	return this->FunctionInvoker.IsSet() && this->FunctionInvoker(TargetOrDefault, CallArguments, ExpectedType,
+	                                                              TypeArguments, Result);
 }
 
-FFormulaFunctionInvokeFunc FFormulaFunction::CreateDefaultFunctionInvoker(TWeakObjectPtr<UFunction> FunctionPtr, TWeakObjectPtr<UField> DeclaringClassPtr)
+FFormulaFunctionInvokeFunc FFormulaFunction::CreateDefaultFunctionInvoker(UFunction* Function, UField* DeclaringClass)
 {
-	return FFormulaFunctionInvokeFunc([FunctionPtr, DeclaringClassPtr](const TSharedRef<FFormulaValue>& Target,
-								 const TMap<FString, TSharedRef<FFormulaValue>>& CallArguments,
-								 const IFormulaTypeDescription* ExpectedType, const TArray<UField*>& TypeArguments,
-								 TSharedPtr<FFormulaValue>& Result)
+	TWeakObjectPtr<UFunction> FunctionPtr = TWeakObjectPtr(Function);
+	TWeakObjectPtr<UField> DeclaringClassPtr = TWeakObjectPtr(DeclaringClass);
+	
+	return FFormulaFunctionInvokeFunc([FunctionPtr, DeclaringClassPtr](
+		const TSharedRef<FFormulaValue>& Target,
+		FFormulaInvokeArguments& CallArguments,
+		const UField* ExpectedType,
+		const TArray<UField*>* TypeArguments,
+		TSharedPtr<FFormulaValue>& Result)
 	{
-		
-		if (TypeArguments.Num() != 0)
+		if (TypeArguments && TypeArguments->Num() != 0)
 		{
+			UE_LOG(LogFormulaFunction, Warning, TEXT("Method binding failed because generic arguments were specified. By default, Blueprint functions do not support generic arguments."));
 			return false; // type arguments are not supported
 		}
 
 		UFunction* Function = FunctionPtr.Get();
-		UClass* DeclaringClass = Cast<UClass>(DeclaringClassPtr.Get());
+		const UClass* DeclaringClass = Cast<UClass>(DeclaringClassPtr.Get());
 		check(Function);
 		check(DeclaringClass);
-		
+
 		if (!Function || !DeclaringClass)
 		{
+			UE_LOG(LogFormulaFunction, Warning, TEXT("Method binding failed because the metadata object was unloaded or garbage collected."));
 			return false; // function is gone
 		}
 
 		UObject* TargetPtr = nullptr;
-		if (Target->GetTypeCode() == EFormulaValueType::ObjectPtr &&
-			Target->TryCopyCompleteValue(Target->GetType(), &TargetPtr) &&
+		if (Target->TryGetObjectPtr(TargetPtr) &&
 			!TargetPtr->GetClass()->IsChildOf(DeclaringClass))
 		{
 			TargetPtr = nullptr; // invalid target class
 		}
-		
+
 		if (!TargetPtr)
 		{
+			UE_LOG(LogFormulaFunction, Warning, TEXT("Method binding failed because the call target is null or of the wrong type."));
 			return false; // invalid or null instance 
 		}
 
-		FProperty* ReturnValueParameter = Function->GetReturnProperty();
+		/*
 		if (ReturnValueParameter &&
 			ExpectedType &&
 			!IsAssignable(ExpectedType, ReturnValueParameter))
 		{
 			return false; // return type doesn't match
 		}
+		*/
 
+		FString ParameterName;
 		bool bIsMatching = true;
-		FString ArgumentName;
-		int32 ParameterIndex = 0;
+		
 		TArray<uint8> ArgumentsBuffer;
 		ArgumentsBuffer.AddZeroed(Function->ParmsSize);
 		void* ArgumentBufferPtr = ArgumentsBuffer.GetData();
-		
+		int32 ParameterIndex = 0;
+
+		// bind input parameters
 		for (TFieldIterator<FProperty> It(Function); It; ++It)
 		{
-			const FProperty* Argument = *It;
-			if (Argument->HasAnyPropertyFlags(CPF_ReturnParm))
+			const FProperty* Parameter = *It;
+			if (Parameter->HasAnyPropertyFlags(CPF_ReturnParm))
 			{
 				continue;
 			}
 
-			Argument->GetName(ArgumentName);
-			const TSharedRef<FFormulaValue>* ArgumentValuePtr = CallArguments.Find(ArgumentName);
-			if (!ArgumentValuePtr)
+			const auto InvokeArgumentPtr = CallArguments.FindArgument(Parameter, ParameterIndex, ParameterName);
+			if (!InvokeArgumentPtr)
 			{
-				ArgumentValuePtr = CallArguments.Find(FString::FromInt(ParameterIndex));
-			}
-
-			if (!ArgumentValuePtr || !IsAssignable(Argument, (*ArgumentValuePtr)->GetType()))
-			{
-				bIsMatching = false; // missing parameter or invalid type
+				UE_LOG(LogFormulaFunction, Warning, TEXT("Method binding failed because the required parameter %s[#%d] was not found in the argument list."), *Parameter->GetName(), ParameterIndex);
+				bIsMatching = false;
 				break;
 			}
 
-			const auto ArgumentValue = *ArgumentValuePtr;
-			void* ArgumentPtr = Argument->ContainerPtrToValuePtr<void>(ArgumentBufferPtr);
-			if (!ArgumentValue->TryCopyCompleteValue(Argument, ArgumentPtr))
+			void* ArgumentDataPtr = Parameter->ContainerPtrToValuePtr<void>(ArgumentBufferPtr);
+			if (!InvokeArgumentPtr->Value->TryCopyCompleteValue(Parameter, ArgumentDataPtr))
 			{
+				UE_LOG(LogFormulaFunction, Warning, TEXT("Method binding failed because the '%s' value of the %s parameter could not be cast/coerced to the %s type."), *InvokeArgumentPtr->Value->GetCPPType(), *Parameter->GetName(), *FFormulaValue::GetExtendedCppName(Parameter) );
 				bIsMatching = false; // argument bind failed
 				break;
 			}
@@ -153,13 +140,58 @@ FFormulaFunctionInvokeFunc FFormulaFunction::CreateDefaultFunctionInvoker(TWeakO
 
 		TargetPtr->ProcessEvent(Function, ArgumentBufferPtr);
 
-		if (ReturnValueParameter)
+		// copy output parameters
+		for (TFieldIterator<FProperty> It(Function); It; ++It)
 		{
-			const void* ValuePtr = ReturnValueParameter->ContainerPtrToValuePtr<void>(ArgumentBufferPtr);
-			Result = MakeShared<FFormulaValue>(ReturnValueParameter, ValuePtr);
-			return true;
+			FProperty* Parameter = *It;
+			if (Parameter->HasAnyPropertyFlags(CPF_ReturnParm))
+			{
+				const void* ValuePtr = Parameter->ContainerPtrToValuePtr<void>(ArgumentBufferPtr);
+				Result = MakeShared<FFormulaValue>(Parameter, ValuePtr);
+			}
+			else if (Parameter->HasAnyPropertyFlags(CPF_OutParm))
+			{
+				const auto ArgumentValuePtr = CallArguments.FindArgument(Parameter, ParameterIndex, ParameterName);
+				if (!ArgumentValuePtr)
+				{
+					continue;
+				}
+				const void* ValuePtr = Parameter->ContainerPtrToValuePtr<void>(ArgumentBufferPtr);
+				CallArguments.ReplaceArgumentValue(ParameterName, MakeShared<FFormulaValue>(Parameter, ValuePtr));
+			}
 		}
-
-		return false;
+		return true;
 	});
+}
+
+FFormulaFunctionInvokeFunc FFormulaFunction::CreateExtensionFunctionInvoker(UFunction* Function, UField* DeclaringClass)
+{
+	TWeakObjectPtr<UFunction> FunctionPtr = TWeakObjectPtr(Function);
+	TWeakObjectPtr<UField> DeclaringClassPtr = TWeakObjectPtr(DeclaringClass);
+	FFormulaFunctionInvokeFunc DefaultFunctionInvoker = CreateDefaultFunctionInvoker(Function, DeclaringClass);
+	return FFormulaFunctionInvokeFunc([DeclaringClassPtr, FunctionPtr, DefaultFunctionInvoker](
+			const TSharedRef<FFormulaValue>& Target,
+			FFormulaInvokeArguments& CallArguments,
+			const UField* ExpectedType,
+			const TArray<UField*>* TypeArguments,
+			TSharedPtr<FFormulaValue>& Result)
+		{
+			const UClass* DeclaringClass = Cast<UClass>(DeclaringClassPtr.Get());
+			const UFunction* Function = FunctionPtr.Get();
+			check(DeclaringClass);
+			check(Function && Function->HasAnyFunctionFlags(EFunctionFlags::FUNC_Static));
+
+			if (!Function || !DeclaringClass)
+			{
+				return false; // function or class is gone
+			}
+		
+			// replace Target with CDO because function is static
+			const TSharedRef<FFormulaValue> TargetDefaultClassObject = MakeShared<FFormulaValue>(DeclaringClass->GetDefaultObject(/*bCreateIfNeeded*/ true));
+
+			
+			CallArguments.InsertArgumentAt(0, Function->NumParms, Target);
+		
+			return DefaultFunctionInvoker(TargetDefaultClassObject, CallArguments, ExpectedType, TypeArguments, Result);
+		});
 }

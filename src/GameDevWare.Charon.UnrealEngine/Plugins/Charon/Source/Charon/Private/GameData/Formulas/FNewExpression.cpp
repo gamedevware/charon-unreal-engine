@@ -1,7 +1,9 @@
-﻿#include "GameData/Formulas/Expressions/FNewExpression.h"
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#include "GameData/Formulas/Expressions/FNewExpression.h"
 #include "GameData/Formulas/FExpressionBuildHelper.h"
 #include "GameData/Formulas/FFormulaNotation.h"
-#include "GameData/Formulas/IFormulaTypeDescription.h"
+#include "GameData/Formulas/IFormulaType.h"
 #include "UObject/UObjectGlobals.h"
 #include "UObject/Package.h"
 
@@ -13,24 +15,30 @@ FNewExpression::FNewExpression(const TSharedRef<FJsonObject>& ExpressionObj) :
 {
 }
 
-FFormulaInvokeResult FNewExpression::Execute(const FFormulaExecutionContext& Context) const
+FNewExpression::FNewExpression(const TSharedPtr<FFormulaTypeReference>& NewObjectType,
+	const TMap<FString, TSharedPtr<FFormulaExpression>>& Arguments) :
+	Arguments(Arguments), NewObjectType(NewObjectType)
 {
-	if (!this->NewObjectType.IsValid())
+}
+
+FFormulaExecutionResult FNewExpression::Execute(const FFormulaExecutionContext& Context, FProperty* ExpectedType) const
+{
+	if (!this->IsValid())
 	{
-		return FFormulaInvokeError::ExpressionIsInvalid();
+		return FFormulaExecutionError::ExpressionIsInvalid();
 	}
 
 	if (this->Arguments.Num() != 0)
 	{
 		UE_LOG(LogNewExpression, Error, TEXT("'%s': 'new' expression cannot take constructor arguments (found %d)."),
 			   *this->NewObjectType->GetFullName(true), this->Arguments.Num());
-		return FFormulaInvokeError::ExpressionIsInvalid();
+		return FFormulaExecutionError::ExpressionIsInvalid();
 	}
 
 	const auto NewObjectTypeRef = Context.TypeResolver->GetTypeDescription(this->NewObjectType);
-	if (!NewObjectTypeRef)
+	if (!NewObjectTypeRef.IsValid())
 	{
-		return FFormulaInvokeError::UnableToResolveType(this->NewObjectType->GetFullName(/* include generics */ true));
+		return FFormulaExecutionError::UnableToResolveType(this->NewObjectType->GetFullName(/* include generics */ true));
 	}
 
 	const UField* ClassOrStructPtr = NewObjectTypeRef->GetTypeClassOrStruct();
@@ -38,7 +46,7 @@ FFormulaInvokeResult FNewExpression::Execute(const FFormulaExecutionContext& Con
 	{
 		if ((NewObjectClass->ClassFlags & EClassFlags::CLASS_Abstract) != 0)
 		{
-			return FFormulaInvokeError::CanCreateInstanceOfAbstractClass(this->NewObjectType->GetFullName(/* include generics */ true));
+			return FFormulaExecutionError::CanCreateInstanceOfAbstractClass(this->NewObjectType->GetFullName(/* include generics */ true));
 		}
 		
 		UObject* NewObjectPtr = NewObject<UObject>(GetTransientPackage(), NewObjectClass);
@@ -52,14 +60,14 @@ FFormulaInvokeResult FNewExpression::Execute(const FFormulaExecutionContext& Con
 		*/
 		/*
 		TArray<uint8> StructData;
-		StructData.SetNumZeroed(NewStructType->GetStructureSize());
+		StructData.SetNumZeroed(ExpectedType->GetStructureSize());
 		uint8* StructMemory = StructData.GetData();
 		NewStructType->InitializeStruct(StructMemory);
 		
 		// return  )
 		// NewStructType->DestroyStruct(StructMemory);
 		*/
-		return FFormulaInvokeError::UnsupportedObjectType(NewObjectTypeRef->GetCPPType());
+		return FFormulaExecutionError::UnsupportedObjectType(NewObjectTypeRef->GetCPPType());
 	}
 
 	
@@ -85,6 +93,60 @@ FFormulaInvokeResult FNewExpression::Execute(const FFormulaExecutionContext& Con
 	case EFormulaValueType::Enum:
 	case EFormulaValueType::Struct:
 	default:
-		return FFormulaInvokeError::UnsupportedObjectType(NewObjectTypeRef->GetCPPType());
+		return FFormulaExecutionError::UnsupportedObjectType(NewObjectTypeRef->GetCPPType());
 	}
+}
+
+bool FNewExpression::IsValid() const
+{
+	if (!this->NewObjectType.IsValid())
+	{
+		return false;
+	}
+	for (auto ArgumentPair : this->Arguments)
+	{
+		if (!ArgumentPair.Value.IsValid())
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+void FNewExpression::DebugPrintTo(FString& OutValue) const
+{
+	OutValue.Append("new ");
+	if (this->NewObjectType.IsValid())
+	{
+		OutValue.Append(this->NewObjectType->GetFullName(true));
+	}
+	else
+	{
+		OutValue.Append(TEXT("#INVALID#"));
+	}
+	OutValue.Append("(");
+	bool bFirstArgument = true;;
+	for (auto ArgumentPair : this->Arguments)
+	{
+		if (!bFirstArgument)
+		{
+			OutValue.Append(", ");
+		}
+		bFirstArgument = false;
+
+		const bool bIsNumberKey = ArgumentPair.Key == TEXT("0") || FCString::Atoi(*ArgumentPair.Key) != 0;
+		if (!bIsNumberKey)
+		{
+			OutValue.Append(ArgumentPair.Key).Append(": ");
+		}
+		if (ArgumentPair.Value.IsValid())
+		{
+			ArgumentPair.Value->DebugPrintTo(OutValue);
+		}
+		else
+		{
+			OutValue.Append(TEXT("#INVALID#"));
+		}
+	}
+	OutValue.Append(")");
 }

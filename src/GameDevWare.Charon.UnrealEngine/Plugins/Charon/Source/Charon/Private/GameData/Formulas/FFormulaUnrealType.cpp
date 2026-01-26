@@ -1,4 +1,6 @@
-﻿#include "FFormulaUnrealType.h"
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#include "FFormulaUnrealType.h"
 #include "GameData/Formulas/FFormulaFunction.h"
 
 static TArray<FString> NoMembers;
@@ -12,7 +14,7 @@ bool IsStatic(const UFunction* Function)
 {
 	check(Function);
 
-	return (Function->FunctionFlags & EFunctionFlags::FUNC_Static) != 0;;
+	return (Function->FunctionFlags & EFunctionFlags::FUNC_Static) != 0;
 }
 
 bool FFormulaUnrealType::IsAssignableFrom(UField* Type) const
@@ -95,7 +97,7 @@ bool FFormulaUnrealType::TryGetFunction(const FString& MemberName, bool bStatic,
 		{
 			this->StaticFunctions = MakeShared<TMap<FString, FFormulaFunction>>();
 
-			for (TFieldIterator<UFunction> It(DeclaringClass); It; ++It)
+			for (TFieldIterator<UFunction> It(DeclaringClass, EFieldIterationFlags::IncludeAll); It; ++It)
 			{
 				if (const auto Function = *It; IsStatic(Function))
 				{
