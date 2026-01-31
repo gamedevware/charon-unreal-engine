@@ -19,7 +19,7 @@ DEFINE_LOG_CATEGORY(LogUConditionsCheckFormula);
 
 #if defined(CHARON_FEATURE_FORMULAS_V2) && CHARON_FEATURE_FORMULAS_V2
 
-TSharedRef<FFormulaTypeResolver> GetOrCreateTypeResolver()
+static TSharedRef<FFormulaTypeResolver> GetOrCreateTypeResolver()
 {
 	static TSharedRef<FFormulaTypeResolver> __TypeResolver = MakeShared<FFormulaTypeResolver>(URpgGameData::GetSharedFormulaTypeResolver(), TArray<UObject*> {
 		UObject::StaticClass(),

@@ -14,15 +14,18 @@
 // ReSharper disable All
 
 #include "UObject/Class.h"
-#include "Dom/JsonObject.h"
+#include "UObject/StrongObjectPtrTemplates.h"
+#include "UObject/WeakFieldPtr.h"
+#include "UObject/UnrealType.h"
 #include "Templates/SharedPointer.h"
+#include "Dom/JsonObject.h"
 #include "JsonObjectWrapper.h"
-#if defined(CHARON_FEATURE_FORMULAS) && CHARON_FEATURE_FORMULAS
-#include "GameData/Formulas/FFormulaExpression.h"
+#if defined(CHARON_FEATURE_FORMULAS_V2) && CHARON_FEATURE_FORMULAS_V2
+#include "GameData/Formulas/Expressions/FFormulaExpression.h"
 #include "GameData/Formulas/FExpressionBuildHelper.h"
 #include "GameData/Formulas/FFormulaTypeResolver.h"
 #include "GameData/Formulas/FFormulaExecutionContext.h"
-#include "GameData/Formulas/FFormulaVariableValue.h"
+#include "GameData/Formulas/FFormulaValue.h"
 #endif
 #if __has_include("URpgGameDataFormulaTypes.h")
     #include "URpgGameDataFormulaTypes.h"
@@ -41,9 +44,8 @@ class RPGGAMEDATA_API UConditionsCheckFormula : public UObject
 	GENERATED_BODY()
 
 private:
-#if defined(CHARON_FEATURE_FORMULAS) && CHARON_FEATURE_FORMULAS
-	TSharedPtr<TArray<TFieldPath<FProperty>>> InvokeParameters;
-	TSharedPtr<FFormulaExpression> Expression;
+#if defined(CHARON_FEATURE_FORMULAS_V2) && CHARON_FEATURE_FORMULAS_V2
+	TSharedPtr<FFormulaExpression> mutable Expression;
 #endif
 public:
 	/**
@@ -68,15 +70,12 @@ public:
 	  * Evaluates the formula and returns the resulting value.
 	  */
 	UFUNCTION()
-	bool Invoke(UObject* Context);
+	bool Invoke(UObject* Context) const;
 
-#if defined(CHARON_FEATURE_FORMULAS) && CHARON_FEATURE_FORMULAS
+#if defined(CHARON_FEATURE_FORMULAS_V2) && CHARON_FEATURE_FORMULAS_V2
 	/**
 	  * Gets original formula expression for custom interpretation.
 	  */
-	TSharedPtr<FFormulaExpression> GetExpression();
-private:
-	TSharedPtr<TArray<TFieldPath<FProperty>>> GetOrCreateInvokeParameters();
-	FProperty* GetInvokeParameterAt(int32 Index);
+	TSharedPtr<FFormulaExpression> GetExpression() const;
 #endif
 };

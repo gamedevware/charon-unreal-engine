@@ -24,17 +24,10 @@
 
 DEFINE_LOG_CATEGORY(LogUTestData);
 
-#if defined(CHARON_FEATURE_FORMULAS) && CHARON_FEATURE_FORMULAS
-static TSharedPtr<FFormulaTypeResolver> SharedFormulaTypeResolver;
-
-TSharedPtr<FFormulaTypeResolver> UTestData::GetSharedFormulaTypeResolver()
+#if defined(CHARON_FEATURE_FORMULAS_V2) && CHARON_FEATURE_FORMULAS_V2
+TSharedRef<FFormulaTypeResolver> UTestData::GetSharedFormulaTypeResolver()
 {
-	if (SharedFormulaTypeResolver.IsValid())
-	{
-		return SharedFormulaTypeResolver;
-	}
-
-	SharedFormulaTypeResolver = MakeShared<FFormulaTypeResolver>(nullptr, TArray<UObject*> {
+	static TSharedRef<FFormulaTypeResolver> SharedFormulaTypeResolver = MakeShared<FFormulaTypeResolver>(nullptr, TArray<UObject*> {
 		UTestDataProjectSettings::StaticClass(),
 		UTestEntity::StaticClass(),
 		URecursiveEntity::StaticClass(),
@@ -530,7 +523,7 @@ TSharedRef<IGameDataReader> UTestData::CreateReader(FArchive* const GameDataStre
 	}
 }
 
-UObject* FindDocumentByUniqueName(const FString& ObjectName, TSharedPtr<TMap<FString, UObject*>> DocumentsById)
+static UObject* FindDocumentByUniqueName(const FString& ObjectName, TSharedPtr<TMap<FString, UObject*>> DocumentsById)
 {
 	if (!DocumentsById)
 	{
@@ -550,7 +543,7 @@ UObject* FindDocumentByUniqueName(const FString& ObjectName, TSharedPtr<TMap<FSt
 	}
 	return FoundObject;
 }
-void FillDocumentByUniqueNameMap(UObject* Outer, TSharedPtr<TMap<FString, UObject*>>& DocumentsById)
+static void FillDocumentByUniqueNameMap(UObject* Outer, TSharedPtr<TMap<FString, UObject*>>& DocumentsById)
 {
 	if (!Outer) {
 		UE_LOG(LogUTestData, Error, TEXT("Can't fill documents by unique name map for `null` Outer."));
@@ -586,7 +579,7 @@ void FillDocumentByUniqueNameMap(UObject* Outer, TSharedPtr<TMap<FString, UObjec
 	},
 	/* bIncludeNested */ true);
 }
-void ClearDocumentByUniqueNameMap(TSharedPtr<TMap<FString, UObject*>> DocumentsById)
+static void ClearDocumentByUniqueNameMap(TSharedPtr<TMap<FString, UObject*>> DocumentsById)
 {
 	if (!DocumentsById)
 	{
@@ -596,7 +589,7 @@ void ClearDocumentByUniqueNameMap(TSharedPtr<TMap<FString, UObject*>> DocumentsB
 }
 
 template <typename DocumentType>
-FString MakeUniqueDocumentName(DocumentType* Document)
+static FString MakeUniqueDocumentName(DocumentType* Document)
 {
 	if (!Document) {
 		UE_LOG(LogUTestData, Error, TEXT("Can't make unique name for `null` document."));
@@ -610,7 +603,7 @@ FString MakeUniqueDocumentName(DocumentType* Document)
 	return DocumentUniqueName;
 }
 
-void TryRenameDocument(UObject* Document, const TCHAR* NewName)
+static void TryRenameDocument(UObject* Document, const TCHAR* NewName)
 {
 	if (!Document) {
 		UE_LOG(LogUTestData, Error, TEXT("Can't rename `null` document."));
@@ -628,7 +621,7 @@ void TryRenameDocument(UObject* Document, const TCHAR* NewName)
 	}
 }
 
-void TryDeleteDocument(UObject* Document)
+static void TryDeleteDocument(UObject* Document)
 {
 	if (!Document) {
 		UE_LOG(LogUTestData, Error, TEXT("Can't delete `null` document."));
@@ -638,7 +631,7 @@ void TryDeleteDocument(UObject* Document)
 	Document->Rename(nullptr, GetTransientPackage(), REN_DontCreateRedirectors | REN_NonTransactional | REN_ForceNoResetLoaders);
 }
 
-void MarkChildDocumentsForDeletion(UObject* Document)
+static void MarkChildDocumentsForDeletion(UObject* Document)
 {
 	if (!Document) {
 		UE_LOG(LogUTestData, Error, TEXT("Can't mark as orphand children for deletion for `null` document."));
@@ -658,7 +651,7 @@ void MarkChildDocumentsForDeletion(UObject* Document)
 	/* bIncludeNested */ false);
 }
 
-void SweepMarkedChildDocuments(UObject* Document)
+static void SweepMarkedChildDocuments(UObject* Document)
 {
 	if (!Document) {
 		UE_LOG(LogUTestData, Error, TEXT("Can't sweep orphained children for `null` document."));
@@ -2648,9 +2641,9 @@ bool UTestData::ReadFormula
 
 	Formula = NewObject<FormulaType>(Outer);
 	Formula->ExpressionTree.JsonObject = FormulaObject;
-#if defined(CHARON_FEATURE_FORMULAS) && CHARON_FEATURE_FORMULAS
+#if defined(CHARON_FEATURE_FORMULAS_V2) && CHARON_FEATURE_FORMULAS_V2
 	UFormulaExpressionDefaultGlobal* GlobalObject = NewObject<UFormulaExpressionDefaultGlobal>(Outer, UFormulaExpressionDefaultGlobal::StaticClass(), NAME_None, EObjectFlags::RF_NoFlags);
-	GlobalObject->ThisObject = Outer; // Document
+	GlobalObject->This = Outer; // Document
 	GlobalObject->GameData = this;
 	Formula->Global = GlobalObject;
 #endif

@@ -24,7 +24,7 @@
 #include "GameData/FGameDataDocumentIdConvert.h"
 #include "GameData/Formatters/FGameDataReaderFactory.h"
 #include "GameData/Formatters/IGameDataReader.h"
-#if defined(CHARON_FEATURE_FORMULAS) && CHARON_FEATURE_FORMULAS
+#if defined(CHARON_FEATURE_FORMULAS_V2) && CHARON_FEATURE_FORMULAS_V2
 #include "GameData/Formulas/FFormulaTypeResolver.h"
 #include "GameData/Formulas/UFormulaExpressionDefaultGlobal.h"
 #include "UObject/ReflectedTypeAccessors.h"
@@ -132,8 +132,8 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	TMap<int32,UUnionType*> UnionTypes;
 
-#if defined(CHARON_FEATURE_FORMULAS) && CHARON_FEATURE_FORMULAS
-	static TSharedPtr<FFormulaTypeResolver> GetSharedFormulaTypeResolver();
+#if defined(CHARON_FEATURE_FORMULAS_V2) && CHARON_FEATURE_FORMULAS_V2
+	static TSharedRef<FFormulaTypeResolver> GetSharedFormulaTypeResolver();
 #endif
 
 	virtual bool TryLoad(FArchive* const GameDataStream, EGameDataFormat Format) override;
