@@ -8,7 +8,7 @@
 
 DEFINE_LOG_CATEGORY(LogBinaryExpression);
 
-EBinaryOperationType MapToBinaryOperationType(const FString& ExpressionType)
+static EBinaryOperationType MapToBinaryOperationType(const FString& ExpressionType)
 {
 	EBinaryOperationType BinaryOperationType = EBinaryOperationType::Add;
 
@@ -116,7 +116,7 @@ EBinaryOperationType MapToBinaryOperationType(const FString& ExpressionType)
 	return BinaryOperationType;
 }
 
-FString GetBinaryOperationName(EBinaryOperationType BinaryOperation)
+static FString GetBinaryOperationName(EBinaryOperationType BinaryOperation)
 {
 	switch (BinaryOperation)
 	{

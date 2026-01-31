@@ -7,7 +7,7 @@
 
 DEFINE_LOG_CATEGORY(LogUnaryExpression);
 
-EUnaryOperationType MapUnaryOperationType(const FString& ExpressionType)
+static EUnaryOperationType MapUnaryOperationType(const FString& ExpressionType)
 {
 	EUnaryOperationType UnaryOperationType = EUnaryOperationType::Group;
 
@@ -50,7 +50,7 @@ EUnaryOperationType MapUnaryOperationType(const FString& ExpressionType)
 
 	return UnaryOperationType;
 }
-FString GetUnaryOperationName(const EUnaryOperationType UnaryOperation)
+static FString GetUnaryOperationName(const EUnaryOperationType UnaryOperation)
 {
 	switch (UnaryOperation)
 	{

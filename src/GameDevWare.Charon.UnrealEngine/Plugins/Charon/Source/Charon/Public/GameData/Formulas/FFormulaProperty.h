@@ -11,7 +11,8 @@
 #include "Templates/SharedPointer.h"
 #include "UObject/Class.h"
 #include "UObject/UnrealType.h"
-
+#include "UObject/WeakFieldPtr.h"
+#include "UObject/WeakObjectPtr.h"
 
 class CHARON_API IFormulaType;
 

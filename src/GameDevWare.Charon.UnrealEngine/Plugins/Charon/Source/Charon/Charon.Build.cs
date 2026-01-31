@@ -13,7 +13,7 @@ public class Charon : ModuleRules
 		this.DefinePluginVersion();
 		 
 		// not production ready
-		// this.PublicDefinitions.Add("CHARON_FEATURE_FORMULAS=1");
+		this.PublicDefinitions.Add("CHARON_FEATURE_FORMULAS_V2=1");
 
 		this.PublicIncludePaths.AddRange(
 			new string[] {

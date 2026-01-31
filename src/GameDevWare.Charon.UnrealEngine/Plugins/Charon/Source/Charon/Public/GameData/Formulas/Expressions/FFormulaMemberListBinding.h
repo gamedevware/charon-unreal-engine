@@ -1,15 +1,15 @@
 ﻿// Copyright GameDevWare, Denis Zykov 2025
 
 #pragma once
-#include "FFormulaElementInitBinding.h"
 #include "FFormulaMemberBinding.h"
 
 class FFormulaExpression;
+class FFormulaElementInitBinding;
 
 class CHARON_API FFormulaMemberListBinding : public FFormulaMemberBinding
 {
 public:
-	const FFormulaElementInitBinding ElementInit;
+	const TUniquePtr<FFormulaElementInitBinding> ElementInit;
 	
 	explicit FFormulaMemberListBinding(const TSharedRef<FJsonObject>& ExpressionObj);
 	explicit FFormulaMemberListBinding(const FString& RawMemberName, const TArray<TSharedPtr<FFormulaExpression>>& Initializers);

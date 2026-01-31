@@ -142,7 +142,7 @@ const TArray<FString>& FDotNetSurrogateType::GetFunctionNames(bool bStatic)
 	}
 }
 
-bool IsExtensionProperty(const UFunction* Function, const FProperty* LiteralField)
+static bool IsExtensionProperty(const UFunction* Function, const FProperty* LiteralField)
 {
 	check(Function);
 	check(LiteralField);

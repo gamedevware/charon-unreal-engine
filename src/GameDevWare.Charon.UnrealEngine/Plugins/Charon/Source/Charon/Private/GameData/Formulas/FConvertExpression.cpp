@@ -19,7 +19,7 @@ FConvertExpression::FConvertExpression(const TSharedPtr<FFormulaExpression>& Exp
 {
 }
 
-bool IsCoercible(EFormulaValueType TypeCode)
+static bool IsCoercible(EFormulaValueType TypeCode)
 {
 	return  TypeCode != EFormulaValueType::DateTime && TypeCode != EFormulaValueType::Timespan &&
 		TypeCode != EFormulaValueType::Struct && 

@@ -15,7 +15,7 @@
 static TMap<UPTRINT, TSharedRef<IFormulaType>> TypesByIdentity;
 static FCriticalSection TypesByIdentityLock;
 
-UPTRINT GetTypeIdentity(const FProperty* InProperty)
+static UPTRINT GetTypeIdentity(const FProperty* InProperty)
 {
 	check(InProperty);
 
@@ -57,26 +57,26 @@ UPTRINT GetTypeIdentity(const FProperty* InProperty)
 
 	return TypeIdentity;
 }
-UPTRINT GetTypeIdentity(const UClass* InClass)
+static UPTRINT GetTypeIdentity(const UClass* InClass)
 {
 	check(InClass);
 	
 	return reinterpret_cast<UPTRINT>(InClass);
 }
-UPTRINT GetTypeIdentity(const UScriptStruct* InStruct)
+static UPTRINT GetTypeIdentity(const UScriptStruct* InStruct)
 {
 	check(InStruct);
 	
 	return reinterpret_cast<UPTRINT>(InStruct);
 }
-UPTRINT GetTypeIdentity(const UEnum* InEnum)
+static UPTRINT GetTypeIdentity(const UEnum* InEnum)
 {
 	check(InEnum);
 	
 	return reinterpret_cast<UPTRINT>(InEnum);
 }
 
-UClass* GetSurrogateType(const EFormulaValueType InTypeCode)
+static UClass* GetSurrogateType(const EFormulaValueType InTypeCode)
 {
 	switch (InTypeCode)
 	{
@@ -103,7 +103,7 @@ UClass* GetSurrogateType(const EFormulaValueType InTypeCode)
 	default: return nullptr;
 	}
 }
-TSharedRef<IFormulaType> CreateFormulaType(const FProperty* InValueType)
+static TSharedRef<IFormulaType> CreateFormulaType(const FProperty* InValueType)
 {
 	check(InValueType);
 
@@ -201,7 +201,7 @@ FFormulaTypeResolver::FFormulaTypeResolver(const TSharedPtr<FFormulaTypeResolver
 	}
 }
 
-TMap<FString, UClass*>& GetOrCreateBuildInTypes()
+static TMap<FString, UClass*>& GetOrCreateBuildInTypes()
 {
 	static TMap<FString, UClass*> BuildInTypes = {
 		// basic types

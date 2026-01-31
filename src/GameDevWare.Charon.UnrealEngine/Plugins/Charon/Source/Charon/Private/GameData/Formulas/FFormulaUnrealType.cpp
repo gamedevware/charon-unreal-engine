@@ -10,7 +10,7 @@ FFormulaUnrealType::FFormulaUnrealType(UStruct* StructPtr)
 	check(StructPtr);
 }
 
-bool IsStatic(const UFunction* Function)
+static bool IsStatic(const UFunction* Function)
 {
 	check(Function);
 

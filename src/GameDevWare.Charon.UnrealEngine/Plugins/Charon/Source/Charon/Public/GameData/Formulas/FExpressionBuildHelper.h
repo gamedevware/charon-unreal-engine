@@ -4,10 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "CoreTypes.h"
-#include "Templates/SharedPointer.h"
-#include "Containers/Map.h"
 #include "Containers/Array.h"
+#include "Containers/Map.h"
 #include "Dom/JsonObject.h"
+#include "Templates/SharedPointer.h"
 
 class FFormulaTypeReference;
 class FFormulaExpression;

@@ -1,4 +1,5 @@
 ﻿#include "GameData/Formulas/Expressions/FFormulaMemberListBinding.h"
+#include "GameData/Formulas/Expressions/FFormulaElementInitBinding.h"
 #include "GameData/Formulas/FExpressionBuildHelper.h"
 #include "GameData/Formulas/FFormulaNotation.h"
 #include "GameData/Formulas/FFormulaProperty.h"
@@ -6,14 +7,14 @@
 
 FFormulaMemberListBinding::FFormulaMemberListBinding(const TSharedRef<FJsonObject>& ExpressionObj) :
 	FFormulaMemberBinding(RawMemberName),
-	ElementInit(FFormulaElementInitBinding(FExpressionBuildHelper::GetArgumentsList(ExpressionObj, FFormulaNotation::INITIALIZERS_ATTRIBUTE)))
+	ElementInit(MakeUnique<FFormulaElementInitBinding>(FExpressionBuildHelper::GetArgumentsList(ExpressionObj, FFormulaNotation::INITIALIZERS_ATTRIBUTE)))
 {
 }
 
 FFormulaMemberListBinding::FFormulaMemberListBinding(const FString& RawMemberName,
                                                      const TArray<TSharedPtr<FFormulaExpression>>& Initializers) :
 	FFormulaMemberBinding(RawMemberName),
-	ElementInit(FFormulaElementInitBinding(Initializers))
+	ElementInit(MakeUnique<FFormulaElementInitBinding>(FFormulaElementInitBinding(Initializers)))
 {
 }
 
@@ -38,7 +39,7 @@ FFormulaExecutionResult FFormulaMemberListBinding::ApplyToMember(const TSharedRe
 		return FFormulaExecutionError::MemberAccessFailed(Target->GetCPPType(), this->MemberName);
 	}
 	
-	FFormulaExecutionResult InitResult = this->ElementInit.Apply(MemberValue.ToSharedRef(), Context);
+	FFormulaExecutionResult InitResult = this->ElementInit->Apply(MemberValue.ToSharedRef(), Context);
 	if (InitResult.HasError())
 	{
 		return InitResult;
@@ -62,6 +63,6 @@ void FFormulaMemberListBinding::DebugPrintTo(FString& OutValue) const
 {
 	OutValue.Append(this->RawMemberName);
 	OutValue.Append(TEXT(": { "));
-	this->ElementInit.DebugPrintTo(OutValue);
+	this->ElementInit->DebugPrintTo(OutValue);
 	OutValue.Append(TEXT("} "));
 }

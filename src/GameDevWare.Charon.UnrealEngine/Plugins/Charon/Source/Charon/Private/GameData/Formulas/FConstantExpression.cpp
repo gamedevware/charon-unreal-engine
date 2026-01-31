@@ -8,7 +8,7 @@
 
 DEFINE_LOG_CATEGORY(LogConstantExpression);
 
-TSharedRef<FFormulaValue> GetConstantValue(const TSharedRef<FJsonObject>& ExpressionObj)
+static TSharedRef<FFormulaValue> GetConstantValue(const TSharedRef<FJsonObject>& ExpressionObj)
 {
 	TSharedPtr<FFormulaValue> Value = FFormulaValue::Null();
 	TSharedPtr<FJsonValue> ValueField = ExpressionObj->TryGetField(FFormulaNotation::VALUE_ATTRIBUTE);

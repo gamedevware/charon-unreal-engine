@@ -4,7 +4,7 @@
 
 DEFINE_LOG_CATEGORY(LogFormulaProperty);
 
-UScriptStruct* GetScriptStruct(const FProperty* Property)
+static UScriptStruct* GetScriptStruct(const FProperty* Property)
 {
 	check(Property);
 	

@@ -17,81 +17,96 @@
 
 DEFINE_LOG_CATEGORY(LogUConditionsCheckFormula);
 
-#if defined(CHARON_FEATURE_FORMULAS) && CHARON_FEATURE_FORMULAS
-static TSharedPtr<FFormulaTypeResolver> __TypeResolver;
+#if defined(CHARON_FEATURE_FORMULAS_V2) && CHARON_FEATURE_FORMULAS_V2
 
 TSharedRef<FFormulaTypeResolver> GetOrCreateTypeResolver()
 {
-	if (__TypeResolver.IsValid())
-	{
-		return  __TypeResolver.ToSharedRef();
-	}
-
-	__TypeResolver = MakeShared<FFormulaTypeResolver>(URpgGameData::GetSharedFormulaTypeResolver(), TArray<UObject*> {
+	static TSharedRef<FFormulaTypeResolver> __TypeResolver = MakeShared<FFormulaTypeResolver>(URpgGameData::GetSharedFormulaTypeResolver(), TArray<UObject*> {
 		UObject::StaticClass(),
 		// FColor <- unknown name prefix
 	});
 
-	return __TypeResolver.ToSharedRef();
+	return __TypeResolver;
 }
 
-TSharedPtr<TArray<TFieldPath<FProperty>>> UConditionsCheckFormula::GetOrCreateInvokeParameters()
+static UFunction* GetInvokeFunction()
 {
-	if (!InvokeParameters.IsValid())
+	static TWeakObjectPtr<UFunction> InvokeFunction = UConditionsCheckFormula::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UConditionsCheckFormula, Invoke));
+
+	if (!InvokeFunction.IsValid())
 	{
-		UClass* __FormulaClass = UConditionsCheckFormula::StaticClass();
-		UFunction* InvokeFunction = __FormulaClass->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UConditionsCheckFormula, Invoke));
-		InvokeParameters = MakeShared<TArray<TFieldPath<FProperty>>>();
-		for (TFieldIterator<FProperty> It(InvokeFunction); It; ++It)
-		{
-			FProperty* Argument = *It;
-			InvokeParameters->Add(Argument);
-		}
-		InvokeParameters->Add(__FormulaClass->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UConditionsCheckFormula, Global)));
+		UE_LOG(LogUConditionsCheckFormula, Error, TEXT("Failed to find required 'Invoke' function on 'UConditionsCheckFormula' type."));
 	}
-	return InvokeParameters;
+	return InvokeFunction.Get();
 }
-FProperty* UConditionsCheckFormula::GetInvokeParameterAt(int32 Index)
+
+static FProperty* GetGlobalProperty()
 {
-	auto Parameters = GetOrCreateInvokeParameters();
-	Parameters->RangeCheck(Index);
-	auto ParameterFieldPath = Parameters->GetData()[Index];
+	static TWeakFieldPtr<FProperty> GlobalProperty = UConditionsCheckFormula::StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UConditionsCheckFormula, Global));
 
-	check(ParameterFieldPath.Get() != nullptr);
-
-	return ParameterFieldPath.Get();
+	if (!GlobalProperty.IsValid())
+	{
+		UE_LOG(LogUConditionsCheckFormula, Error, TEXT("Failed to find required 'Global' property on 'UConditionsCheckFormula' type."));
+	}
+	return GlobalProperty.Get();
 }
 
-bool UConditionsCheckFormula::Invoke(UObject* Context)
+static FProperty* GetInvokeParameterAt(int32 Index)
+{
+	static TArray<FProperty*> Parameters = []()
+	{
+		TArray<FProperty*> Params;
+		for (TFieldIterator<FProperty> It(GetInvokeFunction()); It; ++It)
+		{
+			FProperty* Prop = *It;
+
+			if (Prop->HasAnyPropertyFlags(CPF_Parm) && !Prop->HasAnyPropertyFlags(CPF_ReturnParm))
+			{
+				Params.Add(Prop);
+			}
+		}
+		return Params;
+	}();
+
+	check(Index >= 0 && Index < Parameters.Num());
+	return Parameters[Index];
+}
+
+bool UConditionsCheckFormula::Invoke(UObject* Context) const
 {
 	const int32 PARAMETER_CONTEXT_INDEX = 0;
-	const int32 RETURN_PARAMETER_INDEX = 1;
-	const int32 GLOBAL_PARAMETER_INDEX = 2;
 
-	TSharedPtr<FFormulaExpression> ParsedExpression = this->GetExpression();
+	auto __ParsedExpression = this->GetExpression();
+	auto __InvokeFunction = GetInvokeFunction();
+
 	bool __Result = {};
-	if (!ParsedExpression.IsValid())
+	if (!__ParsedExpression.IsValid() || !__InvokeFunction)
 	{
-		UE_LOG(LogUConditionsCheckFormula, Error, TEXT("ExpressionTree is missing or invalid."));
+		UE_LOG(LogUConditionsCheckFormula, Error, TEXT("The expression tree is missing or contains errors, or the function metadata is not available."));
 		return __Result; // default
 	}
 
-	const TMap<FString, FFormulaVariableValue> __Arguments = {
-		{ TEXT("context"), FFormulaVariableValue(GetInvokeParameterAt(PARAMETER_CONTEXT_INDEX), &Context ) },
+	const TMap<FString, const TSharedRef<FFormulaValue>> __Arguments = {
+		{ TEXT("context"), MakeShared<FFormulaValue>(GetInvokeParameterAt(PARAMETER_CONTEXT_INDEX), &Context ) },
 	};
 
-	const FFormulaVariableValue __Global = FFormulaVariableValue(GetInvokeParameterAt(GLOBAL_PARAMETER_INDEX), &this->Global);
-	const FFormulaExecutionContext __Context = FFormulaExecutionContext(this->AutoNullPropagation, __Arguments, __Global, GetOrCreateTypeResolver());
+	auto __Global = MakeShared<FFormulaValue>(GetGlobalProperty(), &this->Global);
+	auto __Context = FFormulaExecutionContext(this->AutoNullPropagation, __Arguments, __Global, GetOrCreateTypeResolver());
 
-	const FFormulaVariableValue __VariableResult = ParsedExpression->Invoke(__Context);
-	if (!__VariableResult.TryCopyCompleteValue(GetInvokeParameterAt(RETURN_PARAMETER_INDEX), &__Result))
+	auto __ReturnValueType = __InvokeFunction->GetReturnProperty();
+	auto __InvokeResult = __ParsedExpression->Execute(__Context, __ReturnValueType);
+	if (__InvokeResult.HasError())
 	{
-		UE_LOG(LogUConditionsCheckFormula, Error, TEXT("Failed to convert Formula execution result %s to 'bool' type."), *__VariableResult.ToString());
+		UE_LOG(LogUConditionsCheckFormula, Error, TEXT("The formula [%s] execution failed. In this case, the default 'bool' result will be returned. Error: %s"), *__ParsedExpression->ToString(), *__InvokeResult.GetError().Message);
+	}
+	else if (!__InvokeResult.GetValue()->TryCopyCompleteValue(__ReturnValueType, &__Result))
+	{
+		UE_LOG(LogUConditionsCheckFormula, Error, TEXT("Failed to convert Formula execution result '%s' to 'bool' type."), *__InvokeResult.GetValue()->ToString());
 	}
 	return __Result;
 }
 
-TSharedPtr<FFormulaExpression> UConditionsCheckFormula::GetExpression()
+TSharedPtr<FFormulaExpression> UConditionsCheckFormula::GetExpression() const
 {
 	if (!this->Expression.IsValid() && this->ExpressionTree.JsonObject.IsValid())
 	{
@@ -100,9 +115,9 @@ TSharedPtr<FFormulaExpression> UConditionsCheckFormula::GetExpression()
 	return this->Expression;
 }
 #else
-bool UConditionsCheckFormula::Invoke(UObject* Context)
+bool UConditionsCheckFormula::Invoke(UObject* Context) const
 {
-	UE_LOG(LogUConditionsCheckFormula, Error, TEXT("Formulas are not supported or disabled in this version of the plugin. Please update the Unreal Engine plugin to the latest version or enable the feature by adding the 'CHARON_FEATURE_FORMULAS=1' compilation constant."));
+	UE_LOG(LogUConditionsCheckFormula, Error, TEXT("Formulas are not supported or disabled in this version of the plugin. Please update the Unreal Engine plugin to the latest version or enable the feature by adding the 'CHARON_FEATURE_FORMULAS_V2=1' compilation constant."));
 	return {}; // default
 }
 #endif

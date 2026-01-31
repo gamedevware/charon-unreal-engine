@@ -1,14 +1,14 @@
 ﻿// Copyright GameDevWare, Denis Zykov 2025
 
 #include "GameData/Formulas/FExpressionBuildHelper.h"
-#include "GameData/Formulas/Expressions/FFormulaExpression.h"
+#include "GameData/Formulas/FFormulaNotation.h"
 #include "GameData/Formulas/FFormulaTypeReference.h"
 #include "GameData/Formulas/Expressions/FBinaryExpression.h"
 #include "GameData/Formulas/Expressions/FConditionExpression.h"
 #include "GameData/Formulas/Expressions/FConstantExpression.h"
 #include "GameData/Formulas/Expressions/FConvertExpression.h"
 #include "GameData/Formulas/Expressions/FDefaultExpression.h"
-#include "GameData/Formulas/FFormulaNotation.h"
+#include "GameData/Formulas/Expressions/FFormulaExpression.h"
 #include "GameData/Formulas/Expressions/FFormulaMemberAssignmentBinding.h"
 #include "GameData/Formulas/Expressions/FFormulaMemberListBinding.h"
 #include "GameData/Formulas/Expressions/FFormulaMemberMemberBinding.h"

@@ -4,7 +4,7 @@
 #include "GameData/Formulas/FExpressionBuildHelper.h"
 #include "GameData/Formulas/FFormulaNotation.h"
 
-FString GetValueTypes(const TArray<TSharedRef<FFormulaValue>>& InValues)
+static FString GetValueTypes(const TArray<TSharedRef<FFormulaValue>>& InValues)
 {
 	TArray<FString> ValueTypes;
 	for (auto Value : InValues)
@@ -14,7 +14,7 @@ FString GetValueTypes(const TArray<TSharedRef<FFormulaValue>>& InValues)
 	return FString::Join(ValueTypes, TEXT(", "));
 }
 
-inline FFormulaElementInitBinding::FFormulaElementInitBinding(const TSharedRef<FJsonObject>& ExpressionObj):
+FFormulaElementInitBinding::FFormulaElementInitBinding(const TSharedRef<FJsonObject>& ExpressionObj):
 	Initializers(FExpressionBuildHelper::GetArgumentsList(ExpressionObj, FFormulaNotation::INITIALIZERS_ATTRIBUTE))
 {
 }

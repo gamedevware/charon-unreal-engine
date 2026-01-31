@@ -7,8 +7,6 @@
 
 DEFINE_LOG_CATEGORY(LogFormulaFunction);
 
-
-
 FFormulaFunction::FFormulaFunction(UFunction* Function, UClass* DeclaringClass, const bool bUseClassDefaultObject) :
 	FunctionInvoker(CreateDefaultFunctionInvoker(Function, DeclaringClass)),
 	DeclaringTypePtr(TWeakObjectPtr(DeclaringClass)),
