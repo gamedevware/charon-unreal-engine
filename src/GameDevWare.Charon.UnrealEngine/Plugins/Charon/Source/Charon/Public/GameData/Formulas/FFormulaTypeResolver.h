@@ -10,6 +10,7 @@
 #include "UObject/StrongObjectPtr.h"
 #include "UObject/Class.h"
 
+class FFormulaValue;
 class IFormulaType;
 class FFormulaTypeReference;
 
@@ -22,9 +23,11 @@ public:
 	FFormulaTypeResolver(const TSharedPtr<FFormulaTypeResolver> Parent, const TArray<UObject*>& KnownTypes);
 	virtual ~FFormulaTypeResolver() = default;
 
-	TSharedPtr<IFormulaType> GetTypeDescription(const TSharedPtr<FFormulaTypeReference>& TypeReference);
-	TSharedRef<IFormulaType> GetTypeDescription(FProperty* InProperty);
-	TSharedRef<IFormulaType> GetTypeDescription(UClass* InClass);
-	TSharedRef<IFormulaType> GetTypeDescription(UScriptStruct* InStruct);
-	TSharedRef<IFormulaType> GetTypeDescription(UEnum* InEnum);
+	TSharedPtr<IFormulaType> FindType(const TSharedPtr<FFormulaTypeReference>& TypeReference);
+	
+	TSharedRef<IFormulaType> GetType(const TSharedRef<FFormulaValue>& InValue);
+	TSharedRef<IFormulaType> GetType(FProperty* InProperty);
+	TSharedRef<IFormulaType> GetType(UClass* InClass);
+	TSharedRef<IFormulaType> GetType(UScriptStruct* InStruct);
+	TSharedRef<IFormulaType> GetType(UEnum* InEnum);
 };

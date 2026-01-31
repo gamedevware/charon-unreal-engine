@@ -6,14 +6,14 @@
 
 FFormulaMemberListBinding::FFormulaMemberListBinding(const TSharedRef<FJsonObject>& ExpressionObj) :
 	FFormulaMemberBinding(RawMemberName),
-	Initializers(FExpressionBuildHelper::GetArgumentsList(ExpressionObj, FFormulaNotation::ARGUMENTS_ATTRIBUTE))
+	ElementInit(FFormulaElementInitBinding(FExpressionBuildHelper::GetArgumentsList(ExpressionObj, FFormulaNotation::INITIALIZERS_ATTRIBUTE)))
 {
 }
 
 FFormulaMemberListBinding::FFormulaMemberListBinding(const FString& RawMemberName,
                                                      const TArray<TSharedPtr<FFormulaExpression>>& Initializers) :
 	FFormulaMemberBinding(RawMemberName),
-	Initializers(Initializers)
+	ElementInit(FFormulaElementInitBinding(Initializers))
 {
 }
 
@@ -23,117 +23,45 @@ bool FFormulaMemberListBinding::IsValid() const
 	{
 		return false;
 	}
-	for (auto Initializer : this->Initializers)
-	{
-		if (!Initializer.IsValid())
-		{
-			return false;
-		}
-	}
-	return true;
+	return this->ElementInit.IsValid();;
 }
 
-FFormulaExecutionResult FFormulaMemberListBinding::ApplyMemberChanges(const TSharedRef<FFormulaValue>& Target,
+FFormulaExecutionResult FFormulaMemberListBinding::ApplyToMember(const TSharedRef<FFormulaValue>& Target,
                                                                       const FFormulaProperty* Member,
                                                                       const FFormulaExecutionContext& Context) const
 {
 	check(Member);
-
+	
 	TSharedPtr<FFormulaValue> MemberValue;
-	if (!Member->TryGetValue(Target, MemberValue))
+	if (!Member->TryGetValue(Target, MemberValue) || !MemberValue.IsValid())
 	{
 		return FFormulaExecutionError::MemberAccessFailed(Target->GetCPPType(), this->MemberName);
 	}
-
-	FProperty* MemberType = MemberValue->GetType();
-	if (const FArrayProperty* ArrayProp = CastField<FArrayProperty>(MemberType))
+	
+	FFormulaExecutionResult InitResult = this->ElementInit.Apply(MemberValue.ToSharedRef(), Context);
+	if (InitResult.HasError())
 	{
-		void* ArrayAddress;
-		check(Target->TryGetContainerAddress(ArrayAddress));
-		check(ArrayAddress != nullptr);
-
-		FScriptArrayHelper ArrayWrap(ArrayProp, ArrayAddress);
-
-		for (const auto Initializer : this->Initializers)
-		{
-			const auto ValueResult = Initializer->Execute(Context, ArrayProp->Inner);
-			if (ValueResult.HasError())
-			{
-				return ValueResult; // propagate error
-			}
-
-			const int32 AddedIndex = ArrayWrap.AddUninitializedValue();
-			const bool bValueAdded = ValueResult.GetValue()->TryCopyCompleteValue(
-				ArrayProp->Inner,
-				ArrayWrap.GetElementPtr(AddedIndex)
-			);
-			if (!bValueAdded)
-			{
-				ArrayWrap.RemoveValues(AddedIndex, 1);
-				return FFormulaExecutionError::CollectionAddFailed(FFormulaValue::GetExtendedCppName(ArrayProp),
-				                                                   ValueResult.GetValue()->GetCPPType());
-			}
-		}
-		return Target;
+		return InitResult;
 	}
-	else if (const FSetProperty* SetProp = CastField<FSetProperty>(MemberType))
+	
+	// This will cause the Map/Set to be re-hashed after each element is added.
+	// This isn't optimal, but trying to optimize this case would take
+	// more time than I'd like to devote to it.
+	FFormulaElementInitBinding::CompleteCollectionInitialization(MemberValue.ToSharedRef());
+	
+	// Since we copied collection into MemberValue, now we need to save updated value back 
+	if (!Member->TrySetValue(Target, MemberValue))
 	{
-		void* SetAddress;
-		check(Target->TryGetContainerAddress(SetAddress));
-		check(SetAddress != nullptr);
-
-		FScriptSetHelper SetWrap(SetProp, SetAddress);
-
-		for (const auto Initializer : this->Initializers)
-		{
-			const auto ValueResult = Initializer->Execute(Context, SetProp->ElementProp);
-			if (ValueResult.HasError())
-			{
-				return ValueResult; // propagate error
-			}
-
-			const int32 AddedIndex = SetWrap.AddUninitializedValue();
-			const bool bValueAdded = ValueResult.GetValue()->TryCopyCompleteValue(
-				SetProp->ElementProp,
-				SetWrap.GetElementPtr(AddedIndex)
-			);
-			if (!bValueAdded)
-			{
-				SetWrap.RemoveAt(AddedIndex, 1);
-				return FFormulaExecutionError::CollectionAddFailed(FFormulaValue::GetExtendedCppName(SetProp),
-				                                                   ValueResult.GetValue()->GetCPPType());
-			}
-		}
-
-		return Target;
+		return FFormulaExecutionError::MemberAccessFailed(Target->GetCPPType(), this->MemberName);
 	}
-	else
-	{
-		return FFormulaExecutionError::UnsupportedArrayType(FFormulaValue::GetExtendedCppName(MemberType));
-	}
+	
+	return InitResult;
 }
 
 void FFormulaMemberListBinding::DebugPrintTo(FString& OutValue) const
 {
 	OutValue.Append(this->RawMemberName);
 	OutValue.Append(TEXT(": { "));
-	bool bFirstInitializer = true;
-	for (auto Initializer : this->Initializers)
-	{
-		if (!bFirstInitializer)
-		{
-			OutValue.Append(TEXT(", "));
-		}
-		bFirstInitializer = false;
-		
-		if (Initializer.IsValid())
-		{
-			Initializer->DebugPrintTo(OutValue);
-		}
-		else
-		{
-			OutValue.Append(TEXT("#INVALID#"));
-		}
-	}
+	this->ElementInit.DebugPrintTo(OutValue);
 	OutValue.Append(TEXT("} "));
 }

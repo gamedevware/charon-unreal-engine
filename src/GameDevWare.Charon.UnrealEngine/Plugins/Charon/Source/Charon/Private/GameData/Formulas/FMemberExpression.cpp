@@ -52,7 +52,7 @@ FFormulaExecutionResult FMemberExpression::Execute(const FFormulaExecutionContex
 	const FFormulaProperty* FormulaProperty = nullptr;
 	TSharedPtr<FFormulaValue> MemberValue;
 	if (TryGetTypeReference(StaticTypeReference, /*bSkipSelf*/ true) &&
-		(StaticTypeDescription = Context.TypeResolver->GetTypeDescription(StaticTypeReference)).IsValid() &&
+		(StaticTypeDescription = Context.TypeResolver->FindType(StaticTypeReference)).IsValid() &&
 		StaticTypeDescription->TryGetProperty(this->MemberName, /* bStatic */ true, FormulaProperty))
 	{
 		check(FormulaProperty);
@@ -82,7 +82,7 @@ FFormulaExecutionResult FMemberExpression::Execute(const FFormulaExecutionContex
 			}
 		}
 
-		const auto TargetType = Context.TypeResolver->GetTypeDescription(Target->GetType());
+		const auto TargetType = Context.TypeResolver->GetType(Target);
 		if (TargetType->TryGetProperty(this->MemberName, /* bStatic */ false, FormulaProperty))
 		{
 			check(FormulaProperty);
@@ -264,7 +264,7 @@ bool FMemberExpression::TryGetGlobalMemberValue(TSharedPtr<FFormulaValue>& Membe
 	}
 
 	const FFormulaProperty* FormulaProperty = nullptr;
-	const auto GlobalType = Context.TypeResolver->GetTypeDescription(Context.Global->GetType());
+	const auto GlobalType = Context.TypeResolver->GetType(Context.Global);
 	if (GlobalType->TryGetProperty(this->MemberName, /* bStatic */ false, FormulaProperty))
 	{
 		check(FormulaProperty);
@@ -281,7 +281,7 @@ void FMemberExpression::GetGlobalMemberNames(TSet<FString>& MemberNames, const F
 {
 	if (!Context.Global->IsNull())
 	{
-		const auto GlobalType = Context.TypeResolver->GetTypeDescription(Context.Global->GetType());
+		const auto GlobalType = Context.TypeResolver->GetType(Context.Global);
 		MemberNames.Append(GlobalType->GetPropertyNames(/*bStatic*/ false));
 	}
 	for (auto ArgumentPair : Context.Arguments)

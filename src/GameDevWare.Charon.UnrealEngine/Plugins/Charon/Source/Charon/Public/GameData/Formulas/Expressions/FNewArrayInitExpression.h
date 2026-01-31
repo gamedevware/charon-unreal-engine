@@ -10,8 +10,8 @@ DECLARE_LOG_CATEGORY_EXTERN(FNLogNewArrayInitExpression, Log, All);
 class CHARON_API FNewArrayInitExpression : public FFormulaExpression
 {
 public:
-	const TArray<TSharedPtr<FFormulaExpression>> Initializers;
 	const TSharedPtr<FFormulaTypeReference> ArrayType;
+	const TArray<TSharedPtr<FFormulaExpression>> Initializers;
 	
 	explicit FNewArrayInitExpression(const TSharedRef<FJsonObject>& ExpressionObj);
 	explicit FNewArrayInitExpression(const TSharedPtr<FFormulaTypeReference>& ArrayType, const TArray<TSharedPtr<FFormulaExpression>>& Initializers);

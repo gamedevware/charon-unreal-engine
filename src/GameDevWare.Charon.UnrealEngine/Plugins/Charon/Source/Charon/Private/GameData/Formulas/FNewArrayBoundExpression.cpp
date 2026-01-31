@@ -6,6 +6,7 @@
 #include "GameData/Formulas/FExpressionBuildHelper.h"
 #include "GameData/Formulas/FFormulaNotation.h"
 #include "GameData/Formulas/IFormulaType.h"
+#include "GameData/Formulas/Expressions/FNewExpression.h"
 
 DEFINE_LOG_CATEGORY(LogNewArrayBoundExpression);
 
@@ -33,7 +34,7 @@ FFormulaExecutionResult FNewArrayBoundExpression::Execute(const FFormulaExecutio
 
 	FArrayProperty* ExpectedArrayProperty = CastField<FArrayProperty>(ExpectedType);
 	const auto ElementTypeReference = this->ArrayType->TypeArguments[0];
-	const auto ElementType = Context.TypeResolver->GetTypeDescription(ElementTypeReference);
+	const auto ElementType = Context.TypeResolver->FindType(ElementTypeReference);
 	if (!ElementType.IsValid())
 	{
 		return FFormulaExecutionError::UnableToResolveType(ElementTypeReference->GetFullName(/* include generics */ true));
@@ -69,10 +70,10 @@ FFormulaExecutionResult FNewArrayBoundExpression::Execute(const FFormulaExecutio
 
 	TSharedPtr<FFormulaValue> ArrayValue = FFormulaValue::Null();
 	void* ArrayValuePtr = nullptr;
-	if (!TryCreateArray(ElementType, ExpectedArrayProperty, ArrayValue) ||
+	if (!FNewExpression::TryCreateArray(ElementType, ExpectedArrayProperty, ArrayValue) ||
 		!ArrayValue->TryGetContainerAddress(ArrayValuePtr))
 	{
-		return FFormulaExecutionError::UnsupportedArrayType(this->ArrayType->GetFullName(/*bWriteGenerics*/ true));
+		return FFormulaExecutionError::MissingContextForStruct(this->ArrayType->GetFullName(/*bWriteGenerics*/ true));
 	}
 	check(ArrayValuePtr);
 	
@@ -135,50 +136,4 @@ void FNewArrayBoundExpression::DebugPrintTo(FString& OutValue) const
 		}
 	}
 	OutValue.Append("]");
-}
-
-bool FNewArrayBoundExpression::TryCreateArray(const TSharedPtr<IFormulaType>& ElementType,
-	FArrayProperty* ArrayProperty, TSharedPtr<FFormulaValue>& OutCreatedArray)
-{
-	TArray<uint8> Array;
-
-	if (!ArrayProperty)
-	{
-		switch (ElementType->GetTypeCode()) {
-		case EFormulaValueType::Boolean: ArrayProperty = UDotNetBoolean::GetArrayProperty(); break;
-		case EFormulaValueType::UInt8: ArrayProperty = UDotNetUInt8::GetArrayProperty(); break;
-		case EFormulaValueType::UInt16: ArrayProperty = UDotNetUInt16::GetArrayProperty(); break;
-		case EFormulaValueType::UInt32: ArrayProperty = UDotNetUInt32::GetArrayProperty(); break;
-		case EFormulaValueType::UInt64: ArrayProperty = UDotNetUInt64::GetArrayProperty(); break;
-		case EFormulaValueType::Int8: ArrayProperty = UDotNetInt8::GetArrayProperty(); break;
-		case EFormulaValueType::Int16: ArrayProperty = UDotNetInt16::GetArrayProperty(); break;
-		case EFormulaValueType::Int32: ArrayProperty = UDotNetInt32::GetArrayProperty(); break;
-		case EFormulaValueType::Int64: ArrayProperty = UDotNetInt64::GetArrayProperty(); break;
-		case EFormulaValueType::Float: ArrayProperty = UDotNetSingle::GetArrayProperty(); break;
-		case EFormulaValueType::Double: ArrayProperty = UDotNetDouble::GetArrayProperty(); break;
-		case EFormulaValueType::Timespan: ArrayProperty = UDotNetTimeSpan::GetArrayProperty(); break;
-		case EFormulaValueType::DateTime: ArrayProperty = UDotNetDateTime::GetArrayProperty(); break;
-		case EFormulaValueType::String: ArrayProperty = UDotNetString::GetArrayProperty(); break;
-		case EFormulaValueType::Name: ArrayProperty = UDotNetName::GetArrayProperty(); break;
-		case EFormulaValueType::Text: ArrayProperty = UDotNetText::GetArrayProperty(); break;
-		case EFormulaValueType::Null:
-		case EFormulaValueType::ObjectPtr: ArrayProperty = UDotNetObject::GetArrayProperty(); break;
-		case EFormulaValueType::Struct: 
-		case EFormulaValueType::Enum: ArrayProperty = nullptr; break; // not supported
-		}
-	}
-
-	if (!ArrayProperty)
-	{
-		return  false;
-	}
-	
-	Array.SetNumZeroed(ArrayProperty->GetSize());
-	ArrayProperty->InitializeValue(Array.GetData());
-	OutCreatedArray = MakeShared<FFormulaValue>(ArrayProperty, Array.GetData());
-
-	// it was copied by FFormulaValue, so we need to dispose our copy of TArray
-	ArrayProperty->DestroyValue(Array.GetData());
-	
-	return true;
 }

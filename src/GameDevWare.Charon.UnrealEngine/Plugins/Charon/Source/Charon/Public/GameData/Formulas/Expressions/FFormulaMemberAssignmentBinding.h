@@ -5,7 +5,7 @@
 
 class FFormulaExpression;
 
-class FFormulaMemberAssignmentBinding : public FFormulaMemberBinding
+class CHARON_API FFormulaMemberAssignmentBinding : public FFormulaMemberBinding
 {
 public:
 	TSharedPtr<FFormulaExpression> const Expression;
@@ -17,7 +17,7 @@ public:
 	virtual EFormulaExpressionType GetType() const override  { return Type; }
 	virtual bool IsValid() const override;
 	
-	virtual FFormulaExecutionResult ApplyMemberChanges(const TSharedRef<FFormulaValue>& Target, const FFormulaProperty* Member, const FFormulaExecutionContext& Context) const override;
+	virtual FFormulaExecutionResult ApplyToMember(const TSharedRef<FFormulaValue>& Target, const FFormulaProperty* Member, const FFormulaExecutionContext& Context) const override;
 
 	virtual void DebugPrintTo(FString& OutValue) const override;
 };

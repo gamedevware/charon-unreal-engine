@@ -95,8 +95,10 @@ bool FDotNetSurrogateType::TryGetFunction(const FString& MemberName, bool bStati
 			{
 				if (const auto Function = *It; IsPublic(Function) && IsExtensionMethod(Function, &this->LiteralField))
 				{
-					const auto ExtensionFunctionInvoker = FFormulaFunction::CreateExtensionFunctionInvoker(Function, DeclaringClass); 
-					this->Functions->Add(Function->GetName(), FFormulaFunction(ExtensionFunctionInvoker, DeclaringClass, /*bUseClassDefaultObject*/ false));
+					const auto ExtensionFunctionInvoker = FFormulaFunction::CreateExtensionFunctionInvoker(Function, DeclaringClass);
+					auto ExtensionFunctionParameters = FFormulaFunction::GetFunctionParameters(Function);
+					ExtensionFunctionParameters.RemoveAt(0);
+					this->Functions->Add(Function->GetName(), FFormulaFunction(ExtensionFunctionInvoker, ExtensionFunctionParameters, DeclaringClass, /*bUseClassDefaultObject*/ false));
 				}
 			}
 		}

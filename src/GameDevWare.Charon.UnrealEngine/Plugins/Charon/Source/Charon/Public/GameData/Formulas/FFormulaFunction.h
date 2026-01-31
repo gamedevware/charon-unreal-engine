@@ -25,10 +25,11 @@ private:
 	const FFormulaFunctionInvokeFunc FunctionInvoker;
 	const TWeakObjectPtr<UField> DeclaringTypePtr;
 	const bool bUseClassDefaultObject;
-	
 public:
+	TArray<const FProperty*> const Parameters;
+	
 	FFormulaFunction(UFunction* Function, UClass* DeclaringClass, const bool bUseClassDefaultObject);
-	FFormulaFunction(FFormulaFunctionInvokeFunc Function, UField* DeclaringType, const bool bUseClassDefaultObject);
+	FFormulaFunction(FFormulaFunctionInvokeFunc Function, const TArray<const FProperty*>& Parameters, UField* DeclaringType, const bool bUseClassDefaultObject);
 	
 	bool TryInvoke(
 		const TSharedRef<FFormulaValue>& Target,
@@ -45,4 +46,7 @@ public:
 	// Extension function is static function where call target goes as first parameter and named 'Self' (eg. int32 MyFunc(USomeType Self, int32 Parameter), this
 	// TFunction wrapper inserts Target into first position with name '0' and shift other parameters forward by one.
 	static FFormulaFunctionInvokeFunc CreateExtensionFunctionInvoker(UFunction* Function, UField* DeclaringClass);
+	
+	// List non-return parameters of the function for purpose of binding arguments to treir type  
+	static TArray<const FProperty*> GetFunctionParameters(const UFunction* Function);
 };

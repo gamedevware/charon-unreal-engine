@@ -34,7 +34,7 @@ bool FFormulaMemberMemberBinding::IsValid() const
 	return true;
 }
 
-FFormulaExecutionResult FFormulaMemberMemberBinding::ApplyMemberChanges(const TSharedRef<FFormulaValue>& Target,
+FFormulaExecutionResult FFormulaMemberMemberBinding::ApplyToMember(const TSharedRef<FFormulaValue>& Target,
                                                                         const FFormulaProperty* Member,
                                                                         const FFormulaExecutionContext& Context) const
 {

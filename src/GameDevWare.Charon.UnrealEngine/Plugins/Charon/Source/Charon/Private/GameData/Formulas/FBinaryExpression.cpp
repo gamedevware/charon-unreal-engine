@@ -213,7 +213,7 @@ FFormulaExecutionResult FBinaryExpression::Execute(const FFormulaExecutionContex
 	
 	return LeftOperand->VisitValue([this, &LeftOperand, &RightOperand, &Context]<typename LeftValueType>(FProperty& LeftProperty, const LeftValueType& LeftValue) -> FFormulaExecutionResult
 	{
-		return RightOperand->VisitValue([this, &LeftProperty, &LeftValue, &LeftOperand, &RightOperand, &Context]<typename RightValueType>(FProperty& RightProperty, const RightValueType& RightValue) -> FFormulaExecutionResult
+		return RightOperand->VisitValue([this, &LeftProperty, &LeftValue, &LeftOperand, &RightOperand, &Context]<typename RightValueType>(const FProperty& RightProperty, const RightValueType& RightValue) -> FFormulaExecutionResult
 		{
 			using LeftT = std::decay_t<LeftValueType>;
 			using RightT = std::decay_t<RightValueType>;
@@ -332,16 +332,16 @@ FFormulaExecutionResult FBinaryExpression::Execute(const FFormulaExecutionContex
 			}
 
 			// fallback to custom operations
-			const auto LeftOperandType = Context.TypeResolver->GetTypeDescription(&LeftProperty);
-			const auto RightOperandType = Context.TypeResolver->GetTypeDescription(&RightProperty);
+			const auto LeftOperandType = Context.TypeResolver->GetType(LeftOperand);
+			const auto RightOperandType = Context.TypeResolver->GetType(RightOperand);
 			const FFormulaFunction* LeftBinaryOperation = nullptr;
 			const FFormulaFunction* RightBinaryOperation = nullptr;
 			if (LeftOperandType->TryGetBinaryOperation(this->BinaryOperationType, LeftBinaryOperation) ||
 				RightOperandType->TryGetBinaryOperation(this->BinaryOperationType, RightBinaryOperation))
 			{
 				FFormulaInvokeArguments CallArguments {
-					FFormulaInvokeArguments::InvokeArgument(TEXT("0"), MakeShared<FFormulaValue>(LeftValue), FFormulaInvokeArguments::GetArgumentFlags(Left, LeftOperand, Context)),
-					FFormulaInvokeArguments::InvokeArgument(TEXT("1"), MakeShared<FFormulaValue>(RightValue), FFormulaInvokeArguments::GetArgumentFlags(Right, RightOperand, Context))
+					FFormulaInvokeArguments::InvokeArgument(TEXT("0"), LeftOperand, nullptr, FFormulaInvokeArguments::GetArgumentFlags(Left, LeftOperand, Context)),
+					FFormulaInvokeArguments::InvokeArgument(TEXT("1"), RightOperand, nullptr, FFormulaInvokeArguments::GetArgumentFlags(Right, RightOperand, Context))
 				};
 				TSharedPtr<FFormulaValue> ResultValue;
 				if (LeftBinaryOperation && LeftBinaryOperation->TryInvoke(FFormulaValue::Null(), CallArguments, nullptr, nullptr, ResultValue ) ||

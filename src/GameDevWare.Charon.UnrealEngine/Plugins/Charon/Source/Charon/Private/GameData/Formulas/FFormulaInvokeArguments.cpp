@@ -57,29 +57,25 @@ void FFormulaInvokeArguments::InsertArgumentAt(const int32 Index, const int MaxP
 			NewIndexStr.AppendInt(i + 1);
     
 			// Insert the value back with the incremented key
-			this->ArgumentsByName.Add(NewIndexStr, InvokeArgument(NewIndexStr, FoundArgument->Value, FoundArgument->Flags));
+			this->ArgumentsByName.Add(NewIndexStr, InvokeArgument(NewIndexStr, FoundArgument->Value, nullptr, FoundArgument->Flags));
 		}
 	}
 	NewIndexStr.Reset(); 
 	NewIndexStr.AppendInt(Index);
-	this->ArgumentsByName.Add(ParameterIndexStr, InvokeArgument(NewIndexStr, InValue, Flags)); 
+	this->ArgumentsByName.Add(ParameterIndexStr, InvokeArgument(NewIndexStr, InValue, nullptr, Flags)); 
 }
 
 void FFormulaInvokeArguments::AddArgument(const FString& InParameterName, const TSharedRef<FFormulaValue>& InValue,
 	const EPropertyFlags Flags)
 {
-	this->ArgumentsByName.Add(InParameterName, InvokeArgument(InParameterName, InValue, Flags)); 
+	this->ArgumentsByName.Add(InParameterName, InvokeArgument(InParameterName, InValue, nullptr, Flags)); 
 }
 
-void FFormulaInvokeArguments::ReplaceArgumentValue(const FString& InParameterName, const TSharedRef<FFormulaValue>& InValue)
+void FFormulaInvokeArguments::UpdateArgumentValue(const FString& InParameterName, const TSharedRef<FFormulaValue>& InUpdatedValue)
 {
 	if (const InvokeArgument* FoundArgument = this->ArgumentsByName.Find(InParameterName))
 	{
-		this->ArgumentsByName.Add(InParameterName, InvokeArgument(FoundArgument->Name, InValue, FoundArgument->Flags)); 
-	}
-	else
-	{
-		this->ArgumentsByName.Add(InParameterName, InvokeArgument(InParameterName, InValue, EPropertyFlags::CPF_None)); 
+		this->ArgumentsByName.Add(InParameterName, InvokeArgument(FoundArgument->Name, FoundArgument->Value, InUpdatedValue, FoundArgument->Flags)); 
 	}
 }
 
@@ -89,6 +85,20 @@ void FFormulaInvokeArguments::GetParameterTypes(TArray<FString>& OutParameterTyp
 	{
 		OutParameterTypes.Add(ArgumentPair.Value.Value->GetCPPType());
 	}
+}
+
+TArray<FUpdatedArgumentPair> FFormulaInvokeArguments::GetUpdatedOutArguments()
+{
+	TArray<FUpdatedArgumentPair> OutArguments;
+	for (auto Argument : this->ArgumentsByName)
+	{
+		if ((Argument.Value.Flags & EPropertyFlags::CPF_OutParm) != 0 && 
+			Argument.Value.UpdatedValue.IsValid())
+		{
+			OutArguments.Add(FUpdatedArgumentPair(Argument.Value.Value, Argument.Value.UpdatedValue.ToSharedRef()));
+		}
+	}
+	return OutArguments;
 }
 
 EPropertyFlags FFormulaInvokeArguments::GetArgumentFlags(const TSharedPtr<FFormulaExpression>& Expression,const TSharedRef<FFormulaValue>& Value, const FFormulaExecutionContext& Context)

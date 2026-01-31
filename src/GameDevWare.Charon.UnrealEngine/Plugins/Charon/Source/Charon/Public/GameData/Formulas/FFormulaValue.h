@@ -48,7 +48,7 @@ private:
 		return ObjectProperty && ObjectProperty->GetObjectPropertyValue(ValuePtr) == nullptr;
 	}
 	
-	
+	FFormulaValue();
 public:
 	/** Creates a formula value representing a null/undefined state. */
 	static TSharedRef<FFormulaValue> Null();
@@ -79,8 +79,9 @@ public:
 	 */
 	bool IsNull() const { return  this->TypeCode == EFormulaValueType::Null; }
 
-	FFormulaValue();
-	FFormulaValue(FProperty* ValueType, const void* ValuePtr);
+	FFormulaValue(FProperty* ValueType);
+	explicit FFormulaValue(FProperty* ValueType, const void* ValuePtr);
+	
 	template<typename T>
 	FFormulaValue(T Value):
 		Type(IsNullValue<T>(Value) ? *UDotNetObject::GetNullLiteralProperty() : *TFormulaTypeMap<T>::Type::GetLiteralProperty()),
@@ -96,7 +97,7 @@ public:
 	FFormulaValue(const TObjectPtr<UObject> Value) : FFormulaValue(Value.Get()) { }
 	// ReSharper restore CppNonExplicitConvertingConstructor
 	~FFormulaValue();
-	
+
 	/**
 	 * Validates and copies the internal value to a destination memory address.
 	 * * @param DestinationType The target FProperty type to copy to.
@@ -153,6 +154,7 @@ public:
 		case EFormulaValueType::Name: return Invoke(Forward<VisitorFunc>(Visitor), this->Type, *static_cast<const FName*>(DataPtr));
 		case EFormulaValueType::Text: return Invoke(Forward<VisitorFunc>(Visitor), this->Type, *static_cast<const FText*>(DataPtr));
 		case EFormulaValueType::ObjectPtr: return Invoke(Forward<VisitorFunc>(Visitor), this->Type, *static_cast<UObject* const*>(DataPtr));
+		case EFormulaValueType::Struct: return Invoke(Forward<VisitorFunc>(Visitor), this->Type, *static_cast<UStruct*>(const_cast<void*>(DataPtr)));
 		default: return Invoke(Forward<VisitorFunc>(Visitor), this->Type, *this);
 		}
 	}
@@ -163,8 +165,6 @@ public:
 	bool TryGetInt32(int32& OutValue) const;
 	/** Attempts to extract the value as an int64. Returns false if conversion is impossible. */
 	bool TryGetInt64(int64& OutValue) const;
-	/** Attempts to extract the value as a double. Returns false if conversion is impossible. */
-	bool TryGetDouble(double& OutValue) const;
 	/** Attempts to extract the value as a UObject*. Returns false if conversion is impossible. */
 	bool TryGetObjectPtr(UObject*& OutValue) const;
 	
@@ -179,6 +179,7 @@ public:
 	/** Returns a string representation of the stored value for debugging or logging. */
 	FString ToString() const;
 
+	/** Returns a string representation of the full C++ name of the property's value. */
 	static FString GetExtendedCppName(const FProperty* Property);
 private:
 	bool TryCopyObjectValue(const FObjectPropertyBase* DestinationObjectProperty, void* DestinationPtr) const;

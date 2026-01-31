@@ -48,7 +48,7 @@ FFormulaExecutionResult FInvokeExpression::Execute(const FFormulaExecutionContex
 	// resolve type arguments
 	for (auto TypeArgumentReference : MemberExpression->TypeArguments)
 	{
-		const auto TypeArgument = Context.TypeResolver->GetTypeDescription(TypeArgumentReference);
+		const auto TypeArgument = Context.TypeResolver->FindType(TypeArgumentReference);
 		if (!TypeArgument.IsValid() || !TypeArgument->GetTypeClassOrStruct())
 		{
 			return FFormulaExecutionError::UnableToResolveType(TypeArgumentReference->GetFullName(/* include generics */ true));
@@ -72,7 +72,7 @@ FFormulaExecutionResult FInvokeExpression::Execute(const FFormulaExecutionContex
 		return FindAndInvokeFunction(Result.GetValue(), MemberName, &TypeArguments, Context);
 	}
 	else if (MemberExpression && MemberExpression->TryGetTypeReferenceAndMemberName(StaticTypeReference, MemberName) &&
-		(StaticTypeDescription = Context.TypeResolver->GetTypeDescription(StaticTypeReference)).IsValid() &&
+		(StaticTypeDescription = Context.TypeResolver->FindType(StaticTypeReference)).IsValid() &&
 		StaticTypeDescription->TryGetFunction(MemberName, /* bStatic */ true, FormulaFunction))
 	{
 		// ex. System.Math.Add()
@@ -207,7 +207,7 @@ FFormulaExecutionResult FInvokeExpression::FindAndInvokeFunction(const TSharedRe
 	}
 	
 	const FFormulaFunction* FormulaFunction = nullptr;
-	const auto TargetTypeDescription = Context.TypeResolver->GetTypeDescription(Target->GetType());
+	const auto TargetTypeDescription = Context.TypeResolver->GetType(Target);
 	if (TargetTypeDescription->TryGetFunction(FunctionName, /* bStatic */ false, FormulaFunction))
 	{
 		check(FormulaFunction);
@@ -221,11 +221,15 @@ FFormulaExecutionResult FInvokeExpression::FindAndInvokeFunction(const TSharedRe
 
 FFormulaExecutionResult FInvokeExpression::InvokeFunction(const TSharedRef<FFormulaValue>& Target, const FFormulaFunction* FormulaFunction, const FString& FunctionName, const TArray<UField*>* TypeArguments, const FFormulaExecutionContext& Context) const
 {
+	check(FormulaFunction);
+	
 	FFormulaInvokeArguments CallArguments;
 	for (auto ArgumentPair : this->Arguments)
 	{
 		const TSharedPtr<FFormulaExpression>& ArgumentExpression = ArgumentPair.Value;
-		const auto ArgumentResult = ArgumentExpression->Execute(Context, nullptr);
+		const FString& ArgumentIndexOrName = ArgumentPair.Key;
+		FProperty* ArgumentType = FindArgumentType(FormulaFunction, ArgumentIndexOrName);
+		const auto ArgumentResult = ArgumentExpression->Execute(Context, ArgumentType);
 		if (ArgumentResult.HasError())
 		{
 			return ArgumentResult;
@@ -237,7 +241,16 @@ FFormulaExecutionResult FInvokeExpression::InvokeFunction(const TSharedRef<FForm
 	TSharedPtr<FFormulaValue> InvokeValue;
 	if (FormulaFunction->TryInvoke(Target, CallArguments, nullptr, TypeArguments, InvokeValue))
 	{
-		// TODO Copy output parameter back to Context.Arguments
+		// copy out parameters back to Context
+		for (auto UpdatedOutArgument : CallArguments.GetUpdatedOutArguments())
+		{
+			if (const FString* ContextArgumentName = Context.Arguments.FindKey(UpdatedOutArgument.Key))
+			{
+				Context.Arguments.Add(*ContextArgumentName, UpdatedOutArgument.Value);
+			}
+		}
+		//
+		
 		return InvokeValue;
 	}
 
@@ -247,11 +260,37 @@ FFormulaExecutionResult FInvokeExpression::InvokeFunction(const TSharedRef<FForm
 	return FFormulaExecutionError::UnableToBindMethodToParameters(Target->GetCPPType(), FunctionName, FString::Join(ParameterTypes, TEXT(", ")), CallArguments.Num());
 }
 
+FProperty* FInvokeExpression::FindArgumentType(const FFormulaFunction* FormulaFunction,	const FString& ArgumentIndexOrName)
+{
+	FString ParameterNameOrIndex;
+	for (int i = 0; i < FormulaFunction->Parameters.Num(); ++i)
+	{	
+		const FProperty* Parameter = FormulaFunction->Parameters[i]; 
+		
+		// parameter index match
+		ParameterNameOrIndex.Reset();
+		ParameterNameOrIndex.AppendInt(i);
+		if (ArgumentIndexOrName == ParameterNameOrIndex)
+		{
+			return const_cast<FProperty*>(Parameter);
+		}
+		
+		// parameter name match
+		ParameterNameOrIndex.Reset();
+		Parameter->GetName(ParameterNameOrIndex);
+		if (ArgumentIndexOrName == ParameterNameOrIndex)
+		{
+			return const_cast<FProperty*>(Parameter);
+		}
+	}
+	return nullptr;
+}
+
 void FInvokeExpression::GetGlobalFunctionNames(TSet<FString> FunctionNames, const FFormulaExecutionContext& Context)
 {
 	if (!Context.Global->IsNull())
 	{
-		const auto GlobalType = Context.TypeResolver->GetTypeDescription(Context.Global->GetType());
+		const auto GlobalType = Context.TypeResolver->GetType(Context.Global);
 		FunctionNames.Append(GlobalType->GetFunctionNames(/*bStatic*/ false));
 	}
 	for (auto ArgumentPair : Context.Arguments)

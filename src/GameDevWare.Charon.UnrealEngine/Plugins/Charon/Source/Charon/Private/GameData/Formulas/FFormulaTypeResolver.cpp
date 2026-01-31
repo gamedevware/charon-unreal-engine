@@ -5,6 +5,8 @@
 #include "FFormulaUnrealType.h"
 #include "FDotNetSurrogateType.h"
 #include "FFormulaArrayType.h"
+#include "FFormulaMapType.h"
+#include "FFormulaSetType.h"
 #include "FFormulaUnknownType.h"
 #include "GameData/Formulas/FFormulaTypeReference.h"
 #include "GameData/Formulas/IFormulaType.h"
@@ -28,11 +30,24 @@ UPTRINT GetTypeIdentity(const FProperty* InProperty)
 	}
 	else if (const FEnumProperty* EnumProp = CastField<FEnumProperty>(InProperty))
 	{
-		TypeIdentity = reinterpret_cast<UPTRINT>(EnumProp->GetEnum()) + GetTypeIdentity(EnumProp->GetUnderlyingProperty());
+		TypeIdentity = reinterpret_cast<UPTRINT>(EnumProp->GetEnum()) + 
+			GetTypeIdentity(EnumProp->GetUnderlyingProperty());
 	}
 	else if (const FArrayProperty* ArrayProp = CastField<FArrayProperty>(InProperty))
 	{
-		TypeIdentity = reinterpret_cast<UPTRINT>(ArrayProp->GetClass()) + GetTypeIdentity(ArrayProp->Inner);
+		TypeIdentity = reinterpret_cast<UPTRINT>(ArrayProp->GetClass()) + 
+			GetTypeIdentity(ArrayProp->Inner);
+	}
+	else if (const FSetProperty* SetProp = CastField<FSetProperty>(InProperty))
+	{
+		TypeIdentity = reinterpret_cast<UPTRINT>(SetProp->GetClass()) + 
+			GetTypeIdentity(SetProp->GetElementProperty());
+	}
+	else if (const FMapProperty* MapProp = CastField<FMapProperty>(InProperty))
+	{
+		TypeIdentity = reinterpret_cast<UPTRINT>(MapProp->GetClass()) + 
+			GetTypeIdentity(MapProp->GetKeyProperty()) + 
+			GetTypeIdentity(MapProp->GetValueProperty());
 	}
 	else
 	{
@@ -112,6 +127,17 @@ TSharedRef<IFormulaType> CreateFormulaType(const FProperty* InValueType)
 		const auto ElementType = CreateFormulaType(ArrayProperty->Inner);
 		return MakeShared<FFormulaArrayType>(ElementType);
 	}
+	else if (const FSetProperty* SetProperty = CastField<FSetProperty>(InValueType))
+	{
+		const auto ElementType = CreateFormulaType(SetProperty->GetElementProperty());
+		return MakeShared<FFormulaSetType>(ElementType);
+	}
+	else if (const FMapProperty* MapProperty = CastField<FMapProperty>(InValueType))
+	{
+		const auto KeyType = CreateFormulaType(MapProperty->GetKeyProperty());
+		const auto ValueType = CreateFormulaType(MapProperty->GetValueProperty());
+		return MakeShared<FFormulaMapType>(KeyType, ValueType);
+	}
 	else if (UClass* SurrogateClass = GetSurrogateType(GetPropertyTypeCode(InValueType)))
 	{
 		return MakeShared<FDotNetSurrogateType>(SurrogateClass);
@@ -143,17 +169,17 @@ FFormulaTypeResolver::FFormulaTypeResolver(const TSharedPtr<FFormulaTypeResolver
 		TSharedPtr<IFormulaType> FormulaType;
 		if (UClass* ClassPtr = Cast<UClass>(KnownType))
 		{
-			FormulaType = GetTypeDescription(ClassPtr);
+			FormulaType = GetType(ClassPtr);
 			Prefix = ClassPtr->GetPrefixCPP();
 		}
 		else if (UScriptStruct* StructPtr = Cast<UScriptStruct>(KnownType))
 		{
-			FormulaType = GetTypeDescription(StructPtr);
+			FormulaType = GetType(StructPtr);
 			Prefix = StructPtr->GetPrefixCPP();
 		}
 		else if (UEnum* EnumPtr = Cast<UEnum>(KnownType))
 		{
-			FormulaType = GetTypeDescription(EnumPtr);
+			FormulaType = GetType(EnumPtr);
 			if (FullName.Len() > 2 && FullName.StartsWith("E"))
 			{
 				FullName.RemoveAt(0);
@@ -258,7 +284,7 @@ TMap<FString, UClass*>& GetOrCreateBuildInTypes()
 	return BuildInTypes;
 }
 
-TSharedPtr<IFormulaType> FFormulaTypeResolver::GetTypeDescription(const TSharedPtr<FFormulaTypeReference>& TypeReference)
+TSharedPtr<IFormulaType> FFormulaTypeResolver::FindType(const TSharedPtr<FFormulaTypeReference>& TypeReference)
 {
 	if (!TypeReference.IsValid())
 	{
@@ -273,17 +299,38 @@ TSharedPtr<IFormulaType> FFormulaTypeResolver::GetTypeDescription(const TSharedP
 	}
 	else if (auto* BuildInType = GetOrCreateBuildInTypes().Find(FullName); BuildInType)
 	{
-		return GetTypeDescription(*BuildInType);
+		return GetType(*BuildInType);
 	}
 
 	if (Parent.IsValid())
 	{
-		return Parent->GetTypeDescription(TypeReference);
+		return Parent->FindType(TypeReference);
 	}
 	return nullptr;
 }
 
-TSharedRef<IFormulaType> FFormulaTypeResolver::GetTypeDescription(FProperty* InProperty)
+TSharedRef<IFormulaType> FFormulaTypeResolver::GetType(const TSharedRef<FFormulaValue>& InValue)
+{
+	void* ContainerPtr = nullptr;
+	if (InValue->GetTypeCode() == EFormulaValueType::ObjectPtr && 
+		InValue->TryGetContainerAddress(ContainerPtr))
+	{
+		check(ContainerPtr);
+		/** * Promote UObject values to their specific leaf class.
+			*
+			* NOTE: This introduces dynamic-dispatch behavior. While this deviates from 
+			* strict static typing, it is necessary because FFormulaValue uses type erasure 
+			* to support arbitrary UObjects beyond those restricted to FProperty storage.
+			*/
+		return GetType(static_cast<UObject*>(ContainerPtr)->GetClass());
+	}
+	else
+	{
+		return GetType(InValue->GetType());
+	}
+}
+
+TSharedRef<IFormulaType> FFormulaTypeResolver::GetType(FProperty* InProperty)
 {
 	check(InProperty);
 
@@ -301,7 +348,7 @@ TSharedRef<IFormulaType> FFormulaTypeResolver::GetTypeDescription(FProperty* InP
 	}
 }
 
-TSharedRef<IFormulaType> FFormulaTypeResolver::GetTypeDescription(UClass* InClass)
+TSharedRef<IFormulaType> FFormulaTypeResolver::GetType(UClass* InClass)
 {
 	check(InClass);
 	
@@ -327,7 +374,7 @@ TSharedRef<IFormulaType> FFormulaTypeResolver::GetTypeDescription(UClass* InClas
 	}
 }
 
-TSharedRef<IFormulaType> FFormulaTypeResolver::GetTypeDescription(UScriptStruct* InStruct)
+TSharedRef<IFormulaType> FFormulaTypeResolver::GetType(UScriptStruct* InStruct)
 {
 	check(InStruct);
 	
@@ -345,7 +392,7 @@ TSharedRef<IFormulaType> FFormulaTypeResolver::GetTypeDescription(UScriptStruct*
 	}
 }
 
-TSharedRef<IFormulaType> FFormulaTypeResolver::GetTypeDescription(UEnum* InEnum)
+TSharedRef<IFormulaType> FFormulaTypeResolver::GetType(UEnum* InEnum)
 {
 	check(InEnum);
 
@@ -359,7 +406,7 @@ TSharedRef<IFormulaType> FFormulaTypeResolver::GetTypeDescription(UEnum* InEnum)
 	}
 	{
 		FScopeLock WriteLock(&TypesByIdentityLock);
-		TSharedRef<IFormulaType> UnderlyingType = GetTypeDescription(UDotNetInt64::StaticClass()); // not correct, because in 99% it is int8
+		TSharedRef<IFormulaType> UnderlyingType = GetType(UDotNetInt64::StaticClass()); // not correct, because in 99% it is int8
 		return TypesByIdentity.Add(TypeKey, MakeShared<FFormulaEnumType>(InEnum, UnderlyingType));
 	}
 }

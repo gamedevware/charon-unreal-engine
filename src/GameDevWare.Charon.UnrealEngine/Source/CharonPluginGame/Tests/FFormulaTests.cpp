@@ -23,6 +23,14 @@
 #include "GameData/Formulas/Expressions/FUnaryExpression.h"
 #include "GameData/Formulas/Expressions/FInvokeExpression.h"
 #include "GameData/Formulas/Expressions/FLambdaExpression.h"
+#include "GameData/Formulas/Expressions/FListInitExpression.h"
+#include "GameData/Formulas/Expressions/FMemberInitExpression.h"
+#include "GameData/Formulas/Expressions/FFormulaElementInitBinding.h"
+#include "GameData/Formulas/Expressions/FFormulaMemberAssignmentBinding.h"
+#include "GameData/Formulas/Expressions/FFormulaMemberListBinding.h"
+#include "GameData/Formulas/Expressions/FFormulaMemberMemberBinding.h"
+#include "GameData/Formulas/Expressions/FNewArrayInitExpression.h"
+#include "GameData/Formulas/Expressions/FMemberInitExpression.h"
 #include "JsonUtils/JsonConversion.h"
 #include "FFormulaTestStruct.h"
 #include "Tests/TestHarnessAdapter.h"
@@ -39,6 +47,10 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 {
 	FObjectPropertyBase* TestObjectProperty = CastFieldChecked<FObjectPropertyBase>(UFormulaTestObject::StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UFormulaTestObject, TestObjectProp)));
 	FObjectPropertyBase* ActorProperty = CastFieldChecked<FObjectPropertyBase>(UFormulaTestObject::StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UFormulaTestObject, ActorProp)));
+	FArrayProperty* IntArrayProperty = CastFieldChecked<FArrayProperty>(UFormulaTestObject::StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UFormulaTestObject, Int32Array)));
+	FSetProperty* IntSetProperty = CastFieldChecked<FSetProperty>(UFormulaTestObject::StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UFormulaTestObject, Int32Set)));
+	FMapProperty* IntMapProperty = CastFieldChecked<FMapProperty>(UFormulaTestObject::StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UFormulaTestObject, Int32Map)));
+	FProperty* IntOutProperty = CastFieldChecked<FProperty>(UFormulaTestObject::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UFormulaTestObject, TestFunctionOutParam))->FindPropertyByName(TEXT("OutParameter")));
 
 	TArray<UObject*> KnownTypes {
 		AActor::StaticClass(),
@@ -62,6 +74,7 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 		TMap<FString, const TSharedRef<FFormulaValue>> {
 			{  TEXT("Arg1"), MakeShared<FFormulaValue>(1) },
 			{  TEXT("Arg2"), MakeShared<FFormulaValue>(2) },
+			{  TEXT("OutParameter"), MakeShared<FFormulaValue>(IntOutProperty, &TestObject->Int32Prop) },
 		},
 		GlobalValue,
 		Resolver
@@ -278,16 +291,162 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 		// TODO: invocable obj call (a + b)()
 		
 		// member call
-		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST_OBJECT(TestObject, TestObjectProperty), "TestFunctionUint8Param", 54321 + 123, EXPR_CONST(123))
-		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST_OBJECT(TestObject, TestObjectProperty), "TestFunctionNoParam", 54321)
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST_OBJECT(TestObject, TestObjectProperty), "TestFunctionUint8Param", 54321 + 123, EXPR_CONST(123));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST_OBJECT(TestObject, TestObjectProperty), "TestFunctionNoParam", 54321);
 		// null propagation member call
-		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_MEMBER(EXPR_CONST_OBJECT(TestObject, TestObjectProperty), "TestObjectProp", true), "TestFunctionNoParam", nullptr)
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_MEMBER(EXPR_CONST_OBJECT(TestObject, TestObjectProperty), "TestObjectProp", true), "TestFunctionNoParam", nullptr);
 		// static function call
-		TEST_EXPR_INVOKE_CHECK_VALUE(TestObjectClassReference, "StaticTestFunctionNoParam", StaticInvokeResult)
+		TEST_EXPR_INVOKE_CHECK_VALUE(TestObjectClassReference, "StaticTestFunctionNoParam", StaticInvokeResult);
 		// global function call
-		TEST_EXPR_INVOKE_CHECK_VALUE(nullptr, "TestFunctionNoParam", 54321)
+		TEST_EXPR_INVOKE_CHECK_VALUE(nullptr, "TestFunctionNoParam", 54321);
+		
+		// out parameters
+		TestObject->Int32Prop = -123123;
+		TEST_EXPR_INVOKE_CHECK_VALUE(nullptr, "TestFunctionOutParam", -123123, EXPR_ARG("OutParameter"));
+		auto OutParameterPtr = Context.Arguments.Find(TEXT("OutParameter"));
+		REQUIRE(OutParameterPtr);
+		int32 OutParameterValue;
+		CHECK(OutParameterPtr->Get().TryGetInt32(OutParameterValue));
+		CHECK_EQUALS("Out Parameter", OutParameterValue, -123123);
+	}
+	
+	SECTION("FListInitExpression")
+	{
+		TEST_EXPR_LIST_INIT(MAKE_ARRAY_TYPE_REF("int32"), IntArrayProperty, EXPR_ELEM_INIT(EXPR_CONST(-1)), EXPR_ELEM_INIT(EXPR_CONST(-6)), EXPR_ELEM_INIT(EXPR_CONST(-10764)), EXPR_ELEM_INIT(EXPR_CONST(214132342)));
+		
+		TSharedPtr<FFormulaValue> ListResult = Result.GetValue();
+		void* ResultArrayPtr;
+		CHECK(ListResult->TryGetContainerAddress(ResultArrayPtr));
+		CHECK(ResultArrayPtr);
+		TArray<int32>* ResultArray = static_cast<TArray<int32>*>(ResultArrayPtr);
+		REQUIRE(ResultArray->Num() == 4);
+		CHECK_EQUALS("Item1", -1, (*ResultArray)[0]);
+		CHECK_EQUALS("Item2", -6, (*ResultArray)[1]);
+		CHECK_EQUALS("Item3", -10764, (*ResultArray)[2]);
+		CHECK_EQUALS("Item4", 214132342, (*ResultArray)[3]);
+		ResultArray = nullptr;
+		ResultArrayPtr = nullptr;
+		
+		TEST_EXPR_LIST_INIT(MAKE_SET_TYPE_REF("int32"), IntSetProperty, EXPR_ELEM_INIT(EXPR_CONST(-1)), EXPR_ELEM_INIT(EXPR_CONST(-6)), EXPR_ELEM_INIT(EXPR_CONST(-10764)), EXPR_ELEM_INIT(EXPR_CONST(214132342)));
+		
+		ListResult = Result.GetValue();
+		void* ResultSetPtr;
+		CHECK(ListResult->TryGetContainerAddress(ResultSetPtr));
+		CHECK(ResultSetPtr);
+		TSet<int32>* ResultSet = static_cast<TSet<int32>*>(ResultSetPtr);
+		REQUIRE(ResultSet->Num() == 4);
+		CHECK(ResultSet->Contains(-1));
+		CHECK(ResultSet->Contains(-6));
+		CHECK(ResultSet->Contains(-10764));
+		CHECK(ResultSet->Contains(214132342));
+		ResultSet = nullptr;
+		ResultSetPtr = nullptr;
+		
+		FString Key1 = TEXT("Item1");
+		FString Key2 = TEXT("AKey");
+		FString Key3 = TEXT("Another");
+		FString Key4 = TEXT("Extra");
+		
+		TEST_EXPR_LIST_INIT(MAKE_MAP_TYPE_REF("string", "int32"), IntMapProperty, 
+			EXPR_ELEM_INIT(EXPR_CONST(Key1), EXPR_CONST(-1)), 
+			EXPR_ELEM_INIT(EXPR_CONST(Key2), EXPR_CONST(-6)), 
+			EXPR_ELEM_INIT(EXPR_CONST(Key3), EXPR_CONST(-10764)), 
+			EXPR_ELEM_INIT(EXPR_CONST(Key4), EXPR_CONST(214132342)));
+		
+		ListResult = Result.GetValue();
+		void* ResultMapPtr;
+		CHECK(ListResult->TryGetContainerAddress(ResultMapPtr));
+		CHECK(ResultMapPtr);
+		TMap<FString, int32>* ResultMap = static_cast<TMap<FString, int32>*>(ResultMapPtr);
+		REQUIRE(ResultMap->Num() == 4);
+		CHECK(ResultMap->Find(Key1));
+		CHECK(ResultMap->Find(Key2));
+		CHECK(ResultMap->Find(Key3));
+		CHECK(ResultMap->Find(Key4));
+		CHECK_EQUALS("Item1", -1, *ResultMap->Find(Key1));
+		CHECK_EQUALS("Item2", -6, *ResultMap->Find(Key2));
+		CHECK_EQUALS("Item3", -10764, *ResultMap->Find(Key3));
+		CHECK_EQUALS("Item4", 214132342, *ResultMap->Find(Key4));
+		ResultMap = nullptr;
+		ResultMapPtr = nullptr;
+		
+		// Forces the compiler to acknowledge Result
+		(void)ListResult;
 	}
 
+	SECTION("FNewArrayInitExpression")
+	{
+		TEST_EXPR_NEW_ARRAY_INIT(MAKE_ARRAY_TYPE_REF("int32"), IntArrayProperty, EXPR_CONST(-1), EXPR_CONST(-6), EXPR_CONST(-10764), EXPR_CONST(214132342));
+		
+		TSharedPtr<FFormulaValue> ArrayResult = Result.GetValue();
+		void* ResultArrayPtr;
+		CHECK(ArrayResult->TryGetContainerAddress(ResultArrayPtr));
+		CHECK(ResultArrayPtr);
+		TArray<int32>* ResultArray = static_cast<TArray<int32>*>(ResultArrayPtr);
+		REQUIRE(ResultArray->Num() == 4);
+		CHECK_EQUALS("Item1", -1, (*ResultArray)[0]);
+		CHECK_EQUALS("Item2", -6, (*ResultArray)[1]);
+		CHECK_EQUALS("Item3", -10764, (*ResultArray)[2]);
+		CHECK_EQUALS("Item4", 214132342, (*ResultArray)[3]);
+		
+		// Forces the compiler to acknowledge Result
+		(void)ArrayResult;
+	}
+
+	SECTION("FMemberInitExpression")
+	{
+		Expression = MakeShared<FMemberInitExpression>(
+			MakeShared<FNewExpression>(
+				MakeShared<FFormulaTypeReference>("FormulaTestObject"),
+				TMap<FString, TSharedPtr<FFormulaExpression>>()
+			),
+			TArray<TSharedPtr<FFormulaMemberBinding>> {
+				MakeShared<FFormulaMemberAssignmentBinding>("StringProp", EXPR_CONST(FString(TEXT("NEW_STRING_VALUE")))),
+				MakeShared<FFormulaMemberAssignmentBinding>("Int32Prop", EXPR_CONST(-1000)),
+				MakeShared<FFormulaMemberListBinding>("Int32Array", TArray<TSharedPtr<FFormulaExpression>> { EXPR_CONST(123) }),
+				MakeShared<FFormulaMemberListBinding>("Int32Array", TArray<TSharedPtr<FFormulaExpression>> { EXPR_CONST(321) }),
+				MakeShared<FFormulaMemberListBinding>("Int32Set", TArray<TSharedPtr<FFormulaExpression>> { EXPR_CONST(321) }),
+				MakeShared<FFormulaMemberListBinding>("Int32Map", TArray<TSharedPtr<FFormulaExpression>> { EXPR_CONST(FString(TEXT("AMapKey"))), EXPR_CONST(321) }),
+				MakeShared<FFormulaMemberAssignmentBinding>("TestObjectProp", EXPR_CONST_OBJECT(TestObject, TestObjectProperty)),
+				MakeShared<FFormulaMemberMemberBinding>("TestObjectProp", TArray<TSharedPtr<FFormulaMemberBinding>> 
+				{ 
+					MakeShared<FFormulaMemberAssignmentBinding>("Int32Prop", EXPR_CONST(-2000)),
+				})
+			}
+		);
+		INFO("Testing `" + Expression->ToString() + "` expression");
+		Result = Expression->Execute(Context, TestObjectProperty);
+		REQUIRE_NO_ERROR();
+		UObject* CreatedObject;
+		CHECK(Result.GetValue()->TryCopyCompleteValue(UDotNetObject::GetLiteralProperty(), &CreatedObject));
+		UFormulaTestObject* CreateInitializedObject = Cast<UFormulaTestObject>(CreatedObject);
+		REQUIRE(CreateInitializedObject);
+		
+		CHECK_EQUALS("StringProp", CreateInitializedObject->StringProp, FString(TEXT("NEW_STRING_VALUE")));
+		CHECK_EQUALS("Int32Prop", CreateInitializedObject->Int32Prop, -1000);
+		CHECK_EQUALS("Int32Array.Num()", CreateInitializedObject->Int32Array.Num(), 2);
+		if (CreateInitializedObject->Int32Array.Num() == 2)
+		{
+			CHECK_EQUALS("Int32Array[0]", CreateInitializedObject->Int32Array[0], 123);
+			CHECK_EQUALS("Int32Array[1]", CreateInitializedObject->Int32Array[1], 321);
+		}
+		CHECK_EQUALS("Int32Set.Num()", CreateInitializedObject->Int32Set.Num(), 1);
+		if (CreateInitializedObject->Int32Set.Num() == 1)
+		{
+			CHECK_MESSAGE("Int32Set[0]", CreateInitializedObject->Int32Set.Contains(321));
+		}
+		CHECK_EQUALS("Int32Map.Num()", CreateInitializedObject->Int32Map.Num(), 1);
+		if (CreateInitializedObject->Int32Map.Num() == 1)
+		{
+			CHECK_EQUALS("Int32Map[AMapKey]", *CreateInitializedObject->Int32Map.Find(FString(TEXT("AMapKey"))), 321);
+		}
+		CHECK_NOT_EQUALS("TestObjectProp", CreateInitializedObject->TestObjectProp, static_cast<UFormulaTestObject*>(nullptr));
+		if (CreateInitializedObject->TestObjectProp)
+		{
+			CHECK_EQUALS("TestObjectProp.Int32Prop", CreateInitializedObject->TestObjectProp->Int32Prop, -2000);
+		}
+	}
+	
 	SECTION("FLambdaExpression")
 	{
 		
@@ -324,7 +483,7 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 	SECTION("FNewArrayBoundExpression")
 	{
 		Expression = MakeShared<FNewArrayBoundExpression>(
-			MakeShared<FFormulaTypeReference>(TEXT("Array"), TArray<TSharedPtr<FFormulaTypeReference>> {  MakeShared<FFormulaTypeReference>(TEXT("int32")) }) ,
+			MAKE_ARRAY_TYPE_REF("int32"),
 			TMap<FString, TSharedPtr<FFormulaExpression>> {
 				{ FString(TEXT("0")), EXPR_CONST(10) }
 			}
@@ -349,6 +508,9 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 		UObject* CreatedObject;
 		CHECK(Result.GetValue()->TryCopyCompleteValue(UDotNetObject::GetLiteralProperty(), &CreatedObject));
 		CHECK_NOT_EQUALS("Object Pointer", CreatedObject, static_cast<UObject*>(nullptr));
+		
+		// Forces the compiler to acknowledge Result
+		(void)Result;
 	}
 
 	SECTION("FTypeIsExpression")

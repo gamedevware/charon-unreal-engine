@@ -17,6 +17,7 @@ enum class EFormulaExpressionType : uint8
 	MemberExpression,
 	NewArrayBoundExpression,
 	NewArrayInitExpression,
+	ListInitExpression,
 	NewExpression,
 	TypeIsExpression,
 	TypeOfExpression,
@@ -25,4 +26,5 @@ enum class EFormulaExpressionType : uint8
 	MemberAssignmentBinding,
 	MemberMemberBinding,
 	MemberListBinding,
+	ElementInitBinding,
 };

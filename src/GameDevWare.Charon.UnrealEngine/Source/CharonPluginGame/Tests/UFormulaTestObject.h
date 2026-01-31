@@ -44,5 +44,8 @@ public:
 	inline int32 TestFunctionNoParam() const { return this->Int32Prop; }
 
 	UFUNCTION()
+	inline int32 TestFunctionOutParam(int32& OutParameter) const { OutParameter = this->Int32Prop; return OutParameter; }
+	
+	UFUNCTION()
 	static inline int32 StaticTestFunctionNoParam() { return StaticClass()->GetDefaultObject<UFormulaTestObject>()->Int32Prop; }
 };

@@ -40,7 +40,7 @@ FFormulaExecutionResult FConvertExpression::Execute(const FFormulaExecutionConte
 	}
 
 	const auto FromValue = Result.GetValue();
-	const auto ToType = Context.TypeResolver->GetTypeDescription(this->ConversionType);
+	const auto ToType = Context.TypeResolver->FindType(this->ConversionType);
 	if (!ToType.IsValid())
 	{
 		return FFormulaExecutionError::UnableToResolveType(this->ConversionType->GetFullName(/* include generics */ true));
@@ -86,7 +86,7 @@ FFormulaExecutionResult FConvertExpression::Execute(const FFormulaExecutionConte
 	if (ToType->TryGetConversionOperation(ConversionOperation) && ConversionOperation)
 	{
 		FFormulaInvokeArguments ConversionArguments {
-			FFormulaInvokeArguments::InvokeArgument(TEXT("0"), FromValue, FFormulaInvokeArguments::GetArgumentFlags(Expression, FromValue, Context))
+			FFormulaInvokeArguments::InvokeArgument(TEXT("0"), FromValue, nullptr, FFormulaInvokeArguments::GetArgumentFlags(Expression, FromValue, Context))
 		};
 		if (ConversionOperation->TryInvoke(
 			FFormulaValue::Null(),

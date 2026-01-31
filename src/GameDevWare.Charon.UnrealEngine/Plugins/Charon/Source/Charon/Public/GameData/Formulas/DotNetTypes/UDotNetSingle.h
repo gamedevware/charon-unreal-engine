@@ -68,6 +68,7 @@ public:
 	//* instance properties */
 
 	/*
+	 * this code will simulate `int Something;` UPROPERTY
 	UFUNCTION()
 	static int GetSomething(float Self);
 	UFUNCTION()

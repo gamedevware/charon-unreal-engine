@@ -1,20 +1,20 @@
 ﻿// Copyright GameDevWare, Denis Zykov 2025
 
 #include "GameData/Formulas/Expressions/FNewArrayInitExpression.h"
-#include "GameData/Formulas/Expressions/FNewArrayBoundExpression.h"
 #include "GameData/Formulas/FExpressionBuildHelper.h"
 #include "GameData/Formulas/FFormulaNotation.h"
 #include "GameData/Formulas/IFormulaType.h"
+#include "GameData/Formulas/Expressions/FNewExpression.h"
 
 DEFINE_LOG_CATEGORY(FNLogNewArrayInitExpression);
 
 FNewArrayInitExpression::FNewArrayInitExpression(const TSharedRef<FJsonObject>& ExpressionObj):
-	Initializers(FExpressionBuildHelper::GetArgumentsList(ExpressionObj, FFormulaNotation::ARGUMENTS_ATTRIBUTE)),
-	ArrayType(FExpressionBuildHelper::GetTypeRef(ExpressionObj, FFormulaNotation::TYPE_ATTRIBUTE))
+	ArrayType(FExpressionBuildHelper::GetTypeRef(ExpressionObj, FFormulaNotation::TYPE_ATTRIBUTE)),
+	Initializers(FExpressionBuildHelper::GetArgumentsList(ExpressionObj, FFormulaNotation::INITIALIZERS_ATTRIBUTE))
 {}
 
 FNewArrayInitExpression::FNewArrayInitExpression(const TSharedPtr<FFormulaTypeReference>& ArrayType,
-	const TArray<TSharedPtr<FFormulaExpression>>& Initializers) : Initializers(Initializers), ArrayType(ArrayType) 
+	const TArray<TSharedPtr<FFormulaExpression>>& Initializers) : ArrayType(ArrayType), Initializers(Initializers) 
 {
 }
 
@@ -29,7 +29,7 @@ FFormulaExecutionResult FNewArrayInitExpression::Execute(const FFormulaExecution
 	FProperty* ExpectedElementProperty = ExpectedArrayProperty ? ExpectedArrayProperty->Inner : nullptr;
 	
 	const auto ElementTypeReference = this->ArrayType->TypeArguments[0];
-	const auto ElementType = Context.TypeResolver->GetTypeDescription(ElementTypeReference);
+	const auto ElementType = Context.TypeResolver->FindType(ElementTypeReference);
 	if (!ElementType.IsValid())
 	{
 		return FFormulaExecutionError::UnableToResolveType(ElementTypeReference->GetFullName(/* include generics */ true));
@@ -41,7 +41,7 @@ FFormulaExecutionResult FNewArrayInitExpression::Execute(const FFormulaExecution
 		ExpectedElementProperty = nullptr;
 	}
 	
-	TArray<TSharedRef<FFormulaValue>> InitializationValues;
+	TArray<TSharedRef<FFormulaValue>> AddValues;
 	for (const auto Initializer : this->Initializers)
 	{
 		const auto ValueResult = Initializer->Execute(Context, ExpectedElementProperty);
@@ -49,8 +49,7 @@ FFormulaExecutionResult FNewArrayInitExpression::Execute(const FFormulaExecution
 		{
 			return ValueResult; // propagate error
 		}
-		InitializationValues.Add(ValueResult.GetValue());
-		break;
+		AddValues.Add(ValueResult.GetValue());
 	}
 	
 
@@ -63,27 +62,31 @@ FFormulaExecutionResult FNewArrayInitExpression::Execute(const FFormulaExecution
 
 	TSharedPtr<FFormulaValue> ArrayValue = FFormulaValue::Null();
 	void* ArrayValuePtr = nullptr;
-	if (!FNewArrayBoundExpression::TryCreateArray(ElementType, ExpectedArrayProperty, ArrayValue) ||
+	if (!FNewExpression::TryCreateArray(ElementType, ExpectedArrayProperty, ArrayValue) ||
 		!ArrayValue->TryGetContainerAddress(ArrayValuePtr))
 	{
-		return FFormulaExecutionError::UnsupportedArrayType(this->ArrayType->GetFullName(/*bWriteGenerics*/ true));
+		return FFormulaExecutionError::MissingContextForStruct(this->ArrayType->GetFullName(/*bWriteGenerics*/ true));
 	}
 	check(ArrayValuePtr);
 
 	FArrayProperty* ArrayProperty = CastFieldChecked<FArrayProperty>(ArrayValue->GetType());
+	FProperty* ElementProperty = ArrayProperty->Inner;
 	FScriptArrayHelper ArrayWrap(ArrayProperty, ArrayValuePtr);
 	
-	ArrayWrap.EmptyAndAddUninitializedValues(InitializationValues.Num());
-	int32 Index = 0;
-	for (const auto InitializationValue : InitializationValues)
+	for (const auto ValueToAdd : AddValues)
 	{
-		if (InitializationValue->TryCopyCompleteValue(ArrayProperty->Inner, ArrayWrap.GetElementPtr(Index)))
-		{
-			return FFormulaExecutionError::CollectionAddFailed(this->ArrayType->GetFullName(/*bWriteGenerics*/ true), InitializationValue->GetCPPType());
-		}
-		Index++;
-	}
+		const int32 AddedIndex = ArrayWrap.AddUninitializedValue();
+		void* ElementPtr = ArrayWrap.GetElementPtr(AddedIndex);
+		ElementProperty->InitializeValue(ElementPtr);
 
+		if (!ValueToAdd->TryCopyCompleteValue(ElementProperty, ElementPtr))
+		{
+			ArrayWrap.RemoveValues(AddedIndex, 1);
+			
+			return FFormulaExecutionError::CollectionAddFailed(this->ArrayType->GetFullName(/*bWriteGenerics*/ true), ValueToAdd->GetCPPType());
+		}
+	}
+	
 	return ArrayValue;
 }
 

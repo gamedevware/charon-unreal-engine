@@ -7,10 +7,13 @@
 
 DEFINE_LOG_CATEGORY(LogFormulaFunction);
 
+
+
 FFormulaFunction::FFormulaFunction(UFunction* Function, UClass* DeclaringClass, const bool bUseClassDefaultObject) :
 	FunctionInvoker(CreateDefaultFunctionInvoker(Function, DeclaringClass)),
 	DeclaringTypePtr(TWeakObjectPtr(DeclaringClass)),
-	bUseClassDefaultObject(bUseClassDefaultObject)
+	bUseClassDefaultObject(bUseClassDefaultObject),
+	Parameters(GetFunctionParameters(Function))
 {
 	check(Function);
 	check(DeclaringClass);
@@ -18,12 +21,14 @@ FFormulaFunction::FFormulaFunction(UFunction* Function, UClass* DeclaringClass, 
 
 FFormulaFunction::FFormulaFunction(
 	FFormulaFunctionInvokeFunc FunctionInvoker,
+	const TArray<const FProperty*>& Parameters,
 	UField* DeclaringType,
 	const bool bUseClassDefaultObject
 ) :
 	FunctionInvoker(MoveTemp(FunctionInvoker)),
 	DeclaringTypePtr(TWeakObjectPtr(DeclaringType)),
-	bUseClassDefaultObject(bUseClassDefaultObject)
+	bUseClassDefaultObject(bUseClassDefaultObject),
+	Parameters(Parameters)
 {
 	check(DeclaringType);
 }
@@ -104,14 +109,15 @@ FFormulaFunctionInvokeFunc FFormulaFunction::CreateDefaultFunctionInvoker(UFunct
 		TArray<uint8> ArgumentsBuffer;
 		ArgumentsBuffer.AddZeroed(Function->ParmsSize);
 		void* ArgumentBufferPtr = ArgumentsBuffer.GetData();
-		int32 ParameterIndex = 0;
 
 		// bind input parameters
-		for (TFieldIterator<FProperty> It(Function); It; ++It)
+		int32 ParameterIndex = 0;
+		for (TFieldIterator<FProperty> It(Function); It; ++It, ParameterIndex++)
 		{
 			const FProperty* Parameter = *It;
 			if (Parameter->HasAnyPropertyFlags(CPF_ReturnParm))
 			{
+				ParameterIndex--;
 				continue;
 			}
 
@@ -122,7 +128,7 @@ FFormulaFunctionInvokeFunc FFormulaFunction::CreateDefaultFunctionInvoker(UFunct
 				bIsMatching = false;
 				break;
 			}
-
+			
 			void* ArgumentDataPtr = Parameter->ContainerPtrToValuePtr<void>(ArgumentBufferPtr);
 			if (!InvokeArgumentPtr->Value->TryCopyCompleteValue(Parameter, ArgumentDataPtr))
 			{
@@ -130,7 +136,6 @@ FFormulaFunctionInvokeFunc FFormulaFunction::CreateDefaultFunctionInvoker(UFunct
 				bIsMatching = false; // argument bind failed
 				break;
 			}
-			ParameterIndex++;
 		}
 
 		if (!bIsMatching)
@@ -141,15 +146,17 @@ FFormulaFunctionInvokeFunc FFormulaFunction::CreateDefaultFunctionInvoker(UFunct
 		TargetPtr->ProcessEvent(Function, ArgumentBufferPtr);
 
 		// copy output parameters
-		for (TFieldIterator<FProperty> It(Function); It; ++It)
+		ParameterIndex = 0;
+		for (TFieldIterator<FProperty> It(Function); It; ++It, ++ParameterIndex)
 		{
 			FProperty* Parameter = *It;
 			if (Parameter->HasAnyPropertyFlags(CPF_ReturnParm))
 			{
 				const void* ValuePtr = Parameter->ContainerPtrToValuePtr<void>(ArgumentBufferPtr);
 				Result = MakeShared<FFormulaValue>(Parameter, ValuePtr);
+				ParameterIndex--;
 			}
-			else if (Parameter->HasAnyPropertyFlags(CPF_OutParm))
+			if (Parameter->HasAnyPropertyFlags(CPF_OutParm))
 			{
 				const auto ArgumentValuePtr = CallArguments.FindArgument(Parameter, ParameterIndex, ParameterName);
 				if (!ArgumentValuePtr)
@@ -157,7 +164,7 @@ FFormulaFunctionInvokeFunc FFormulaFunction::CreateDefaultFunctionInvoker(UFunct
 					continue;
 				}
 				const void* ValuePtr = Parameter->ContainerPtrToValuePtr<void>(ArgumentBufferPtr);
-				CallArguments.ReplaceArgumentValue(ParameterName, MakeShared<FFormulaValue>(Parameter, ValuePtr));
+				CallArguments.UpdateArgumentValue(ParameterName, MakeShared<FFormulaValue>(Parameter, ValuePtr));
 			}
 		}
 		return true;
@@ -194,4 +201,21 @@ FFormulaFunctionInvokeFunc FFormulaFunction::CreateExtensionFunctionInvoker(UFun
 		
 			return DefaultFunctionInvoker(TargetDefaultClassObject, CallArguments, ExpectedType, TypeArguments, Result);
 		});
+}
+
+TArray<const FProperty*> FFormulaFunction::GetFunctionParameters(const UFunction* Function)
+{
+	check(Function);
+	
+	TArray<const FProperty*> Parameters;
+	for (TFieldIterator<FProperty> It(Function); It; ++It)
+	{
+		const FProperty* Parameter = *It;
+		if (Parameter->HasAnyPropertyFlags(CPF_ReturnParm))
+		{
+			continue;
+		}
+		Parameters.Add(Parameter);
+	}
+	return Parameters;
 }

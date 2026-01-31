@@ -7,6 +7,8 @@
 class FFormulaExecutionContext;
 class FFormulaExpression;
 
+using FUpdatedArgumentPair = TPair<TSharedRef<FFormulaValue>, TSharedRef<FFormulaValue>>;
+
 class CHARON_API FFormulaInvokeArguments
 {
 public:
@@ -14,6 +16,7 @@ public:
 	{
 		FString const Name;
 		TSharedRef<FFormulaValue> const Value;
+		TSharedPtr<FFormulaValue> UpdatedValue;
 		EPropertyFlags const Flags;
 	};
 private:
@@ -29,8 +32,9 @@ public:
 	
 	void InsertArgumentAt(const int32 Index, const int MaxParams, const TSharedRef<FFormulaValue>& InValue, EPropertyFlags Flags = EPropertyFlags::CPF_None);
 	void AddArgument(const FString& InParameterName, const TSharedRef<FFormulaValue>& InValue, EPropertyFlags Flags = EPropertyFlags::CPF_None);
-	void ReplaceArgumentValue(const FString& InParameterName, const TSharedRef<FFormulaValue>& InValue);
+	void UpdateArgumentValue(const FString& InParameterName, const TSharedRef<FFormulaValue>& InUpdatedValue);
 	void GetParameterTypes(TArray<FString>& OutParameterTypes);
+	TArray<FUpdatedArgumentPair> GetUpdatedOutArguments();
 
 	static EPropertyFlags GetArgumentFlags(const TSharedPtr<FFormulaExpression>& Expression, const TSharedRef<FFormulaValue>& Value, const FFormulaExecutionContext& Context);
 };

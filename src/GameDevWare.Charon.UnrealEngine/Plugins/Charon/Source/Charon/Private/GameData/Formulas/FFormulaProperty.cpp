@@ -18,22 +18,22 @@ UScriptStruct* GetScriptStruct(const FProperty* Property)
 }
 
 FFormulaProperty::FFormulaProperty(FProperty* Property, UField* DeclaringType, const bool bUseClassDefaultObject):
-	Property(Property),
 	DeclaringTypePtr(DeclaringType),
 	bUseClassDefaultObject(bUseClassDefaultObject),
 	GetterFunc(CreateDefaultPropertyGetter(TWeakFieldPtr<FProperty>(Property), TWeakObjectPtr(DeclaringType))),
-	SetterFunc(CreateDefaultPropertySetter(TWeakFieldPtr<FProperty>(Property), TWeakObjectPtr(DeclaringType)))
+	SetterFunc(CreateDefaultPropertySetter(TWeakFieldPtr<FProperty>(Property), TWeakObjectPtr(DeclaringType))),
+	Property(Property)
 {
 	check(Property);
 	check(DeclaringType);
 }
 
 FFormulaProperty::FFormulaProperty(FProperty* Property, FFormulaPropertyGetterFunc GetterFunc, FFormulaPropertySetterFunc SetterFunc, UField* DeclaringType, const bool bUseClassDefaultObject):
-	Property(Property),
 	DeclaringTypePtr(DeclaringType),
 	bUseClassDefaultObject(bUseClassDefaultObject),
 	GetterFunc(MoveTemp(GetterFunc)),
-	SetterFunc(MoveTemp(SetterFunc))
+	SetterFunc(MoveTemp(SetterFunc)),
+	Property(Property)
 {
 }
 
@@ -71,7 +71,7 @@ FFormulaPropertySetterFunc FFormulaProperty::CreateSetterFromFunctionInvoker(FFo
 	return FFormulaPropertySetterFunc([FunctionInvoker](const TSharedRef<FFormulaValue>& Target, const TSharedPtr<FFormulaValue>& Value) -> bool
 	{
 		FFormulaInvokeArguments OperationArguments {
-			FFormulaInvokeArguments::InvokeArgument(TEXT("0"), Value.ToSharedRef(), EPropertyFlags::CPF_None),
+			FFormulaInvokeArguments::InvokeArgument(TEXT("0"), Value.ToSharedRef(), nullptr, EPropertyFlags::CPF_None),
 		};
 		TSharedPtr<FFormulaValue> Result; // discarded
 		return FunctionInvoker.IsSet() && FunctionInvoker(Target, OperationArguments, nullptr, nullptr, Result);

@@ -12,12 +12,17 @@ FFormulaMemberBinding::FFormulaMemberBinding(const FString& RawMemberName):
 FFormulaExecutionResult FFormulaMemberBinding::Apply(const TSharedRef<FFormulaValue>& Target,
                                                      const FFormulaExecutionContext& Context) const
 {
+	if (!this->IsValid())
+	{
+		return FFormulaExecutionError::ExpressionIsInvalid();
+	}
+	
 	const FFormulaProperty* FormulaProperty = nullptr;
-	const auto TargetType = Context.TypeResolver->GetTypeDescription(Target->GetType());
+	const auto TargetType = Context.TypeResolver->GetType(Target);
 	if (TargetType->TryGetProperty(this->MemberName, /* bStatic */ false, FormulaProperty))
 	{
 		check(FormulaProperty);
-		return this->ApplyMemberChanges(Target, FormulaProperty, Context);
+		return this->ApplyToMember(Target, FormulaProperty, Context);
 	}
 
 	FString AllMemberNames =  FString::Join(TargetType->GetPropertyNames(/* bStatic */ false),TEXT(", "));

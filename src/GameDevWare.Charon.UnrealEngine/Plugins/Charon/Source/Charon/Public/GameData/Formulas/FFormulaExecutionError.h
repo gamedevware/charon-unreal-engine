@@ -28,12 +28,13 @@ enum class EFormulaExecutionErrorCode
 	Op_IndexerNotFound,
 	Type_UnableToResolveGlobal,
 	Type_AbstractInstantiation,
-	Type_UnsupportedArrayType,
+	Type_UnsupportedCollectionType,
 	Type_InvalidArrayType,
 	Type_Unresolved,
 	Type_NoConversion,
 	Type_NullConversionIllegal,
 	Type_InvalidCast,
+	Type_UnsolicitedStructType,
 };
 
 class CHARON_API FFormulaExecutionError
@@ -177,18 +178,26 @@ public:
 		);
 	}
 
-	static FFormulaExecutionError UnsupportedArrayType(const FString& TypeName)
+	static FFormulaExecutionError UnsupportedCollectionType(const FString& TypeName)
 	{
 		return FFormulaExecutionError(
-			FString::Format(TEXT("Array type '{0}' is unsupported. Only UObject-derived types and basic structures are allowed."), {TypeName}),
-			EFormulaExecutionErrorCode::Type_UnsupportedArrayType
-		);
+			FString::Format(TEXT("Collection type '{0}' is unsupported. Only UObject-derived types and basic structures are allowed."), {TypeName}),
+			EFormulaExecutionErrorCode::Type_UnsupportedCollectionType
+		);	
+	}
+	
+	static FFormulaExecutionError MissingContextForStruct(const FString& TypeName)
+	{
+		return FFormulaExecutionError(
+			FString::Format(TEXT("Cannot create a struct of type '{0}' because it lacks a compatible destination. Structs must be passed into a function or assigned to a property for proper memory management."), {TypeName}),
+			EFormulaExecutionErrorCode::Type_UnsolicitedStructType
+		);	
 	}
 
 	static FFormulaExecutionError InvalidArraySizeValue(const FString& SizeValueTypeName)
 	{
 		return FFormulaExecutionError(
-			FString::Format(TEXT("Invalid array size type '{0}'. Expected an integer value."), {SizeValueTypeName}),
+			FString::Format(TEXT("Invalid collection size type '{0}'. Expected an integer value."), {SizeValueTypeName}),
 			EFormulaExecutionErrorCode::Bind_InvalidArraySize
 		);
 	}
@@ -245,8 +254,8 @@ public:
 	static FFormulaExecutionError CollectionAddFailed(const FString& CollectionTypeName, const FString& AddedElementType)
 	{
 		return FFormulaExecutionError(
-			FString::Format(TEXT("Failed to add '{1}' element to '{0}' collection."), {CollectionTypeName, AddedElementType}),
+			FString::Format(TEXT("Failed to add ({1}) tuple to '{0}' collection."), {CollectionTypeName, AddedElementType}),
 			EFormulaExecutionErrorCode::Coll_AddFailed
 		);
-	}	
+	}
 };

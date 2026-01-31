@@ -23,7 +23,7 @@ bool FFormulaMemberAssignmentBinding::IsValid() const
 	return !RawMemberName.IsEmpty() && !MemberName.IsEmpty() && Expression.IsValid();
 }
 
-FFormulaExecutionResult FFormulaMemberAssignmentBinding::ApplyMemberChanges(const TSharedRef<FFormulaValue>& Target,
+FFormulaExecutionResult FFormulaMemberAssignmentBinding::ApplyToMember(const TSharedRef<FFormulaValue>& Target,
                                                                             const FFormulaProperty* Member,
                                                                             const FFormulaExecutionContext& Context) const
 {

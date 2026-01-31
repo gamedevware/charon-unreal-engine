@@ -34,6 +34,7 @@ FFormulaEnumType::FFormulaEnumType(UEnum* Enum, const TSharedRef<IFormulaType>& 
 		{
 			return this->EnumToString(Target, Result);
 		},
+		TArray<const FProperty*>(),
 		Enum,
 		/*bUseClassDefaultObject*/ false));
 }

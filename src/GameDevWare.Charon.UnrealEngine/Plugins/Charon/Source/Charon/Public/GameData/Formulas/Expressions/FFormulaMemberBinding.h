@@ -21,7 +21,7 @@ public:
 	virtual bool IsValid() const = 0;
 	
 	FFormulaExecutionResult Apply(const TSharedRef<FFormulaValue>& Target, const FFormulaExecutionContext& Context) const;
-	virtual FFormulaExecutionResult ApplyMemberChanges(const TSharedRef<FFormulaValue>& Target, const FFormulaProperty* Member, const FFormulaExecutionContext& Context) const = 0;
+	virtual FFormulaExecutionResult ApplyToMember(const TSharedRef<FFormulaValue>& Target, const FFormulaProperty* Member, const FFormulaExecutionContext& Context) const = 0;
 
 	FString ToString() const
 	{

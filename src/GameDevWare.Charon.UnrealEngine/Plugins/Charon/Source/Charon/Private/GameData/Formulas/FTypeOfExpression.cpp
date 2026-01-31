@@ -21,7 +21,7 @@ FFormulaExecutionResult FTypeOfExpression::Execute(const FFormulaExecutionContex
 		return FFormulaExecutionError::ExpressionIsInvalid();
 	}
 	
-	const auto ToType = Context.TypeResolver->GetTypeDescription(this->TypeRef);
+	const auto ToType = Context.TypeResolver->FindType(this->TypeRef);
 	if (!ToType.IsValid())
 	{
 		return FFormulaExecutionError::UnableToResolveType(this->TypeRef->GetFullName(/* include generics */ true));

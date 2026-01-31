@@ -12,6 +12,7 @@
 class FFormulaTypeReference;
 class FFormulaExpression;
 class FFormulaMemberBinding;
+class FFormulaElementInitBinding;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogExpressionBuildHelper, Log, All);
 
@@ -29,4 +30,5 @@ public:
 	static TArray<TSharedPtr<FFormulaExpression>> GetArgumentsList(const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName);
 	static TArray<TSharedPtr<FFormulaTypeReference>> GetTypeRefArguments(const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName);
 	static TArray<TSharedPtr<FFormulaMemberBinding>> GetBindings(const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName);
+	static TArray<TSharedPtr<FFormulaElementInitBinding>> GetElementInitBindings(const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName);
 };

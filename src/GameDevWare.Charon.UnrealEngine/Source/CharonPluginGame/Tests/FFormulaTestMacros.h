@@ -21,10 +21,15 @@
 	CHECK_MESSAGE(TEXT("Unexpected Value type: " + Result.GetValue()->GetCPPType()), IsValueSameType<decltype(EXPECTED)>(Result)) \
 	CHECK_EQUALS(TEXT("Value"), GetValue<decltype(EXPECTED)>(Result), EXPECTED) 
 
+#define MAKE_ARRAY_TYPE_REF(ELEMENT_TYPE) MakeShared<FFormulaTypeReference>(FString(TEXT("Array")), TArray<TSharedPtr<FFormulaTypeReference>> { MakeShared<FFormulaTypeReference>(FString(TEXT(ELEMENT_TYPE))) })
+#define MAKE_SET_TYPE_REF(ELEMENT_TYPE) MakeShared<FFormulaTypeReference>(FString(TEXT("Set")), TArray<TSharedPtr<FFormulaTypeReference>> { MakeShared<FFormulaTypeReference>(FString(TEXT(ELEMENT_TYPE))) })
+#define MAKE_MAP_TYPE_REF(KEY_TYPE, VALUE_TYPE) MakeShared<FFormulaTypeReference>(FString(TEXT("Map")), TArray<TSharedPtr<FFormulaTypeReference>> { MakeShared<FFormulaTypeReference>(FString(TEXT(KEY_TYPE))), MakeShared<FFormulaTypeReference>(FString(TEXT(VALUE_TYPE))) })
+#define EXPR_ELEM_INIT(...) MakeShared<FFormulaElementInitBinding>(TArray<TSharedPtr<FFormulaExpression>> { __VA_ARGS__ })
 #define EXPR_CONST_NULL() MakeShared<FConstantExpression>(FFormulaValue::Null(), MakeShared<FFormulaTypeReference>(TEXT("Object")))
 #define EXPR_CONST(VALUE) MakeShared<FConstantExpression>(MakeShared<FFormulaValue>(VALUE), MakeShared<FFormulaTypeReference>(FFormulaValue(VALUE).GetCPPType()))
 #define EXPR_CONST_OBJECT(VALUE, PROPERTY) MakeShared<FConstantExpression>(MakeShared<FFormulaValue>(PROPERTY, &VALUE), MakeShared<FFormulaTypeReference>(PROPERTY->PropertyClass.GetName()))
 #define EXPR_MEMBER(VALUE, MEMBER_NAME, NULL_PROP) Expression = MakeShared<FMemberExpression>(VALUE, FString(TEXT(MEMBER_NAME)), EmptyTypeArguments, NULL_PROP)
+#define EXPR_ARG(ARG_NAME) Expression = MakeShared<FMemberExpression>(nullptr, FString(TEXT(ARG_NAME)), EmptyTypeArguments, false)
 
 #define TEST_EXPR_CONST_CHECK_VALUE(VALUE, RESULT_VALUE) \
 		Expression = MakeShared<FConstantExpression>( \
@@ -139,6 +144,30 @@
 		REQUIRE_NO_ERROR(); \
 		CHECK_VALUE(RESULT);
 // end of TEST_EXPR_INVOKE_CHECK_VALUE
+
+#define TEST_EXPR_LIST_INIT(COLLECTION_TYPE, COLL_PROPERTY,  ...) \
+		Expression = MakeShared<FListInitExpression>( \
+			MakeShared<FNewExpression>(COLLECTION_TYPE, TMap<FString, TSharedPtr<FFormulaExpression>>()), \
+			TArray<TSharedPtr<FFormulaElementInitBinding>> { \
+				__VA_ARGS__ \
+			} \
+		); \
+		INFO("Testing `" + Expression->ToString() + "` expression"); \
+		Result = Expression->Execute(Context, COLL_PROPERTY); \
+		REQUIRE_NO_ERROR(); \
+// end of TEST_EXPR_LIST_INIT
+
+#define TEST_EXPR_NEW_ARRAY_INIT(COLLECTION_TYPE, COLL_PROPERTY,  ...) \
+		Expression = MakeShared<FNewArrayInitExpression>( \
+			COLLECTION_TYPE, \
+			TArray<TSharedPtr<FFormulaExpression>> { \
+				__VA_ARGS__ \
+			} \
+		); \
+		INFO("Testing `" + Expression->ToString() + "` expression"); \
+		Result = Expression->Execute(Context, COLL_PROPERTY); \
+		REQUIRE_NO_ERROR(); \
+// end of TEST_EXPR_LIST_INIT
 
 #define TEST_EXPR_TYPE_IS(VALUE) \
 		Expression = MakeShared<FTypeIsExpression>( \

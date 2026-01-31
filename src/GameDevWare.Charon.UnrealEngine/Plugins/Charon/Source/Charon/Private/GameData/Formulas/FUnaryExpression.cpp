@@ -138,12 +138,12 @@ FFormulaExecutionResult FUnaryExpression::Execute(const FFormulaExecutionContext
 		}
 
 		// fallback to custom operations
-		const auto OperandType = Context.TypeResolver->GetTypeDescription(&Property);
+		const auto OperandType = Context.TypeResolver->GetType(Operand);
 		const FFormulaFunction* UnaryOperation;
 		if (OperandType->TryGetUnaryOperation(this->UnaryOperationType, UnaryOperation))
 		{
 			FFormulaInvokeArguments CallArguments {
-				FFormulaInvokeArguments::InvokeArgument(TEXT("0"), MakeShared<FFormulaValue>(InValue), FFormulaInvokeArguments::GetArgumentFlags(Expression, Operand, Context))
+				FFormulaInvokeArguments::InvokeArgument(TEXT("0"), Operand, nullptr, FFormulaInvokeArguments::GetArgumentFlags(Expression, Operand, Context))
 			};
 			TSharedPtr<FFormulaValue> ResultValue;
 			if (UnaryOperation && UnaryOperation->TryInvoke(

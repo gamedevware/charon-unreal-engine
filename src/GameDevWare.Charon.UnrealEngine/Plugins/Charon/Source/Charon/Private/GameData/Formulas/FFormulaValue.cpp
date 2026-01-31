@@ -53,6 +53,17 @@ FFormulaValue::FFormulaValue():
 	this->StructBytes.SetNumZeroed(this->Type.GetSize());
 }
 
+FFormulaValue::FFormulaValue(FProperty* ValueType):
+	Type(CastField<FObjectPropertyBase>(ValueType) ? *UDotNetObject::GetNullLiteralProperty() : *ValueType),
+	TypeCode(CastField<FObjectPropertyBase>(ValueType) ? EFormulaValueType::Null : GetPropertyTypeCode(&this->Type))
+{
+	check(ValueType);
+	checkSlow(this->Type.GetSize() > 0);
+	
+	this->StructBytes.SetNumZeroed(this->Type.GetSize());
+	this->Type.InitializeValue(GetStructPtrChecked());
+}
+
 FFormulaValue::FFormulaValue(FProperty* ValueType, const void* ValuePtr):
 	Type(IsNullValue(ValueType, ValuePtr) ? *UDotNetObject::GetNullLiteralProperty() : *ValueType),
 	TypeCode(IsNullValue(ValueType, ValuePtr) ? EFormulaValueType::Null : GetPropertyTypeCode(&this->Type))
@@ -175,14 +186,6 @@ bool FFormulaValue::TrySetPropertyValue_InContainer(const FProperty* Destination
 				return true;
 			}
 		}
-		else if (const FStructProperty* StructProp = CastField<FStructProperty>(DestinationType))
-		{
-			if (StructProp->SameType(&ThisType))
-			{
-				StructProp->SetSingleValue_InContainer(ContainerPtr, &InValue, ArrayIndex);
-				return true;
-			}
-		}
 		else if (const FEnumProperty* EnumProp = CastField<FEnumProperty>(DestinationType))
 		{
 			const FNumericProperty* EnumNumProperty = EnumProp->GetUnderlyingProperty();
@@ -269,6 +272,14 @@ bool FFormulaValue::TrySetPropertyValue_InContainer(const FProperty* Destination
 				return true;
 			}
 		}
+		else if (DestinationType->SameType(&ThisType))
+		{
+			if constexpr (std::is_same_v<InT, UStruct>)
+			{
+				DestinationType->SetSingleValue_InContainer(ContainerPtr, static_cast<const void*>(&InValue), ArrayIndex);
+				return true;
+			}
+		}
 		return false;
 	});
 }
@@ -303,16 +314,7 @@ bool FFormulaValue::TryGetInt64(int64& OutValue) const
 	OutValue = 0;
 	return false;
 }
-bool FFormulaValue::TryGetDouble(double& OutValue) const
-{
-	if (const FDoubleProperty* DoubleProperty = CastField<FDoubleProperty>(&this->Type))
-	{
-		OutValue = DoubleProperty->GetPropertyValue(GetStructPtrChecked());
-		return true;
-	}
-	OutValue = 0;
-	return false;
-}
+
 bool FFormulaValue::TryGetObjectPtr(UObject*& OutValue) const
 {
 	if (const FObjectPropertyBase* ObjectProperty = CastField<FObjectPropertyBase>(&this->Type))
@@ -362,8 +364,39 @@ FString FFormulaValue::GetExtendedCppName(const FProperty* Property)
 	check(Property);
 
 	FString* ExtendedTypeText = nullptr;
-	FString Name = Property->GetCPPType(ExtendedTypeText);
-	return ExtendedTypeText ? Name + *ExtendedTypeText : Name;
+	FString Name = Property->GetCPPType(ExtendedTypeText, EPropertyExportCPPFlags::CPPF_None);
+	if (ExtendedTypeText)
+	{
+		Name.Append(*ExtendedTypeText);
+	}
+	
+	if (const FMapProperty* MapProperty = CastField<FMapProperty>(Property))
+	{
+		Name.Append(TEXT("<"))
+			.Append(GetExtendedCppName(MapProperty->GetKeyProperty()))
+			.Append(TEXT(","))
+			.Append(GetExtendedCppName(MapProperty->GetValueProperty()))
+			.Append(TEXT(">"));
+	}
+	else if (const FSetProperty* SetProperty = CastField<FSetProperty>(Property))
+	{
+		Name.Append(TEXT("<"))
+			.Append(GetExtendedCppName(SetProperty->GetElementProperty()))
+			.Append(TEXT(">"));
+	}
+	else if (const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Property))
+	{
+		Name.Append(TEXT("<"))
+			.Append(GetExtendedCppName(ArrayProperty->Inner))
+			.Append(TEXT(">"));
+	}
+	if (Property->ArrayDim > 1)
+	{
+		Name.Append(TEXT("["))
+			.AppendInt(Property->ArrayDim);
+		Name.Append(TEXT("]"));
+	}
+	return Name;
 }
 
 bool FFormulaValue::TryCopyStringValue(const FStrProperty* DestinationStringProperty, void* DestinationPtr) const

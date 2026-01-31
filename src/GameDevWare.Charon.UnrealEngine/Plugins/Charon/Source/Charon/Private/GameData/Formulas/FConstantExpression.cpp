@@ -48,7 +48,7 @@ FFormulaExecutionResult FConstantExpression::Execute(const FFormulaExecutionCont
 		return FFormulaExecutionError::ExpressionIsInvalid();
 	}
 	
-	const auto ToType = Context.TypeResolver->GetTypeDescription(this->ValueType);
+	const auto ToType = Context.TypeResolver->FindType(this->ValueType);
 	if (!ToType)
 	{
 		return FFormulaExecutionError::UnableToResolveType(this->ValueType->GetFullName(/* include generics */ true));

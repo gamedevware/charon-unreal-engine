@@ -13,6 +13,7 @@ namespace FFormulaNotation
     static const FString EXPRESSION_TYPE_ATTRIBUTE = TEXT("expressionType");
     static const FString EXPRESSION_ATTRIBUTE = TEXT("expression");
     static const FString BINDINGS_ATTRIBUTE = TEXT("bindings");
+    static const FString INITIALIZERS_ATTRIBUTE = TEXT("initializers");
     static const FString ARGUMENTS_ATTRIBUTE = TEXT("arguments");
     static const FString NEW_ATTRIBUTE = TEXT("new");
     static const FString LEFT_ATTRIBUTE = TEXT("left");
@@ -46,6 +47,7 @@ namespace FFormulaNotation
     static const FString EXPRESSION_TYPE_MEMBER_INIT = TEXT("MemberInit");
     static const FString EXPRESSION_TYPE_LIST_BINDING = TEXT("ListBinding");
     static const FString EXPRESSION_TYPE_MEMBER_BINDING = TEXT("MemberBinding");
+    static const FString EXPRESSION_TYPE_ELEMENT_INIT_BINDING = TEXT("ElementInitBinding");
     static const FString EXPRESSION_TYPE_ASSIGNMENT_BINDING = TEXT("Assignment");
     static const FString EXPRESSION_TYPE_ADD = TEXT("Add");
     static const FString EXPRESSION_TYPE_ADD_CHECKED = TEXT("AddChecked");
