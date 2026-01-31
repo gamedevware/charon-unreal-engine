@@ -4,7 +4,6 @@
 
 #include "limits"
 #include "GameData/Formulas/Expressions/FDefaultExpression.h"
-#include "JsonUtils/JsonConversion.h"
 #include "Tests/TestHarnessAdapter.h"
 
 #define REQUIRE_NO_ERROR() \
@@ -50,15 +49,8 @@
 		); \
 		INFO("Testing `" + Expression->ToString() + "` expression"); \
 		Result = Expression->Execute(Context, nullptr); \
-		if constexpr (requires { V1 OP V2; }) \
-		{ \
-			REQUIRE_NO_ERROR(); \
-			CHECK_VALUE(V1 OP V2); \
-		} \
-		else \
-		{ \
-			REQUIRE_ERROR(EFormulaExecutionErrorCode::Op_BinaryNotSupported); \
-		}
+		REQUIRE_NO_ERROR(); \
+		CHECK_VALUE(V1 OP V2);
 // end of TEST_EXPR_BINARY
 
 #define TEST_EXPR_BINARY_CHECK_VALUE(V1, V2, OP_T, RESULT_VALUE) \
@@ -219,15 +211,8 @@
 		); \
 		INFO("Testing `" + Expression->ToString() + "` expression"); \
 		Result = Expression->Execute(Context, nullptr); \
-		if constexpr (requires { OP  V1 ; }) \
-		{ \
-			REQUIRE_NO_ERROR(); \
-			CHECK_VALUE(OP V1); \
-		} \
-		else \
-		{ \
-			REQUIRE_ERROR(EFormulaExecutionErrorCode::Op_UnaryNotSupported); \
-		}
+		REQUIRE_NO_ERROR(); \
+		CHECK_VALUE(OP V1);
 // end of TEST_EXPR_UNARY
 
 #define TEST_EXPR_OBJ_MEMBER_CHECK_VALUE(OBJ_VALUE, PATH, RESULT, NULL_PROP) \
@@ -270,13 +255,13 @@ template <typename OutT>
 OutT GetValue(const FFormulaExecutionResult Result)
 {
 	if (Result.HasError()) return  {}; 
-	return Result.GetValue()->VisitValue([]<typename InT>(FProperty&, const InT& InValue) -> OutT { if constexpr (std::is_same_v<std::decay_t<InT>, OutT>) { return InValue; } else { return  {}; }});
+	return Result.GetValue()->VisitValue([](FProperty&, const auto& InValue) -> OutT { if constexpr (std::is_same_v<std::decay_t<decltype(InValue)>, OutT>) { return InValue; } else { return  {}; }});
 }
 template <typename ValueT>
 bool IsValueSameType(const FFormulaExecutionResult Result)
 {
 	if (Result.HasError()) return  {}; 
-	return Result.GetValue()->VisitValue([]<typename InT>(FProperty&, const InT&) -> bool { return std::is_same_v<std::decay_t<InT>, ValueT>; });
+	return Result.GetValue()->VisitValue([](FProperty&, const auto& InValue) -> bool { return std::is_same_v<std::decay_t<decltype(InValue)>, ValueT>; });
 }
 
 inline TArray<TSharedPtr<FFormulaTypeReference>> EmptyTypeArguments;

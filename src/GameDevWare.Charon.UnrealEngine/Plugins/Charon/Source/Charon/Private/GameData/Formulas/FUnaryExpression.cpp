@@ -4,6 +4,7 @@
 #include "GameData/Formulas/FExpressionBuildHelper.h"
 #include "GameData/Formulas/FFormulaNotation.h"
 #include "GameData/Formulas/IFormulaType.h"
+#include "GameData/Formulas/FormulaTypeTraits.h"
 
 DEFINE_LOG_CATEGORY(LogUnaryExpression);
 
@@ -106,12 +107,12 @@ FFormulaExecutionResult FUnaryExpression::Execute(const FFormulaExecutionContext
 		break;
 	}
 
-	return Operand->VisitValue([this, &Operand, &Context]<typename ValueType>(FProperty& Property, const ValueType& InValue) -> FFormulaExecutionResult
+	return Operand->VisitValue([this, &Operand, &Context](const FProperty& Property, const auto& InValue) -> FFormulaExecutionResult
 	{
-		using T = std::decay_t<ValueType>;
-		constexpr bool bIsBool = std::is_same_v<bool, T>;
-		constexpr bool bIsSigned = std::is_signed_v<T>;
-		constexpr bool bisPointer = std::is_pointer_v<T>;
+		using InT = std::decay_t<decltype(InValue)>;
+		constexpr bool bIsBool = std::is_same_v<bool, InT>;
+		constexpr bool bIsSigned = std::is_signed_v<InT>;
+		constexpr bool bisPointer = std::is_pointer_v<InT>;
 		
 		if constexpr (!bisPointer)
 		{
@@ -119,20 +120,20 @@ FFormulaExecutionResult FUnaryExpression::Execute(const FFormulaExecutionContext
 			switch (this->UnaryOperationType)
 			{
 			case EUnaryOperationType::UnaryPlus:
-				if constexpr (requires { +InValue; }) return +InValue;
+				if constexpr (has_unary_plus<InT>::value) return +InValue;
 				break;
 
 			case EUnaryOperationType::Negate:
 			case EUnaryOperationType::NegateChecked:
-				if constexpr (requires { -InValue; } && !bIsBool && bIsSigned) return -InValue;
+				if constexpr (has_unary_minus<InT>::value && !bIsBool && bIsSigned) return -InValue;
 				break;
 
 			case EUnaryOperationType::Not:
-				if constexpr (requires { !InValue; }) return !InValue;
+				if constexpr (has_logical_not<InT>::value) return !InValue;
 				break;
 
 			case EUnaryOperationType::Complement:
-				if constexpr (requires { ~InValue; } && !bIsBool) return ~InValue;
+				if constexpr (has_bitwise_not<InT>::value && !bIsBool) return ~InValue;
 				break;
 			}
 		}

@@ -36,4 +36,5 @@ private:
 	FFormulaExecutionResult ExecutePower(const TSharedPtr<FFormulaValue>& LeftOperand,	const TSharedPtr<FFormulaValue>& RightOperand) const;
 	FFormulaExecutionResult ExecuteNullLiftedBoolean(const TSharedPtr<FFormulaValue>& LeftOperand, const TSharedPtr<FFormulaValue>& RightOperand) const;
 	FFormulaExecutionResult ExecuteNullLifted(const TSharedPtr<FFormulaValue>& LeftOperand, const TSharedPtr<FFormulaValue>& RightOperand) const;
+	FFormulaExecutionResult ExecuteStringConcatenation(const TSharedRef<FFormulaValue>& Shared, const TSharedRef<FFormulaValue>& SharedRef) const;
 };

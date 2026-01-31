@@ -140,9 +140,9 @@ bool FFormulaValue::TrySetPropertyValue_InContainer(const FProperty* Destination
 		return false; // type's arity is not same
 	}
 	
-	return this->VisitValue([DestinationType, ContainerPtr, ArrayIndex]<typename ValueType>(const FProperty& ThisType, const ValueType& InValue) -> bool
+	return this->VisitValue([DestinationType, ContainerPtr, ArrayIndex](const FProperty& ThisType, const auto& InValue) -> bool
 	{
-		using InT = std::decay_t<ValueType>;
+		using InT = std::decay_t<decltype(InValue)>;
 		
 		if (const FBoolProperty* BoolProperty = CastField<FBoolProperty>(DestinationType))
 		{
@@ -381,7 +381,7 @@ FString FFormulaValue::GetExtendedCppName(const FProperty* Property)
 	else if (const FSetProperty* SetProperty = CastField<FSetProperty>(Property))
 	{
 		Name.Append(TEXT("<"))
-			.Append(GetExtendedCppName(SetProperty->GetElementProperty()))
+			.Append(GetExtendedCppName(SetProperty->ElementProp))
 			.Append(TEXT(">"));
 	}
 	else if (const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Property))
@@ -458,9 +458,9 @@ bool FFormulaValue::TryCopyNumericValue(const FProperty* DestinationType, void* 
 		ToTypeCode = GetPropertyTypeCode(EnumProperty->GetUnderlyingProperty());
 	}
 	
-	return this->VisitValue([ToTypeCode, DestinationPtr]<typename ValueType>(FProperty&, const ValueType& InValue) -> bool
+	return this->VisitValue([ToTypeCode, DestinationPtr](FProperty&, const auto& InValue) -> bool
 	{
-		using InT = std::decay_t<ValueType>;
+		using InT = std::decay_t<decltype(InValue)>;
 		
 		constexpr bool bIsInteger = std::is_integral_v<InT>;
 		constexpr bool bIsFloat = std::is_floating_point_v<InT>;
@@ -469,8 +469,10 @@ bool FFormulaValue::TryCopyNumericValue(const FProperty* DestinationType, void* 
 		if constexpr ((bIsInteger || bIsFloat) && !bIsBool)
 		{ 
 			// Helper lambda to perform the actual assignment
-			auto TryAssign = [InValue, DestinationPtr]<typename OutT>() -> bool
+			auto TryAssign = [InValue](auto TypedDestination) -> bool
 			{
+				using OutT = std::decay_t<decltype(TypedDestination)>;
+					
 				if constexpr (std::is_integral_v<InT> && std::is_integral_v<OutT>)
 				{
 					// Check if the value fits in the destination type without overflow
@@ -485,22 +487,22 @@ bool FFormulaValue::TryCopyNumericValue(const FProperty* DestinationType, void* 
 					// and cannot narrow floating point
 					return false;
 				}
-				*static_cast<OutT*>(DestinationPtr) = static_cast<OutT>(InValue);
+				*TypedDestination = static_cast<InT>(InValue);
 				return true;
 			};
 
 			switch (ToTypeCode)
 			{
-			case EFormulaValueType::Int8:   return TryAssign.template operator()<int8>();
-			case EFormulaValueType::Int16:  return TryAssign.template operator()<int16>();
-			case EFormulaValueType::Int32:  return TryAssign.template operator()<int32>();
-			case EFormulaValueType::Int64:  return TryAssign.template operator()<int64>();
-			case EFormulaValueType::UInt8:  return TryAssign.template operator()<uint8>();
-			case EFormulaValueType::UInt16: return TryAssign.template operator()<uint16>();
-			case EFormulaValueType::UInt32: return TryAssign.template operator()<uint32>();
-			case EFormulaValueType::UInt64: return TryAssign.template operator()<uint64>();
-			case EFormulaValueType::Float:  return TryAssign.template operator()<float>();
-			case EFormulaValueType::Double: return TryAssign.template operator()<double>();
+			case EFormulaValueType::Int8:   return TryAssign(static_cast<int8*>(DestinationPtr));
+			case EFormulaValueType::Int16:  return TryAssign(static_cast<int16*>(DestinationPtr));
+			case EFormulaValueType::Int32:  return TryAssign(static_cast<int32*>(DestinationPtr));
+			case EFormulaValueType::Int64:  return TryAssign(static_cast<int64*>(DestinationPtr));
+			case EFormulaValueType::UInt8:  return TryAssign(static_cast<uint8*>(DestinationPtr));
+			case EFormulaValueType::UInt16: return TryAssign(static_cast<uint16*>(DestinationPtr));
+			case EFormulaValueType::UInt32: return TryAssign(static_cast<uint32*>(DestinationPtr));
+			case EFormulaValueType::UInt64: return TryAssign(static_cast<uint64*>(DestinationPtr));
+			case EFormulaValueType::Float:  return TryAssign(static_cast<float*>(DestinationPtr));
+			case EFormulaValueType::Double: return TryAssign(static_cast<double*>(DestinationPtr));
 			default: break;
 			}
 		}

@@ -523,6 +523,14 @@ TSharedRef<IGameDataReader> UTestData::CreateReader(FArchive* const GameDataStre
 	}
 }
 
+PRAGMA_DISABLE_DEPRECATION_WARNINGS
+#if UE_VERSION_NEWER_THAN(5, 4, -1)
+static constexpr EObjectFlags GARBAGE_FLAG = EObjectFlags::RF_MirroredGarbage;
+#else
+static constexpr EObjectFlags GARBAGE_FLAG = EObjectFlags::RF_Garbage;
+#endif
+PRAGMA_ENABLE_DEPRECATION_WARNINGS
+
 static UObject* FindDocumentByUniqueName(const FString& ObjectName, TSharedPtr<TMap<FString, UObject*>> DocumentsById)
 {
 	if (!DocumentsById)
@@ -537,7 +545,7 @@ static UObject* FindDocumentByUniqueName(const FString& ObjectName, TSharedPtr<T
 	}
 
 	UObject* FoundObject = const_cast<UObject*>(*ConstFoundObject);
-	if (FoundObject->HasAnyFlags(EObjectFlags::RF_MirroredGarbage))
+	if (FoundObject->HasAnyFlags(GARBAGE_FLAG))
 	{
 		return nullptr; // object has been marked for deletion
 	}
@@ -563,7 +571,7 @@ static void FillDocumentByUniqueNameMap(UObject* Outer, TSharedPtr<TMap<FString,
 	ForEachObjectWithOuter(Outer, [DocumentsById](UObject* Child)
 	{
 		// skip already deleted or non-document objects
-		if (Child->HasAnyFlags(EObjectFlags::RF_MirroredGarbage) ||
+		if (Child->HasAnyFlags(GARBAGE_FLAG) ||
 			!Cast<UGameDataDocument>(Child))
 		{
 			return;
@@ -662,7 +670,7 @@ static void SweepMarkedChildDocuments(UObject* Document)
 	ForEachObjectWithOuter(Document, [&](UObject* Child)
 	{
 		// skip already deleted or non-document objects
-		if (Child->HasAnyFlags(EObjectFlags::RF_MirroredGarbage) ||
+		if (Child->HasAnyFlags(GARBAGE_FLAG) ||
 			!Cast<UGameDataDocument>(Child) ||
 			!Child->HasAnyFlags(EObjectFlags::RF_TagGarbageTemp))
 		{

@@ -34,6 +34,7 @@
 #include "Serialization/JsonTypes.h"
 #include "Serialization/Archive.h"
 #include "Runtime/Launch/Resources/Version.h"
+#include "Misc/EngineVersionComparison.h"
 #include "UTestDataProjectSettings.h"
 #include "UTestEntity.h"
 #include "URecursiveEntity.h"

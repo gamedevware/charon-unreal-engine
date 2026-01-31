@@ -41,7 +41,7 @@ static UPTRINT GetTypeIdentity(const FProperty* InProperty)
 	else if (const FSetProperty* SetProp = CastField<FSetProperty>(InProperty))
 	{
 		TypeIdentity = reinterpret_cast<UPTRINT>(SetProp->GetClass()) + 
-			GetTypeIdentity(SetProp->GetElementProperty());
+			GetTypeIdentity(SetProp->ElementProp);
 	}
 	else if (const FMapProperty* MapProp = CastField<FMapProperty>(InProperty))
 	{
@@ -129,7 +129,7 @@ static TSharedRef<IFormulaType> CreateFormulaType(const FProperty* InValueType)
 	}
 	else if (const FSetProperty* SetProperty = CastField<FSetProperty>(InValueType))
 	{
-		const auto ElementType = CreateFormulaType(SetProperty->GetElementProperty());
+		const auto ElementType = CreateFormulaType(SetProperty->ElementProp);
 		return MakeShared<FFormulaSetType>(ElementType);
 	}
 	else if (const FMapProperty* MapProperty = CastField<FMapProperty>(InValueType))

@@ -9,7 +9,7 @@ DEFINE_LOG_CATEGORY(LogFormulaFunction);
 
 FFormulaFunction::FFormulaFunction(UFunction* Function, UClass* DeclaringClass, const bool bUseClassDefaultObject) :
 	FunctionInvoker(CreateDefaultFunctionInvoker(Function, DeclaringClass)),
-	DeclaringTypePtr(TWeakObjectPtr(DeclaringClass)),
+	DeclaringTypePtr(TWeakObjectPtr<UField>(DeclaringClass)),
 	bUseClassDefaultObject(bUseClassDefaultObject),
 	Parameters(GetFunctionParameters(Function))
 {
@@ -24,7 +24,7 @@ FFormulaFunction::FFormulaFunction(
 	const bool bUseClassDefaultObject
 ) :
 	FunctionInvoker(MoveTemp(FunctionInvoker)),
-	DeclaringTypePtr(TWeakObjectPtr(DeclaringType)),
+	DeclaringTypePtr(TWeakObjectPtr<UField>(DeclaringType)),
 	bUseClassDefaultObject(bUseClassDefaultObject),
 	Parameters(Parameters)
 {
@@ -46,14 +46,14 @@ bool FFormulaFunction::TryInvoke(
 	{
 		TargetOrDefault = MakeShared<FFormulaValue>(DeclaringClass->GetDefaultObject(/*bCreateIfNeeded*/ true));
 	}
-	return this->FunctionInvoker.IsSet() && this->FunctionInvoker(TargetOrDefault, CallArguments, ExpectedType,
+	return this->FunctionInvoker && this->FunctionInvoker(TargetOrDefault, CallArguments, ExpectedType,
 	                                                              TypeArguments, Result);
 }
 
 FFormulaFunctionInvokeFunc FFormulaFunction::CreateDefaultFunctionInvoker(UFunction* Function, UField* DeclaringClass)
 {
-	TWeakObjectPtr<UFunction> FunctionPtr = TWeakObjectPtr(Function);
-	TWeakObjectPtr<UField> DeclaringClassPtr = TWeakObjectPtr(DeclaringClass);
+	TWeakObjectPtr<UFunction> FunctionPtr = TWeakObjectPtr<UFunction>(Function);
+	TWeakObjectPtr<UField> DeclaringClassPtr = TWeakObjectPtr<UField>(DeclaringClass);
 	
 	return FFormulaFunctionInvokeFunc([FunctionPtr, DeclaringClassPtr](
 		const TSharedRef<FFormulaValue>& Target,
@@ -171,8 +171,9 @@ FFormulaFunctionInvokeFunc FFormulaFunction::CreateDefaultFunctionInvoker(UFunct
 
 FFormulaFunctionInvokeFunc FFormulaFunction::CreateExtensionFunctionInvoker(UFunction* Function, UField* DeclaringClass)
 {
-	TWeakObjectPtr<UFunction> FunctionPtr = TWeakObjectPtr(Function);
-	TWeakObjectPtr<UField> DeclaringClassPtr = TWeakObjectPtr(DeclaringClass);
+	TWeakObjectPtr<UFunction> FunctionPtr = TWeakObjectPtr<UFunction>(Function);
+	TWeakObjectPtr<UField> DeclaringClassPtr = TWeakObjectPtr<UField>(DeclaringClass);
+	
 	FFormulaFunctionInvokeFunc DefaultFunctionInvoker = CreateDefaultFunctionInvoker(Function, DeclaringClass);
 	return FFormulaFunctionInvokeFunc([DeclaringClassPtr, FunctionPtr, DefaultFunctionInvoker](
 			const TSharedRef<FFormulaValue>& Target,

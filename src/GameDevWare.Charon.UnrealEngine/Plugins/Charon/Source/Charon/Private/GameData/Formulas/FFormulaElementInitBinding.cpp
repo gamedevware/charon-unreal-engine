@@ -55,7 +55,7 @@ FFormulaExecutionResult FFormulaElementInitBinding::Apply(const TSharedRef<FForm
 	}
 	else if (const FSetProperty* SetProp = CastField<FSetProperty>(CollectionType))
 	{
-		AddTypes.Add(const_cast<FProperty*>(SetProp->GetElementProperty()));
+		AddTypes.Add(const_cast<FProperty*>(SetProp->ElementProp));
 	}
 	else if (const FMapProperty* MapProp = CastField<FMapProperty>(CollectionType))
 	{
@@ -117,7 +117,7 @@ FFormulaExecutionResult FFormulaElementInitBinding::Apply(const TSharedRef<FForm
 		check(Target->TryGetContainerAddress(SetAddress));
 		check(SetAddress != nullptr);
 
-		const FProperty* ElementProperty = SetProp->GetElementProperty();
+		const FProperty* ElementProperty = SetProp->ElementProp;
 		FScriptSetHelper SetWrap(SetProp, SetAddress);
 		
 		const int32 AddedIndex = SetWrap.AddUninitializedValue();

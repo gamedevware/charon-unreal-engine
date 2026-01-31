@@ -14,7 +14,7 @@
 // ReSharper disable All
 
 #include "UObject/Class.h"
-#include "UObject/StrongObjectPtrTemplates.h"
+#include "UObject/StrongObjectPtr.h"
 #include "UObject/WeakFieldPtr.h"
 #include "UObject/UnrealType.h"
 #include "Templates/SharedPointer.h"

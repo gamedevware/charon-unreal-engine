@@ -18,6 +18,13 @@ public:
 		TSharedRef<FFormulaValue> const Value;
 		TSharedPtr<FFormulaValue> UpdatedValue;
 		EPropertyFlags const Flags;
+		
+		InvokeArgument(FString const& Name, TSharedRef<FFormulaValue> const& Value, const TSharedPtr<FFormulaValue>& UpdatedValue, EPropertyFlags const Flags): 
+			Name(Name), 
+			Value(Value), 
+			UpdatedValue(UpdatedValue), 
+			Flags(Flags)
+		{}
 	};
 private:
 	TMap<FString, InvokeArgument> ArgumentsByName;

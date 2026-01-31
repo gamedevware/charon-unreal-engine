@@ -252,7 +252,7 @@ FFormulaExecutionResult FNewExpression::CreateNewSet(
 	}
 	
 	if (FSetProperty* SetProperty = CastField<FSetProperty>(ExpectedType); 
-		SetProperty && ElementType->IsAssignableFrom(SetProperty->GetElementProperty(), /*bWithoutConversion*/ true))
+		SetProperty && ElementType->IsAssignableFrom(SetProperty->ElementProp, /*bWithoutConversion*/ true))
 	{
 		return MakeShared<FFormulaValue>(static_cast<FProperty*>(SetProperty));
 	}

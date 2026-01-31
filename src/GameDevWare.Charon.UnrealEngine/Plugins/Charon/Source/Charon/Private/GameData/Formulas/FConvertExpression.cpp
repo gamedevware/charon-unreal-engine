@@ -157,9 +157,9 @@ void FConvertExpression::DebugPrintTo(FString& OutValue) const
 bool FConvertExpression::TryCoerceValue(const TSharedRef<FFormulaValue>& FromValue, const TSharedPtr<IFormulaType>& InToType,
 	TSharedPtr<FFormulaValue>& OutResultValue)
 {
-	return FromValue->VisitValue([&InToType, &OutResultValue, &FromValue]<typename ValueType>(FProperty&, const ValueType& FromValuePtr) -> bool {
+	return FromValue->VisitValue([&InToType, &OutResultValue, &FromValue](FProperty&, const auto& FromValuePtr) -> bool {
 
-		using InT = std::decay_t<ValueType>;
+		using InT = std::decay_t<decltype(FromValuePtr)>;
 		
 		constexpr bool bIsInteger = std::is_integral_v<InT>;
 		constexpr bool bIsFloat = std::is_floating_point_v<InT>;

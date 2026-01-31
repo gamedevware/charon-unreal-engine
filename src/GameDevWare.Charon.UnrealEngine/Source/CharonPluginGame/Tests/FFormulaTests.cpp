@@ -30,12 +30,10 @@
 #include "GameData/Formulas/Expressions/FFormulaMemberListBinding.h"
 #include "GameData/Formulas/Expressions/FFormulaMemberMemberBinding.h"
 #include "GameData/Formulas/Expressions/FNewArrayInitExpression.h"
-#include "GameData/Formulas/Expressions/FMemberInitExpression.h"
-#include "JsonUtils/JsonConversion.h"
+#include "GameData/Formulas/FormulaTypeTraits.h"
 #include "FFormulaTestStruct.h"
 #include "Tests/TestHarnessAdapter.h"
 #include "FFormulaTestMacros.h"
-#include "GameData/FGameDataLoadOptions.h"
 
 // TODO test Null prop
 // TODO Test Struct access
@@ -96,7 +94,9 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 		TEST_EXPR_CONST_CHECK_VALUE(FString(TEXT("true")), true);
 		TEST_EXPR_CONST_CHECK_VALUE(FString(TEXT("false")), false);
 		TEST_EXPR_CONST_CHECK_VALUE(FString(TEXT("a text")), FString(TEXT("a text")));
+#if UE_VERSION_NEWER_THAN(5, 7, -1)
 		TEST_EXPR_CONST_CHECK_VALUE(FString(TEXT("a text")), FText::FromString(TEXT("a text")));
+#endif
 		TEST_EXPR_CONST_CHECK_VALUE(FString(TEXT("a text")), FName(TEXT("a text")));
 
 		// double based
@@ -117,7 +117,9 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 		TEST_EXPR_CONST_CHECK_VALUE(true, true);
 		TEST_EXPR_CONST_CHECK_VALUE(false, false);
 		TEST_EXPR_CONST_CHECK_VALUE(true, FString(TEXT("True")));
+#if UE_VERSION_NEWER_THAN(5, 7, -1)
 		TEST_EXPR_CONST_CHECK_VALUE(false, FText::FromString(TEXT("False")));
+#endif
 		TEST_EXPR_CONST_CHECK_VALUE(false, FName(TEXT("False")));
 	}
 	
@@ -155,6 +157,11 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 		TEST_EXPR_BINARY(static_cast<int32>(6), static_cast<double>(3), EBinaryOperationType::Add, +);
 		TEST_EXPR_BINARY(static_cast<float>(7), static_cast<int32>(4), EBinaryOperationType::Add, +);
 		TEST_EXPR_BINARY(static_cast<double>(8), static_cast<int32>(5), EBinaryOperationType::Add, +);
+		
+		// string
+		TEST_EXPR_BINARY_CHECK_VALUE(FString(TEXT("MyStr")), FString(TEXT("OtherMyStr")), EBinaryOperationType::Add, FString(TEXT("MyStrOtherMyStr")));
+		TEST_EXPR_BINARY_CHECK_VALUE(FString(TEXT("MyStr")), static_cast<int32>(5), EBinaryOperationType::Add, FString(TEXT("MyStr5")));
+		TEST_EXPR_BINARY_CHECK_VALUE(static_cast<int32>(5), FString(TEXT("MyStr")), EBinaryOperationType::Add, FString(TEXT("5MyStr")));
 		
 		// null lifted
 		TEST_EXPR_BINARY_CHECK_VALUE(static_cast<int32>(123), nullptr, EBinaryOperationType::Add, nullptr);
@@ -237,11 +244,13 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 		// FName, FText, FString conversion
 		TEST_EXPR_CONVERT_CHECK_VALUE(FName(TEXT("F_NAME_1_ř")), FString(TEXT("F_NAME_1_ř")), FFormulaNotation::EXPRESSION_TYPE_CONVERT);
 		TEST_EXPR_CONVERT_CHECK_VALUE(FName(TEXT("F_NAME_2_ř")), FName(TEXT("F_NAME_2_ř")), FFormulaNotation::EXPRESSION_TYPE_CONVERT);
+#if UE_VERSION_NEWER_THAN(5, 7, -1)
 		TEST_EXPR_CONVERT_CHECK_VALUE(FText::FromString(TEXT("F_TEXT_3_ř")), FString(TEXT("F_TEXT_3_ř")), FFormulaNotation::EXPRESSION_TYPE_CONVERT);
 		TEST_EXPR_CONVERT_CHECK_VALUE(FText::FromString(TEXT("F_TEXT_4_ř")), FText::FromString(TEXT("F_TEXT_4_ř")), FFormulaNotation::EXPRESSION_TYPE_CONVERT);
+		TEST_EXPR_CONVERT_CHECK_VALUE(FString(TEXT("F_STRING_7_ř")), FText::FromString(TEXT("F_STRING_7_ř")), FFormulaNotation::EXPRESSION_TYPE_CONVERT);
+#endif
 		TEST_EXPR_CONVERT_CHECK_VALUE(FString(TEXT("F_STRING_5_ř")), FName(TEXT("F_STRING_5_ř")), FFormulaNotation::EXPRESSION_TYPE_CONVERT);
 		TEST_EXPR_CONVERT_CHECK_VALUE(FString(TEXT("F_STRING_6_ř")), FString(TEXT("F_STRING_6_ř")), FFormulaNotation::EXPRESSION_TYPE_CONVERT);
-		TEST_EXPR_CONVERT_CHECK_VALUE(FString(TEXT("F_STRING_7_ř")), FText::FromString(TEXT("F_STRING_7_ř")), FFormulaNotation::EXPRESSION_TYPE_CONVERT);
 
 		// Type as - downcast
 		TEST_EXPR_CONVERT_TYPED_CHECK_VALUE(EXPR_CONST_NULL(), "AActor", nullptr, FFormulaNotation::EXPRESSION_TYPE_TYPE_AS);
@@ -266,7 +275,9 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 		TEST_EXPR_DEFAULT_CHECK_VALUE(static_cast<float>(0));
 		TEST_EXPR_DEFAULT_CHECK_VALUE(static_cast<double>(0));
 		TEST_EXPR_DEFAULT_CHECK_VALUE(FString());
+#if UE_VERSION_NEWER_THAN(5, 7, -1)
 		TEST_EXPR_DEFAULT_CHECK_VALUE(FText());
+#endif
 		TEST_EXPR_DEFAULT_CHECK_VALUE(FName());
 		TEST_EXPR_DEFAULT_CHECK_VALUE(nullptr);
 	}

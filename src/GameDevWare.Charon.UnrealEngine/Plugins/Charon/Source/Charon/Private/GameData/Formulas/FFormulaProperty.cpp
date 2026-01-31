@@ -20,8 +20,8 @@ static UScriptStruct* GetScriptStruct(const FProperty* Property)
 FFormulaProperty::FFormulaProperty(FProperty* Property, UField* DeclaringType, const bool bUseClassDefaultObject):
 	DeclaringTypePtr(DeclaringType),
 	bUseClassDefaultObject(bUseClassDefaultObject),
-	GetterFunc(CreateDefaultPropertyGetter(TWeakFieldPtr<FProperty>(Property), TWeakObjectPtr(DeclaringType))),
-	SetterFunc(CreateDefaultPropertySetter(TWeakFieldPtr<FProperty>(Property), TWeakObjectPtr(DeclaringType))),
+	GetterFunc(CreateDefaultPropertyGetter(TWeakFieldPtr<FProperty>(Property), TWeakObjectPtr<UField>(DeclaringType))),
+	SetterFunc(CreateDefaultPropertySetter(TWeakFieldPtr<FProperty>(Property), TWeakObjectPtr<UField>(DeclaringType))),
 	Property(Property)
 {
 	check(Property);
@@ -44,7 +44,7 @@ bool FFormulaProperty::TryGetValue(const TSharedRef<FFormulaValue>& InTarget, TS
 	{
 		TargetOrDefault = MakeShared<FFormulaValue>(DeclaringClass->GetDefaultObject(/*bCreateIfNeeded*/ true));
 	}
-	return this->GetterFunc.IsSet() && this->GetterFunc(TargetOrDefault, OutValue);
+	return this->GetterFunc && this->GetterFunc(TargetOrDefault, OutValue);
 }
 
 bool FFormulaProperty::TrySetValue(const TSharedRef<FFormulaValue>& InTarget, const TSharedPtr<FFormulaValue>& InValue) const
@@ -54,7 +54,7 @@ bool FFormulaProperty::TrySetValue(const TSharedRef<FFormulaValue>& InTarget, co
 	{
 		TargetOrDefaultObject = MakeShared<FFormulaValue>(DeclaringClass->GetDefaultObject(/*bCreateIfNeeded*/ true));
 	}
-	return this->SetterFunc.IsSet() && this->SetterFunc(TargetOrDefaultObject, InValue);
+	return this->SetterFunc && this->SetterFunc(TargetOrDefaultObject, InValue);
 }
 
 FFormulaPropertyGetterFunc FFormulaProperty::CreateGetterFromFunctionInvoker(FFormulaFunctionInvokeFunc FunctionInvoker)
@@ -62,7 +62,7 @@ FFormulaPropertyGetterFunc FFormulaProperty::CreateGetterFromFunctionInvoker(FFo
 	return FFormulaPropertyGetterFunc([FunctionInvoker](const TSharedRef<FFormulaValue>& Target, TSharedPtr<FFormulaValue>& Result) -> bool
 	{
 		FFormulaInvokeArguments OperationArguments;
-		return FunctionInvoker.IsSet() && FunctionInvoker(Target, OperationArguments, nullptr, nullptr, Result);
+		return FunctionInvoker && FunctionInvoker(Target, OperationArguments, nullptr, nullptr, Result);
 	});
 }
 
@@ -74,7 +74,7 @@ FFormulaPropertySetterFunc FFormulaProperty::CreateSetterFromFunctionInvoker(FFo
 			FFormulaInvokeArguments::InvokeArgument(TEXT("0"), Value.ToSharedRef(), nullptr, EPropertyFlags::CPF_None),
 		};
 		TSharedPtr<FFormulaValue> Result; // discarded
-		return FunctionInvoker.IsSet() && FunctionInvoker(Target, OperationArguments, nullptr, nullptr, Result);
+		return FunctionInvoker && FunctionInvoker(Target, OperationArguments, nullptr, nullptr, Result);
 	});
 }
 
