@@ -263,6 +263,7 @@ void FGameDataEditorToolkit::RegisterTabSpawners(const TSharedRef<FTabManager>& 
 			            .PopupMenuMethod(EPopupMethod::UseCurrentWindow)
 						.InitialURL(TEXT("about:blank"))
 			            .OnConsoleMessage_Static( &FGameDataEditorToolkit::OnBrowserConsoleMessage)
+			            .OnBeforePopup_Static(&FGameDataEditorToolkit::OnBrowserBeforePopup)
 		            ];
 	            }))
 	            .SetDisplayName(INVTEXT("Game Data"))
@@ -790,6 +791,18 @@ void FGameDataEditorToolkit::OnBrowserConsoleMessage(const FString& Message, con
 
 	}
 	
+}
+
+bool FGameDataEditorToolkit::OnBrowserBeforePopup(FString Address, FString)
+{
+	FString Error;
+	FPlatformProcess::LaunchURL(*Address, nullptr, &Error);
+	if (!Error.IsEmpty())
+	{
+		UE_LOG(LogSConnectGameDataDialog, Error, TEXT("Failed to open the URL '%s' in the OS browser due to an error. %s"), *Address, *Error);
+		return false;
+	}
+	return true;
 }
 
 void FGameDataEditorToolkit::DeferredImportGameData(FString ModuleName, FString ClassName, FString GameDataFile)
