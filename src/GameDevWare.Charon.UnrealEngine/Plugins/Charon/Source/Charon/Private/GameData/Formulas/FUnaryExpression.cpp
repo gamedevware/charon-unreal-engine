@@ -129,7 +129,7 @@ FFormulaExecutionResult FUnaryExpression::Execute(const FFormulaExecutionContext
 				break;
 
 			case EUnaryOperationType::Not:
-				if constexpr (has_logical_not<InT>::value) return !InValue;
+				if constexpr (has_logical_not<InT>::value && bIsBool) return !InValue;
 				break;
 
 			case EUnaryOperationType::Complement:
