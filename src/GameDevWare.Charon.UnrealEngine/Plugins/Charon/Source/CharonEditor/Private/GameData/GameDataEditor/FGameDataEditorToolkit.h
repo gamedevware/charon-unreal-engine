@@ -27,7 +27,7 @@ private:
 	TSharedPtr<ICharonTask> CurrentRunningCommand;
 	TSharedPtr<FCharonEditorProcessRunner> EditorProcess;
 	TSharedPtr<SWindow> PendingDialog;
-	
+
 	void LaunchCharonProcess();
 	void OpenCharonWebsite() const;
 	void BindCommands();
@@ -45,6 +45,8 @@ protected:
 	bool CanDisconnect() const;
 	void SetApiKey_Execute();
 	bool CanSetApiKey() const;
+	void ClearApiKey_Execute() const;
+	bool CanClearApiKey() const;
 	void OnSetApiKeyFinished(FString String) const;
 	void OnConnectFinished(FConnectGameDataParameters Parameters);
 	void ReplaceGameDataFile(FString String, FString String1) const;
@@ -57,6 +59,7 @@ protected:
 	static void BroadcastMissingApiKey(FText ProjectName);
 	static TSharedRef<FSlateStyleSet> GetPluginStyleSet() { return ICharonEditorModule::Get().GetStyleSet().ToSharedRef(); }
 	static void OnBrowserConsoleMessage(const FString& Message, const FString& Source, int32 Line, EWebBrowserConsoleLogSeverity Severity);
+	static bool OnBrowserBeforePopup(FString Address, FString Target);
 	static void DeferredImportGameData(FString ModuleName, FString ClassName, FString GameDataPath);
 
 public:

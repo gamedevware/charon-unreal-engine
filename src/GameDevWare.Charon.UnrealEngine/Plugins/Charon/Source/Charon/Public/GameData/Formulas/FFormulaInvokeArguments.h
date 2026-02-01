@@ -1,0 +1,47 @@
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#pragma once
+#include "FFormulaValue.h"
+#include "UObject/ObjectMacros.h"
+
+class FFormulaExecutionContext;
+class FFormulaExpression;
+
+using FUpdatedArgumentPair = TPair<TSharedRef<FFormulaValue>, TSharedRef<FFormulaValue>>;
+
+class CHARON_API FFormulaInvokeArguments
+{
+public:
+	struct InvokeArgument
+	{
+		FString const Name;
+		TSharedRef<FFormulaValue> const Value;
+		TSharedPtr<FFormulaValue> UpdatedValue;
+		EPropertyFlags const Flags;
+		
+		InvokeArgument(FString const& Name, TSharedRef<FFormulaValue> const& Value, const TSharedPtr<FFormulaValue>& UpdatedValue, EPropertyFlags const Flags): 
+			Name(Name), 
+			Value(Value), 
+			UpdatedValue(UpdatedValue), 
+			Flags(Flags)
+		{}
+	};
+private:
+	TMap<FString, InvokeArgument> ArgumentsByName;
+	
+public:
+	FFormulaInvokeArguments();
+	FFormulaInvokeArguments(std::initializer_list<InvokeArgument> InitList);
+
+	const InvokeArgument* FindArgument(const FProperty* InParameter, int32 InParameterIndex, FString& OutParameterName) const;
+
+	int Num() const;
+	
+	void InsertArgumentAt(const int32 Index, const int MaxParams, const TSharedRef<FFormulaValue>& InValue, EPropertyFlags Flags = EPropertyFlags::CPF_None);
+	void AddArgument(const FString& InParameterName, const TSharedRef<FFormulaValue>& InValue, EPropertyFlags Flags = EPropertyFlags::CPF_None);
+	void UpdateArgumentValue(const FString& InParameterName, const TSharedRef<FFormulaValue>& InUpdatedValue);
+	void GetParameterTypes(TArray<FString>& OutParameterTypes);
+	TArray<FUpdatedArgumentPair> GetUpdatedOutArguments();
+
+	static EPropertyFlags GetArgumentFlags(const TSharedPtr<FFormulaExpression>& Expression, const TSharedRef<FFormulaValue>& Value, const FFormulaExecutionContext& Context);
+};

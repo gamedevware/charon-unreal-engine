@@ -33,12 +33,14 @@
     {
       "Name": "EditorScriptingUtilities",
       "Enabled": true,
-      "Optional": false
+      "Optional": false,
+      "TargetAllowList": [ "Editor" ]
     },
     {
       "Name": "WebBrowserWidget",
       "Enabled": true,
-      "Optional": false
+      "Optional": false,
+      "TargetAllowList": [ "Editor" ]
     }
   ]
 }

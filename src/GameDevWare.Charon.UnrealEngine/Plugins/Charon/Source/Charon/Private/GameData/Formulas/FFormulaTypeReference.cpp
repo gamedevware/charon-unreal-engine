@@ -1,24 +1,32 @@
-﻿#include "GameData/Formulas/FFormulaTypeReference.h"
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#include "GameData/Formulas/FFormulaTypeReference.h"
 #include "GameData/Formulas/FExpressionBuildHelper.h"
-#include "GameData/Formulas/FFormulaConstants.h"
+#include "GameData/Formulas/FFormulaNotation.h"
 
 DEFINE_LOG_CATEGORY(LogFormulaTypeReference);
 
-FFormulaTypeReference::FFormulaTypeReference(const TSharedRef<FJsonObject>& ExpressionObj)
+FFormulaTypeReference::FFormulaTypeReference(const TSharedRef<FJsonObject>& ExpressionObj):
+	Expression(FExpressionBuildHelper::GetTypeRef(ExpressionObj, FFormulaNotation::EXPRESSION_ATTRIBUTE, true)),
+	TypeArguments(FExpressionBuildHelper::GetTypeRefArguments(ExpressionObj, FFormulaNotation::ARGUMENTS_ATTRIBUTE)),
+	Name(FExpressionBuildHelper::GetString(ExpressionObj, FFormulaNotation::NAME_ATTRIBUTE))
 {
-	TypeArguments = FExpressionBuildHelper::GetTypeRefArguments(ExpressionObj, FormulaConstants::ARGUMENTS_ATTRIBUTE);
-	Expression = FExpressionBuildHelper::GetTypeRef(ExpressionObj, FormulaConstants::EXPRESSION_ATTRIBUTE, true);
-	Name = FExpressionBuildHelper::GetString(ExpressionObj, FormulaConstants::NAME_ATTRIBUTE);
-		
-	if (TypeArguments.Num() > 0)
-	{
-		UE_LOG(LogFormulaTypeReference, Warning, TEXT("TypeArguments detected for %s. Unreal Engine C++ backend doesn't supports generics."), *Name);
-	}
+	
 }
 
-FFormulaTypeReference::FFormulaTypeReference(FString Name)
+FFormulaTypeReference::FFormulaTypeReference(const FString& Name):
+	Expression(nullptr), Name(Name)
 {
-	this->Name = Name;
+}
+
+FFormulaTypeReference::FFormulaTypeReference(const FString& Name, const TArray<TSharedPtr<FFormulaTypeReference>>& TypeArguments) :
+	Expression(nullptr), TypeArguments(TypeArguments), Name(Name)
+{
+}
+
+FFormulaTypeReference::FFormulaTypeReference(const FString& Name, const TSharedPtr<FFormulaTypeReference>& Expression,
+const TArray<TSharedPtr<FFormulaTypeReference>>& TypeArguments) : Expression(Expression), TypeArguments(TypeArguments), Name(Name)
+{
 }
 
 bool FFormulaTypeReference::IsEmpty() const
@@ -28,13 +36,28 @@ bool FFormulaTypeReference::IsEmpty() const
 
 FString FFormulaTypeReference::GetFullName(bool bWriteGenerics) const
 {
-	if (FullName.IsEmpty())
+	if (bWriteGenerics)
 	{
-		TStringBuilder<256> Builder;
-		BuildFullNameInternal(Builder, bWriteGenerics);
-		FullName = Builder.ToString();
+		if (FullNameWithGenerics.IsEmpty())
+		{
+			TStringBuilder<256> Builder;
+			BuildFullNameInternal(Builder, bWriteGenerics);
+			FullNameWithGenerics = Builder.ToString();
+		}
+	
+		return FullNameWithGenerics;
 	}
-	return FullName;
+	else
+	{
+		if (FullName.IsEmpty())
+		{
+			TStringBuilder<256> Builder;
+			BuildFullNameInternal(Builder, bWriteGenerics);
+			FullName = Builder.ToString();
+		}
+	
+		return FullName;
+	}
 }
 
 void FFormulaTypeReference::BuildFullNameInternal(FStringBuilderBase& Builder, bool bWriteGenerics) const

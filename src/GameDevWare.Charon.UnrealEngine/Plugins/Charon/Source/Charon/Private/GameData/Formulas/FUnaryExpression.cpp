@@ -1,42 +1,46 @@
-﻿#include "GameData/Formulas/FUnaryExpression.h"
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#include "GameData/Formulas/Expressions/FUnaryExpression.h"
 #include "GameData/Formulas/FExpressionBuildHelper.h"
-#include "GameData/Formulas/FFormulaConstants.h"
+#include "GameData/Formulas/FFormulaNotation.h"
+#include "GameData/Formulas/IFormulaType.h"
+#include "GameData/Formulas/FormulaTypeTraits.h"
 
 DEFINE_LOG_CATEGORY(LogUnaryExpression);
 
-EUnaryOperationType FUnaryExpression::MapUnaryOperationType(const FString& ExpressionType)
+static EUnaryOperationType MapUnaryOperationType(const FString& ExpressionType)
 {
 	EUnaryOperationType UnaryOperationType = EUnaryOperationType::Group;
 
-	if (ExpressionType == FormulaConstants::EXPRESSION_TYPE_UNCHECKED_SCOPE)
+	if (ExpressionType == FFormulaNotation::EXPRESSION_TYPE_UNCHECKED_SCOPE)
 	{
 		UnaryOperationType = EUnaryOperationType::UncheckedScope;
 	}
-	else if (ExpressionType == FormulaConstants::EXPRESSION_TYPE_CHECKED_SCOPE)
+	else if (ExpressionType == FFormulaNotation::EXPRESSION_TYPE_CHECKED_SCOPE)
 	{
 		UnaryOperationType = EUnaryOperationType::CheckedScope;
 	}
-	else if (ExpressionType == FormulaConstants::EXPRESSION_TYPE_GROUP)
+	else if (ExpressionType == FFormulaNotation::EXPRESSION_TYPE_GROUP)
 	{
 		UnaryOperationType = EUnaryOperationType::Group;
 	}
-	else if (ExpressionType == FormulaConstants::EXPRESSION_TYPE_UNARY_PLUS)
+	else if (ExpressionType == FFormulaNotation::EXPRESSION_TYPE_UNARY_PLUS)
 	{
 		UnaryOperationType = EUnaryOperationType::UnaryPlus;
 	}
-	else if (ExpressionType == FormulaConstants::EXPRESSION_TYPE_NEGATE)
+	else if (ExpressionType == FFormulaNotation::EXPRESSION_TYPE_NEGATE)
 	{
 		UnaryOperationType = EUnaryOperationType::Negate;
 	}
-	else if (ExpressionType == FormulaConstants::EXPRESSION_TYPE_NEGATE_CHECKED)
+	else if (ExpressionType == FFormulaNotation::EXPRESSION_TYPE_NEGATE_CHECKED)
 	{
 		UnaryOperationType = EUnaryOperationType::NegateChecked;
 	}
-	else if (ExpressionType == FormulaConstants::EXPRESSION_TYPE_NOT)
+	else if (ExpressionType == FFormulaNotation::EXPRESSION_TYPE_NOT)
 	{
 		UnaryOperationType = EUnaryOperationType::Not;
 	}
-	else if (ExpressionType == FormulaConstants::EXPRESSION_TYPE_COMPLEMENT)
+	else if (ExpressionType == FFormulaNotation::EXPRESSION_TYPE_COMPLEMENT)
 	{
 		UnaryOperationType = EUnaryOperationType::Complement;
 	}
@@ -47,22 +51,165 @@ EUnaryOperationType FUnaryExpression::MapUnaryOperationType(const FString& Expre
 
 	return UnaryOperationType;
 }
-
-FUnaryExpression::FUnaryExpression(const TSharedPtr<FJsonObject>& ExpressionObj)
+static FString GetUnaryOperationName(const EUnaryOperationType UnaryOperation)
 {
-	Expression = FExpressionBuildHelper::GetExpression(ExpressionObj, FormulaConstants::EXPRESSION_ATTRIBUTE);
-
-	FString ExpressionTypeStr = FExpressionBuildHelper::GetString(ExpressionObj, FormulaConstants::EXPRESSION_TYPE_ATTRIBUTE);
-	UnaryOperationType = MapUnaryOperationType(ExpressionTypeStr);
-
-	// Fallback Logic
-	switch (UnaryOperationType)
+	switch (UnaryOperation)
 	{
-	case EUnaryOperationType::NegateChecked:
-		FallbackUnaryOperationType = EUnaryOperationType::Negate;
+	case EUnaryOperationType::UnaryPlus: return TEXT("+");
+	case EUnaryOperationType::Negate: return TEXT("-");
+	case EUnaryOperationType::NegateChecked: return TEXT("-");
+	case EUnaryOperationType::Not: return TEXT("!");
+	case EUnaryOperationType::Complement: return TEXT("~");
+	case EUnaryOperationType::UncheckedScope:
+	case EUnaryOperationType::CheckedScope:
+	case EUnaryOperationType::Group: return TEXT("()");
+		default: return TEXT("Unknown");
+	}
+}
+
+FUnaryExpression::FUnaryExpression(const TSharedPtr<FJsonObject>& ExpressionObj) :
+	Expression(FExpressionBuildHelper::GetExpression(ExpressionObj, FFormulaNotation::EXPRESSION_ATTRIBUTE)),
+	UnaryOperationType(MapUnaryOperationType(FExpressionBuildHelper::GetString(ExpressionObj, FFormulaNotation::EXPRESSION_TYPE_ATTRIBUTE)))
+{
+}
+
+FUnaryExpression::FUnaryExpression(const TSharedPtr<FFormulaExpression>& Expression, const EUnaryOperationType UnaryOperationType):
+	Expression(Expression), UnaryOperationType(UnaryOperationType)
+{
+}
+
+FFormulaExecutionResult FUnaryExpression::Execute(const FFormulaExecutionContext& Context, FProperty* ExpectedType) const
+{
+	if (!this->IsValid())
+	{
+		return FFormulaExecutionError::ExpressionIsInvalid();
+	}
+
+	const auto Result = this->Expression->Execute(Context, nullptr);
+	if (Result.HasError())
+	{
+		return Result; // propagate error
+	}
+
+	const auto Operand = Result.GetValue();
+	if (Operand->IsNull())
+	{
+		return Result; // unary operations on null lifted to null
+	}
+
+	switch (this->UnaryOperationType)
+	{
+	case EUnaryOperationType::Group:
+	case EUnaryOperationType::UncheckedScope:
+	case EUnaryOperationType::CheckedScope:
+		return Result; // nop operation
+	default:
+		break;
+	}
+
+	return Operand->VisitValue([this, &Operand, &Context](const FProperty& Property, const auto& InValue) -> FFormulaExecutionResult
+	{
+		using InT = std::decay_t<decltype(InValue)>;
+		constexpr bool bIsBool = std::is_same_v<bool, InT>;
+		constexpr bool bIsSigned = std::is_signed_v<InT>;
+		constexpr bool bisPointer = std::is_pointer_v<InT>;
+		
+		if constexpr (!bisPointer)
+		{
+			// ReSharper disable once CppIncompleteSwitchStatement, CppDefaultCaseNotHandledInSwitchStatement
+			switch (this->UnaryOperationType)
+			{
+			case EUnaryOperationType::UnaryPlus:
+				if constexpr (has_unary_plus<InT>::value) return +InValue;
+				break;
+
+			case EUnaryOperationType::Negate:
+			case EUnaryOperationType::NegateChecked:
+				if constexpr (has_unary_minus<InT>::value && !bIsBool && bIsSigned) return -InValue;
+				break;
+
+			case EUnaryOperationType::Not:
+				if constexpr (has_logical_not<InT>::value && bIsBool) return !InValue;
+				break;
+
+			case EUnaryOperationType::Complement:
+				if constexpr (has_bitwise_not<InT>::value && !bIsBool) return ~InValue;
+				break;
+			}
+		}
+
+		// fallback to custom operations
+		const auto OperandType = Context.TypeResolver->GetType(Operand);
+		const FFormulaFunction* UnaryOperation;
+		if (OperandType->TryGetUnaryOperation(this->UnaryOperationType, UnaryOperation))
+		{
+			FFormulaInvokeArguments CallArguments {
+				FFormulaInvokeArguments::InvokeArgument(TEXT("0"), Operand, nullptr, FFormulaInvokeArguments::GetArgumentFlags(Expression, Operand, Context))
+			};
+			TSharedPtr<FFormulaValue> ResultValue;
+			if (UnaryOperation && UnaryOperation->TryInvoke(
+				FFormulaValue::Null(),
+				CallArguments,
+				nullptr,
+				nullptr,
+				ResultValue
+			))
+			{
+				return ResultValue;
+			}
+		}
+
+		// failed to perform binary operation
+		return FFormulaExecutionError::MissingUnaryOperation(
+			Property.GetCPPType(),
+			GetUnaryOperationName(this->UnaryOperationType));
+	});
+}
+
+bool FUnaryExpression::IsValid() const
+{
+	return this->Expression.IsValid();
+}
+
+void FUnaryExpression::DebugPrintTo(FString& OutValue) const
+{
+	bool bEnclose = this->Expression->GetType() != EFormulaExpressionType::ConstantExpression;
+	switch (this->UnaryOperationType)
+	{
+	case EUnaryOperationType::UnaryPlus: OutValue.Append("+"); break;
+	case EUnaryOperationType::Negate:
+	case EUnaryOperationType::NegateChecked: OutValue.Append("-"); break;
+	case EUnaryOperationType::Not: OutValue.Append("!"); break;
+	case EUnaryOperationType::Complement: OutValue.Append("~"); break;
+	case EUnaryOperationType::UncheckedScope:
+		bEnclose = true;
+		OutValue.Append("unchecked");
+		break;
+	case EUnaryOperationType::CheckedScope:
+		bEnclose = true;
+		OutValue.Append("checked");
+		break;
+	case EUnaryOperationType::Group:
+		bEnclose = true;
 		break;
 	default:
-		FallbackUnaryOperationType = UnaryOperationType;
+		OutValue.AppendInt(static_cast<int32>(this->UnaryOperationType));
 		break;
+	}
+	if (bEnclose)
+	{
+		OutValue.Append("(");
+	}
+	if (this->Expression.IsValid())
+	{
+		this->Expression->DebugPrintTo(OutValue);
+	}
+	else
+	{
+		OutValue.Append(TEXT("#INVALID#"));
+	}
+	if (bEnclose)
+	{
+		OutValue.Append(")");
 	}
 }

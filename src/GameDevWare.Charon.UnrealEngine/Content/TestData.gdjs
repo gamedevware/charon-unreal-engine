@@ -1,7 +1,7 @@
 { 
-	"ToolsVersion": "2025.4.3.0", 
-	"RevisionHash": "691f1767ed688d2ce80f4408", 
-	"ChangeNumber": 34, 
+	"ToolsVersion": "2026.1.1.0", 
+	"RevisionHash": "696a5f26cb7a5417480a56b2", 
+	"ChangeNumber": 36, 
 	"Collections": { 
 		"ProjectSettings": [ 
 			{ 
@@ -507,7 +507,7 @@
 						"Requirement": 0, 
 						"ReferenceType": null, 
 						"Size": 0, 
-						"Specification": "result=System.Int32&knownType=System.Guid&knownType=System.Int32&knownType=System.Boolean&param.arg1=System.Int32&param.arg2=System.Int32&param.arg3=System.Int32&param.arg4=System.Int32" 
+						"Specification": "result=System.Int32&knownType=AActor&knownType=System.Int32&knownType=System.Boolean&param.arg1=System.Int32&param.arg2=System.Int32&param.arg3=System.Int32&param.arg4=System.Int32" 
 					}, 
 					{ 
 						"Id": "5d9faf605a363a9807000024", 

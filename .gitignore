@@ -31,3 +31,6 @@ Binaries/
 
 src/GameDevWare.Charon.UnrealEngine/Saved/
 src/GameDevWare.Charon.UnrealEngine/DerivedDataCache/
+src/GameDevWare.Charon.UnrealEngine.4.2/
+src/GameDevWare.Charon.UnrealEngine.5.3/
+src/sync_projects.bat

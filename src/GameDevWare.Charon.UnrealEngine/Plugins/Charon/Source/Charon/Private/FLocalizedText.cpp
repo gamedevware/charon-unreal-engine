@@ -32,7 +32,7 @@ FLocalizedText::FLocalizedText
 {
 }
 
-FText FLocalizedText::GetCurrent()
+FText FLocalizedText::GetCurrent() const
 {
 	if (LanguageSwitcher == nullptr)
 	{

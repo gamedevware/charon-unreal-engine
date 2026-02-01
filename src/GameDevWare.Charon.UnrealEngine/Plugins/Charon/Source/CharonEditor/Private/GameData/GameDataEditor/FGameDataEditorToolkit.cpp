@@ -138,6 +138,11 @@ void FGameDataEditorToolkit::BindCommands()
 		FGameDataEditorCommands::Get().SetApiKey,
 		FExecuteAction::CreateSP(this, &FGameDataEditorToolkit::SetApiKey_Execute),
 		FCanExecuteAction::CreateSP(this, &FGameDataEditorToolkit::CanSetApiKey));
+	
+	UICommandList->MapAction(
+		FGameDataEditorCommands::Get().ClearApiKey,
+		FExecuteAction::CreateSP(this, &FGameDataEditorToolkit::ClearApiKey_Execute),
+		FCanExecuteAction::CreateSP(this, &FGameDataEditorToolkit::CanClearApiKey));
 }
 
 void FGameDataEditorToolkit::ExtendToolbar()
@@ -263,6 +268,7 @@ void FGameDataEditorToolkit::RegisterTabSpawners(const TSharedRef<FTabManager>& 
 			            .PopupMenuMethod(EPopupMethod::UseCurrentWindow)
 						.InitialURL(TEXT("about:blank"))
 			            .OnConsoleMessage_Static( &FGameDataEditorToolkit::OnBrowserConsoleMessage)
+			            .OnBeforePopup_Static(&FGameDataEditorToolkit::OnBrowserBeforePopup)
 		            ];
 	            }))
 	            .SetDisplayName(INVTEXT("Game Data"))
@@ -349,6 +355,7 @@ void FGameDataEditorToolkit::OpenCharonWebsite() const
 	const auto ProjectName = GameData->AssetImportData->ProjectName;
 	const auto BranchId = GameData->AssetImportData->BranchId;
 	const auto ServerAddress = GameData->AssetImportData->ServerAddress;
+	const auto bUseApiKeyToSyncOnly = GameData->AssetImportData->UseApiKeyToSyncOnly;
 	auto ServerApiClient = FServerApiClient(ServerAddress);
 
 	FString BranchAddress = ServerApiClient.GetGameDataUrl(ProjectId, BranchId);
@@ -360,7 +367,8 @@ void FGameDataEditorToolkit::OpenCharonWebsite() const
 	}
 
 	FString ApiKey;
-	if (!FApiKeyStorage::LoadApiKey(ServerAddress, ProjectId, ApiKey) ||
+	if (bUseApiKeyToSyncOnly ||
+		!FApiKeyStorage::LoadApiKey(ServerAddress, ProjectId, ApiKey) ||
 		!ServerApiClient.GetLoginCode(ApiKey, OnGetLoginCodeResponse::CreateSP(
 			this, &FGameDataEditorToolkit::OnGetLoginCodeResponse, BranchAddress)))
 	{
@@ -614,6 +622,18 @@ bool FGameDataEditorToolkit::CanSetApiKey() const
 	                                                       GameData->AssetImportData->ProjectId);
 }
 
+void FGameDataEditorToolkit::ClearApiKey_Execute() const
+{
+	FApiKeyStorage::ClearApiKey(GameData->AssetImportData->ServerAddress,
+														   GameData->AssetImportData->ProjectId);
+}
+
+bool FGameDataEditorToolkit::CanClearApiKey() const
+{
+	return CanDisconnect() && FApiKeyStorage::IsKeyExists(GameData->AssetImportData->ServerAddress,
+													   GameData->AssetImportData->ProjectId);
+}
+
 void FGameDataEditorToolkit::OnSetApiKeyFinished(FString ApiKey) const
 {
 	if (!CanDisconnect()) { return; }
@@ -790,6 +810,18 @@ void FGameDataEditorToolkit::OnBrowserConsoleMessage(const FString& Message, con
 
 	}
 	
+}
+
+bool FGameDataEditorToolkit::OnBrowserBeforePopup(FString Address, FString)
+{
+	FString Error;
+	FPlatformProcess::LaunchURL(*Address, nullptr, &Error);
+	if (!Error.IsEmpty())
+	{
+		UE_LOG(LogSConnectGameDataDialog, Error, TEXT("Failed to open the URL '%s' in the OS browser due to an error. %s"), *Address, *Error);
+		return false;
+	}
+	return true;
 }
 
 void FGameDataEditorToolkit::DeferredImportGameData(FString ModuleName, FString ClassName, FString GameDataFile)

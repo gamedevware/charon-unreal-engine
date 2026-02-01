@@ -9,6 +9,6 @@ public class CharonPluginGame : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[] { "GameplayAbilities" });
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "NavigationSystem", "AIModule", "Niagara", "EnhancedInput", "Charon", "TestData" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "NavigationSystem", "AIModule", "Niagara", "EnhancedInput", "Charon", "Json", "TestData" });
     }
 }

@@ -27,6 +27,18 @@ void FApiKeyStorage::SaveApiKey(const FString& ServerAddress, const FString& Pro
 	}
 }
 
+void FApiKeyStorage::ClearApiKey(const FString& ServerAddress, const FString& ProjectId)
+{
+	const auto KeyFilePath = GetOrCreateKeyDirectory() / GetKeyFileName(ServerAddress, ProjectId);
+	const auto FileManager = &IFileManager::Get();
+	
+	const bool bRemoved = FileManager->Delete(*KeyFilePath, /*RequireExists*/ false, /*EvenReadOnly*/ true, /*Quiet*/ false);
+	if(!bRemoved)
+	{
+		UE_LOG(LogFApiKeyStorage, Error, TEXT("Failed to remove API Key from file '%s'."), *KeyFilePath);
+	}
+}
+
 FString FApiKeyStorage::GetOrCreateKeyDirectory()
 {
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();

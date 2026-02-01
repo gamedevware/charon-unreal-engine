@@ -1,25 +1,27 @@
-﻿#pragma once
+﻿// Copyright GameDevWare, Denis Zykov 2025
+
+#pragma once
 
 #include "CoreMinimal.h"
 #include "CoreTypes.h"
 #include "Containers/Map.h"
 #include "Templates/SharedPointer.h"
 #include "FFormulaTypeResolver.h"
-#include "FFormulaVariableValue.h"
+#include "FFormulaValue.h"
 
 class CHARON_API FFormulaExecutionContext
 {
 public:
-	bool AutoNullPropagation;
-	TMap<FString, FFormulaVariableValue> Arguments;
-	FFormulaVariableValue Global;
-	TSharedRef<FFormulaTypeResolver> TypeResolver;
+	const bool AutoNullPropagation;
+	mutable  TMap<FString, const TSharedRef<FFormulaValue>> Arguments;
+	const TSharedRef<FFormulaValue> Global;
+	const TSharedRef<FFormulaTypeResolver> TypeResolver;
 	
 	FFormulaExecutionContext
 	(
 		bool bAutoNullPropagation,
-		const TMap<FString, FFormulaVariableValue>& Arguments,
-		const FFormulaVariableValue& Global,
+		const TMap<FString, const TSharedRef<FFormulaValue>>& Arguments,
+		const TSharedRef<FFormulaValue>& Global,
 		const TSharedRef<FFormulaTypeResolver>& TypeResolver
 	);
 };
