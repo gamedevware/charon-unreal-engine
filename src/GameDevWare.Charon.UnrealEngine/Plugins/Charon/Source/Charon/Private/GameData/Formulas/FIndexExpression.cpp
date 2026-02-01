@@ -89,7 +89,7 @@ FFormulaExecutionResult FIndexExpression::Execute(const FFormulaExecutionContext
 	if (const FArrayProperty* ArrayProp = CastField<FArrayProperty>(TargetType);
 		ArrayProp && PreparedArguments.Num() == 1 && PreparedArguments[0]->TryGetInt32(ArrayIndex))
 	{
-		void* ArrayAddress;
+		void* ArrayAddress = nullptr;
 		check(Target->TryGetContainerAddress(ArrayAddress));
 		check(ArrayAddress != nullptr);
 		
@@ -106,7 +106,7 @@ FFormulaExecutionResult FIndexExpression::Execute(const FFormulaExecutionContext
 	else if (const FSetProperty* SetProp = CastField<FSetProperty>(TargetType);
 		SetProp && PreparedArguments.Num() == 1  && PreparedArguments[0]->TryGetInt32(ArrayIndex))
 	{
-		void* SetAddress;
+		void* SetAddress = nullptr;
 		check(Target->TryGetContainerAddress(SetAddress));
 		check(SetAddress != nullptr);
 
@@ -123,7 +123,7 @@ FFormulaExecutionResult FIndexExpression::Execute(const FFormulaExecutionContext
 	else if (const FMapProperty* MapProp = CastField<FMapProperty>(TargetType);
 		MapProp && PreparedArguments.Num() == 1)
 	{
-		void* MapAddress;
+		void* MapAddress = nullptr;
 		check(Target->TryGetContainerAddress(MapAddress));
 		check(MapAddress != nullptr);
 

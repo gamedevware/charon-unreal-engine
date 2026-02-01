@@ -86,7 +86,7 @@ FFormulaExecutionResult FFormulaElementInitBinding::Apply(const TSharedRef<FForm
 			return FFormulaExecutionError::CollectionAddFailed(FFormulaValue::GetExtendedCppName(CollectionType), GetValueTypes(AddValues));
 		}
 		
-		void* ArrayAddress;
+		void* ArrayAddress = nullptr;
 		check(Target->TryGetContainerAddress(ArrayAddress));
 		check(ArrayAddress != nullptr);
 		
@@ -113,7 +113,7 @@ FFormulaExecutionResult FFormulaElementInitBinding::Apply(const TSharedRef<FForm
 			return FFormulaExecutionError::CollectionAddFailed(FFormulaValue::GetExtendedCppName(CollectionType), GetValueTypes(AddValues));
 		}
 		
-		void* SetAddress;
+		void* SetAddress = nullptr;
 		check(Target->TryGetContainerAddress(SetAddress));
 		check(SetAddress != nullptr);
 
@@ -139,7 +139,7 @@ FFormulaExecutionResult FFormulaElementInitBinding::Apply(const TSharedRef<FForm
 		{
 			return FFormulaExecutionError::CollectionAddFailed(FFormulaValue::GetExtendedCppName(CollectionType), GetValueTypes(AddValues));
 		}
-		void* MapAddress;
+		void* MapAddress = nullptr;
 		check(Target->TryGetContainerAddress(MapAddress));
 		check(MapAddress != nullptr);
 		
@@ -181,7 +181,7 @@ void FFormulaElementInitBinding::CompleteCollectionInitialization(const TSharedR
 	const FProperty* CollectionType = Target->GetType();
 	if (const FSetProperty* SetProp = CastField<FSetProperty>(CollectionType))
 	{
-		void* SetAddress;
+		void* SetAddress = nullptr;
 		check(Target->TryGetContainerAddress(SetAddress));
 		check(SetAddress != nullptr);
 
@@ -192,7 +192,7 @@ void FFormulaElementInitBinding::CompleteCollectionInitialization(const TSharedR
 	}
 	else if (const FMapProperty* MapProp = CastField<FMapProperty>(CollectionType))
 	{
-		void* MapAddress;
+		void* MapAddress = nullptr;
 		check(Target->TryGetContainerAddress(MapAddress));
 		check(MapAddress != nullptr);
 		

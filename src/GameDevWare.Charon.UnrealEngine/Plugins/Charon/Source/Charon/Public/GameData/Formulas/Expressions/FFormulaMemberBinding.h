@@ -2,9 +2,11 @@
 
 #pragma once
 
+#include "Dom/JsonObject.h"
 #include "GameData/Formulas/EFormulaExpressionType.h"
-#include "GameData/Formulas/FFormulaExecutionResult.h"
 #include "GameData/Formulas/FFormulaExecutionContext.h"
+#include "GameData/Formulas/FFormulaExecutionResult.h"
+#include "Templates/SharedPointer.h"
 
 class FFormulaProperty;
 

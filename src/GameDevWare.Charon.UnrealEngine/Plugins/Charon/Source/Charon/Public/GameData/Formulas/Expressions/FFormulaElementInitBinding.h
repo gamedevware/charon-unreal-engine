@@ -1,12 +1,12 @@
 ﻿// Copyright GameDevWare, Denis Zykov 2025
 
 #pragma once
-#include "Templates/SharedPointer.h"
 #include "Containers/Array.h"
+#include "Dom/JsonObject.h"
 #include "GameData/Formulas/EFormulaExpressionType.h"
 #include "GameData/Formulas/FFormulaExecutionContext.h"
 #include "GameData/Formulas/FFormulaExecutionResult.h"
-#include "Dom/JsonObject.h"
+#include "Templates/SharedPointer.h"
 
 class FFormulaExpression;
 
