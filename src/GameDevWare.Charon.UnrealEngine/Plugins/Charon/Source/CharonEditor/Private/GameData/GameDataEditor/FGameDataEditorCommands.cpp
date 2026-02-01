@@ -20,6 +20,7 @@ void FGameDataEditorCommands::RegisterCommands()
 	UI_COMMAND(Disconnect, "Disconnect...", "Stop syncing local and online game data.", EUserInterfaceActionType::Button, FInputChord());
 	UI_COMMAND(Synchronize, "Synchronize", "Update local game data from an online source and then reimport it into your assets.", EUserInterfaceActionType::Button, FInputChord());
 
-	UI_COMMAND(SetApiKey, "Set Api Key...", "Update API Key for a connected game data.", EUserInterfaceActionType::Button, FInputChord());
+	UI_COMMAND(SetApiKey, "Set API Key...", "Update API Key for a connected game data.", EUserInterfaceActionType::Button, FInputChord());
+	UI_COMMAND(ClearApiKey, "Clear API Key...", "Clear saved API Key for a connected game data.", EUserInterfaceActionType::Button, FInputChord());
 }
 #undef LOCTEXT_NAMESPACE

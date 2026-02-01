@@ -45,6 +45,8 @@ protected:
 	bool CanDisconnect() const;
 	void SetApiKey_Execute();
 	bool CanSetApiKey() const;
+	void ClearApiKey_Execute() const;
+	bool CanClearApiKey() const;
 	void OnSetApiKeyFinished(FString String) const;
 	void OnConnectFinished(FConnectGameDataParameters Parameters);
 	void ReplaceGameDataFile(FString String, FString String1) const;

@@ -32,4 +32,5 @@ public:
 	TSharedPtr<FUICommandInfo> Connect;
 	TSharedPtr<FUICommandInfo> Disconnect;
 	TSharedPtr<FUICommandInfo> SetApiKey;
+	TSharedPtr<FUICommandInfo> ClearApiKey;
 };

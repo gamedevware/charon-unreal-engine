@@ -10,6 +10,7 @@ public:
 	static bool IsKeyExists(const FString& ServerAddress, const FString& ProjectId);
 	static bool LoadApiKey(const FString& ServerAddress, const FString& ProjectId, FString& OutApiKey);
 	static void SaveApiKey(const FString& ServerAddress, const FString& ProjectId, const FString& ApiKey);
+	static void ClearApiKey(const FString& ServerAddress, const FString& ProjectId);
 
 private:
 	static FString GetOrCreateKeyDirectory();

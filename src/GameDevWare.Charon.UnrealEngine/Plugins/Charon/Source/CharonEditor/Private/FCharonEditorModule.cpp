@@ -28,8 +28,9 @@ void FCharonEditorModule::StartupModule()
 	PropertyModule.RegisterCustomPropertyTypeLayout(
 		FGameDataDocumentReference::StaticStruct()->GetFName(),
 		FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGameDataDocumentReferenceCustomization::MakeInstance));
+	
 	PropertyModule.NotifyCustomizationModuleChanged();
-
+	
 	// register re-import handler
 	GameDataReimportHandler = FGameDataReimportHandler();
 	FReimportManager::Instance()->RegisterHandler(GameDataReimportHandler);
@@ -55,7 +56,7 @@ void FCharonEditorModule::StartupModule()
 	StyleSet->Set("Cpp128", new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Cpp128"), TEXT(".png")), Icon128));
 	StyleSet->Set("Icon128", new FSlateImageBrush(StyleSet->RootToContentDir(TEXT("Icon128"), TEXT(".png")), Icon128));
 	FSlateStyleRegistry::RegisterSlateStyle(*StyleSet.Get());
-
+	
 	FEditorDelegates::OnEditorInitialized.AddLambda([](double)
 	{
 		FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([](float)
