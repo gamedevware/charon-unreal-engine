@@ -6,7 +6,7 @@
 #include "GameData/Formulas/IFormulaType.h"
 
 FFormulaMemberMemberBinding::FFormulaMemberMemberBinding(const TSharedRef<FJsonObject>& ExpressionObj) :
-	FFormulaMemberBinding(RawMemberName),
+	FFormulaMemberBinding(GetExpressionRawMemberName(ExpressionObj)),
 	Bindings(FExpressionBuildHelper::GetBindings(ExpressionObj, FFormulaNotation::BINDINGS_ATTRIBUTE))
 {
 }
