@@ -72,6 +72,11 @@ public:
 	 */
 	UPROPERTY(BlueprintReadOnly, Category="Game Data")
 	FString BranchName;
+	/*
+	 * Use saved API KEY only for purpose of syncing data.
+	 */
+	UPROPERTY(BlueprintReadOnly, Category="Game Data")
+	bool UseApiKeyToSyncOnly;
 #endif
 	
 	/*

@@ -1978,6 +1978,7 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->ParameterRaw = Document->ParameterRaw;
 				ExistingDocument->Value = Document->Value;
 				ExistingDocument->ConditionRaw = Document->ConditionRaw;
+				ExistingDocument->EffectTags = Document->EffectTags;
 
 				TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
@@ -2034,6 +2035,20 @@ bool URpgGameData::ReadDocument
 			if (!bReadSuccess)
 			{
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("ParameterValue.Condition"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("EffectTags"))
+		{
+			if (Reader->IsNull())
+			{
+				Reader->ReadNext();
+				continue;
+			}
+			bReadSuccess = Reader->ReadValue(Document->EffectTags) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("ParameterValue.EffectTags"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
 		}
@@ -2237,6 +2252,7 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->Armors = Document->Armors;
 				ExistingDocument->Weapons = Document->Weapons;
 				ExistingDocument->Picture = Document->Picture;
+				ExistingDocument->PictureBounds = Document->PictureBounds;
 
 				TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
@@ -2545,6 +2561,20 @@ bool URpgGameData::ReadDocument
 			if (!bReadSuccess)
 			{
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("Hero.Picture"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("PictureBounds"))
+		{
+			if (Reader->IsNull())
+			{
+				UE_LOG(LogURpgGameData, Error, TEXT("Unexpected null value for property '%s' of document. Path: %s."), TEXT("Hero.PictureBounds"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			bReadSuccess = Reader->ReadValue(Document->PictureBounds) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("Hero.PictureBounds"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
 		}
@@ -5798,6 +5828,7 @@ TSharedPtr<FJsonValue> URpgGameData::MergeDocument(TSharedRef<FJsonValue> Origin
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Parameter"));
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Value"));
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Condition"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("EffectTags"));
 	}
 	else
 	if constexpr (std::is_same_v<DocumentType, UProvision>)
@@ -5831,6 +5862,7 @@ TSharedPtr<FJsonValue> URpgGameData::MergeDocument(TSharedRef<FJsonValue> Origin
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Armors"), OptionalMergeValueFunc([this](TSharedRef<FJsonValue> OriginalValue, TSharedRef<FJsonValue> ModifiedValue) { return MergeDocumentCollection<UArmor>(OriginalValue, ModifiedValue, true); }));
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Weapons"), OptionalMergeValueFunc([this](TSharedRef<FJsonValue> OriginalValue, TSharedRef<FJsonValue> ModifiedValue) { return MergeDocumentCollection<UWeapon>(OriginalValue, ModifiedValue, true); }));
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Picture"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("PictureBounds"));
 	}
 	else
 	if constexpr (std::is_same_v<DocumentType, UItem>)

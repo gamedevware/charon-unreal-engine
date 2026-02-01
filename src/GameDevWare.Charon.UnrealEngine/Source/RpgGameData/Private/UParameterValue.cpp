@@ -19,11 +19,15 @@
 const FString UParameterValue::SchemaId = TEXT("59f5b11030bb84165c06b54e");
 const FString UParameterValue::SchemaName = TEXT("ParameterValue");
 
-UParameter* UParameterValue::GetParameter() {
+UParameter* UParameterValue::GetParameter() const {
 		FGameDataDocumentReference::GetReferencedDocument(ParameterRaw, _parameterDocument);
 		return _parameterDocument;
 }
-UCondition* UParameterValue::GetCondition() {
+UCondition* UParameterValue::GetCondition() const {
 		FGameDataDocumentReference::GetReferencedDocument(ConditionRaw, _conditionDocument);
 		return _conditionDocument;
+}
+TArray<FString> UParameterValue::GetParsedEffectTags() const
+{
+	return UGameDataLibrary::ParseTags(this->EffectTags);
 }

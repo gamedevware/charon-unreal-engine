@@ -16,6 +16,7 @@
 #include "GameData/UGameDataDocument.h"
 #include "GameData/FGameDataDocumentReference.h"
 #include "GameData/FLocalizedText.h"
+#include "GameData/UGameDataLibrary.h"
 #include "JsonObjectWrapper.h"
 
 #include "EParameterId.h"
@@ -38,11 +39,11 @@ public:
 	/**
 	  * De-referenced document of MinValueParameter. Should not be directly used.
 	  */
-	UParameter* _minValueParameterDocument;
+	mutable UParameter* _minValueParameterDocument;
 	/**
 	  * De-referenced document of MaxValueParameter. Should not be directly used.
 	  */
-	UParameter* _maxValueParameterDocument;
+	mutable UParameter* _maxValueParameterDocument;
 public:
 	/**
 	  * Id property of Pick List type. Not Null, Unique.
@@ -63,7 +64,7 @@ public:
 	  * Min Value Parameter property of Reference type. Can Be Null.
 	  */
 	UFUNCTION(BlueprintCallable)
-	UParameter* GetMinValueParameter();
+	UParameter* GetMinValueParameter() const;
 	/**
 	  * Raw value of MinValueParameter.
 	  */
@@ -73,7 +74,7 @@ public:
 	  * Max Value Parameter property of Reference type. Can Be Null.
 	  */
 	UFUNCTION(BlueprintCallable)
-	UParameter* GetMaxValueParameter();
+	UParameter* GetMaxValueParameter() const;
 	/**
 	  * Raw value of MaxValueParameter.
 	  */

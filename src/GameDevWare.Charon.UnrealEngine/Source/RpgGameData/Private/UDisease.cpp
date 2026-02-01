@@ -18,6 +18,6 @@
 const FString UDisease::SchemaId = TEXT("59f5d3a7983a361970003662");
 const FString UDisease::SchemaName = TEXT("Disease");
 
-FText UDisease::GetName() {
+FText UDisease::GetName() const {
 	return NameRaw.GetCurrent();
 }

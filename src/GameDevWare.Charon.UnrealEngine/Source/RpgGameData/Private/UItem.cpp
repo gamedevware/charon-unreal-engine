@@ -18,9 +18,9 @@
 const FString UItem::SchemaId = TEXT("59f5b3f130bb84165c06b56b");
 const FString UItem::SchemaName = TEXT("Item");
 
-FText UItem::GetName() {
+FText UItem::GetName() const {
 	return NameRaw.GetCurrent();
 }
-FText UItem::GetDescription() {
+FText UItem::GetDescription() const {
 	return DescriptionRaw.GetCurrent();
 }

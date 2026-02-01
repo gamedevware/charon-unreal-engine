@@ -23,8 +23,8 @@ struct CHARON_API FLocalizedText
 	GENERATED_BODY()
 
 private:
-	FString CurrentValueLanguageId;
-	FText Current;
+	mutable FString CurrentValueLanguageId;
+	mutable FText Current;
 	
 	UPROPERTY()
 	ULanguageSwitcher* LanguageSwitcher;
@@ -44,6 +44,6 @@ public:
 	/*
 	 * Get FText of currently selected language. Use SetLanguage() method on your UGameDataBase-derived class to change current FText for whole game data.
 	 */
-	FText GetCurrent();
+	FText GetCurrent() const;
 };
 

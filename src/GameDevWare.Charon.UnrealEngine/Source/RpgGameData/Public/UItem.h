@@ -16,6 +16,7 @@
 #include "GameData/UGameDataDocument.h"
 #include "GameData/FGameDataDocumentReference.h"
 #include "GameData/FLocalizedText.h"
+#include "GameData/UGameDataLibrary.h"
 #include "JsonObjectWrapper.h"
 
 #include "UItem.generated.h"
@@ -44,7 +45,7 @@ public:
 	  * Name property of Localized Text type. Not Null.
 	  */
 	UFUNCTION(BlueprintCallable)
-	FText GetName();
+	FText GetName() const;
 	/**
 	  * Raw value of Name.
 	  */
@@ -54,7 +55,7 @@ public:
 	  * Description property of Localized Text type. Can Be Null.
 	  */
 	UFUNCTION(BlueprintCallable)
-	FText GetDescription();
+	FText GetDescription() const;
 	/**
 	  * Raw value of Description.
 	  */

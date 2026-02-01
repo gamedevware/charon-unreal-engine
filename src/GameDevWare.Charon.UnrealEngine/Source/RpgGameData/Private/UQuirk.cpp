@@ -18,6 +18,6 @@
 const FString UQuirk::SchemaId = TEXT("59f5d728983a361970003684");
 const FString UQuirk::SchemaName = TEXT("Quirk");
 
-FText UQuirk::GetName() {
+FText UQuirk::GetName() const {
 	return NameRaw.GetCurrent();
 }

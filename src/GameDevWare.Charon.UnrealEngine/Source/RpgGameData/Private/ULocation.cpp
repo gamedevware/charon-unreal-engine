@@ -17,6 +17,6 @@
 const FString ULocation::SchemaId = TEXT("59f5b57530bb84165c06b579");
 const FString ULocation::SchemaName = TEXT("Location");
 
-FText ULocation::GetName() {
+FText ULocation::GetName() const {
 	return NameRaw.GetCurrent();
 }

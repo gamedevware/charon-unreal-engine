@@ -18,6 +18,6 @@
 const FString UCondition::SchemaId = TEXT("59f5dedf983a361970003697");
 const FString UCondition::SchemaName = TEXT("Conditions");
 
-FText UCondition::GetDescription() {
+FText UCondition::GetDescription() const {
 	return DescriptionRaw.GetCurrent();
 }

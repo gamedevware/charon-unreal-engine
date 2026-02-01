@@ -16,6 +16,7 @@
 #include "GameData/UGameDataDocument.h"
 #include "GameData/FGameDataDocumentReference.h"
 #include "GameData/FLocalizedText.h"
+#include "GameData/UGameDataLibrary.h"
 #include "JsonObjectWrapper.h"
 
 #include "ECurioType.h"
@@ -40,7 +41,7 @@ public:
 	/**
 	  * De-referenced collection of documents for Locations. Should not be directly used.
 	  */
-	TMap<FString,ULocation*> _locationsDocuments;
+	mutable TMap<FString,ULocation*> _locationsDocuments;
 public:
 	/**
 	  * Id property of Text type. Not Empty, Unique.
@@ -56,7 +57,7 @@ public:
 	  * Name property of Localized Text type. Not Null.
 	  */
 	UFUNCTION(BlueprintCallable)
-	FText GetName();
+	FText GetName() const;
 	/**
 	  * Raw value of Name.
 	  */
@@ -66,7 +67,7 @@ public:
 	  * Description property of Localized Text type. Not Null.
 	  */
 	UFUNCTION(BlueprintCallable)
-	FText GetDescription();
+	FText GetDescription() const;
 	/**
 	  * Raw value of Description.
 	  */
@@ -86,7 +87,7 @@ public:
 	  * Locations property of Reference Collection type. Not Null.
 	  */
 	UFUNCTION(BlueprintCallable)
-	TMap<FString,ULocation*> GetLocations();
+	TMap<FString,ULocation*> GetLocations() const;
 	/**
 	  * Raw value of Locations.
 	  */

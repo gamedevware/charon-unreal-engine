@@ -16,6 +16,7 @@
 #include "GameData/UGameDataDocument.h"
 #include "GameData/FGameDataDocumentReference.h"
 #include "GameData/FLocalizedText.h"
+#include "GameData/UGameDataLibrary.h"
 #include "JsonObjectWrapper.h"
 
 #include "UCurioCleansingOption.generated.h"
@@ -39,7 +40,7 @@ public:
 	/**
 	  * De-referenced document of Item. Should not be directly used.
 	  */
-	UItem* _itemDocument;
+	mutable UItem* _itemDocument;
 public:
 	/**
 	  * Id property of Integer type. Not Null, Unique.
@@ -55,7 +56,7 @@ public:
 	  * Cleansing item. Can Be Null.
 	  */
 	UFUNCTION(BlueprintCallable)
-	UItem* GetItem();
+	UItem* GetItem() const;
 	/**
 	  * Raw value of Item.
 	  */

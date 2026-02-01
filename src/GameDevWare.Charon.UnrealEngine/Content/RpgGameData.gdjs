@@ -1,7 +1,7 @@
 { 
-	"ToolsVersion": "2025.4.3.0", 
-	"RevisionHash": "69136f5cfb88485470c723bd", 
-	"ChangeNumber": 26, 
+	"ToolsVersion": "2026.1.2.0", 
+	"RevisionHash": "697f24a06684a64744fe7769", 
+	"ChangeNumber": 34, 
 	"Collections": { 
 		"ProjectSettings": [ 
 			{ 
@@ -365,7 +365,7 @@
 						"SharedProperty": null, 
 						"Name": "Id", 
 						"DisplayName": "Id", 
-						"Description": null, 
+						"Description": "", 
 						"DataType": 13, 
 						"DefaultValue": null, 
 						"Uniqueness": 1, 
@@ -379,7 +379,7 @@
 						"SharedProperty": null, 
 						"Name": "Parameter", 
 						"DisplayName": "Parameter", 
-						"Description": null, 
+						"Description": "", 
 						"DataType": 28, 
 						"DefaultValue": null, 
 						"Uniqueness": 0, 
@@ -396,7 +396,7 @@
 						"SharedProperty": null, 
 						"Name": "Value", 
 						"DisplayName": "Value", 
-						"Description": null, 
+						"Description": "", 
 						"DataType": 12, 
 						"DefaultValue": "0.00", 
 						"Uniqueness": 0, 
@@ -410,7 +410,7 @@
 						"SharedProperty": null, 
 						"Name": "Condition", 
 						"DisplayName": "Condition", 
-						"Description": null, 
+						"Description": "", 
 						"DataType": 28, 
 						"DefaultValue": null, 
 						"Uniqueness": 0, 
@@ -421,6 +421,20 @@
 						}, 
 						"Size": 0, 
 						"Specification": null 
+					}, 
+					{ 
+						"Id": "697f24126684a64744fe7762", 
+						"SharedProperty": null, 
+						"Name": "EffectTags", 
+						"DisplayName": "Effect Tags", 
+						"Description": "", 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": "editor=tags-collection&allowMultiple=true" 
 					} 
 				] 
 			}, 
@@ -808,6 +822,20 @@
 						"ReferenceType": null, 
 						"Size": 0, 
 						"Specification": "editor=asset&allowMultiple=false&layout.order=1&layout.rowName=picture-row" 
+					}, 
+					{ 
+						"Id": "697f247c6684a64744fe7766", 
+						"SharedProperty": null, 
+						"Name": "PictureBounds", 
+						"DisplayName": "Picture Bounds", 
+						"Description": "", 
+						"DataType": 0, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 2, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": "editor=rectangle" 
 					} 
 				] 
 			}, 
@@ -3434,7 +3462,8 @@
 							"DisplayName": "Max Hit Points Percent" 
 						}, 
 						"Value": -0.2, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					} 
 				] 
 			}, 
@@ -3452,7 +3481,8 @@
 							"DisplayName": "Damage Percent" 
 						}, 
 						"Value": -0.2, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					} 
 				] 
 			}, 
@@ -3470,7 +3500,8 @@
 							"DisplayName": "Virtue Chance" 
 						}, 
 						"Value": -0.15, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					} 
 				] 
 			}, 
@@ -3488,7 +3519,8 @@
 							"DisplayName": "Bleed Resistance" 
 						}, 
 						"Value": -0.5, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					} 
 				] 
 			}, 
@@ -3506,7 +3538,8 @@
 							"DisplayName": "Accuracy" 
 						}, 
 						"Value": -0.1, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 14, 
@@ -3515,7 +3548,8 @@
 							"DisplayName": "Damage Percent" 
 						}, 
 						"Value": 0.15, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					} 
 				] 
 			}, 
@@ -3533,7 +3567,8 @@
 							"DisplayName": "Max Hit Points Percent" 
 						}, 
 						"Value": -0.1, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 18, 
@@ -3542,7 +3577,8 @@
 							"DisplayName": "Dodge" 
 						}, 
 						"Value": -0.2, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					} 
 				] 
 			} 
@@ -3682,7 +3718,8 @@
 						"Speed": 5 
 					} 
 				], 
-				"Picture": "\/Game\/Characters\/Portraits\/Crossbower_Portrait.Crossbower_Portrait" 
+				"Picture": "\/Game\/Characters\/Portraits\/Crossbower_Portrait.Crossbower_Portrait", 
+				"PictureBounds": "1 1 99 99" 
 			}, 
 			{ 
 				"Id": "Monstrosity", 
@@ -3815,7 +3852,8 @@
 						"Speed": 9 
 					} 
 				], 
-				"Picture": "\/Game\/Characters\/Portraits\/Monstrosity_Portrait.Monstrosity_Portrait" 
+				"Picture": "\/Game\/Characters\/Portraits\/Monstrosity_Portrait.Monstrosity_Portrait", 
+				"PictureBounds": "2 2 98 98" 
 			}, 
 			{ 
 				"Id": "Zealot", 
@@ -3955,7 +3993,8 @@
 						"Speed": 3 
 					} 
 				], 
-				"Picture": "\/Game\/Characters\/Portraits\/Zealot_Portrait.Zealot_Portrait" 
+				"Picture": "\/Game\/Characters\/Portraits\/Zealot_Portrait.Zealot_Portrait", 
+				"PictureBounds": "3 3 97 97" 
 			} 
 		], 
 		"Item": [ 
@@ -4384,7 +4423,8 @@
 							"DisplayName": "Max Hit Points" 
 						}, 
 						"Value": 10, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 136, 
@@ -4393,7 +4433,8 @@
 							"DisplayName": "Dodge" 
 						}, 
 						"Value": 0.125, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 137, 
@@ -4402,7 +4443,8 @@
 							"DisplayName": "Speed" 
 						}, 
 						"Value": 8, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 138, 
@@ -4411,7 +4453,8 @@
 							"DisplayName": "Stun Resistance" 
 						}, 
 						"Value": 0.1, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 139, 
@@ -4420,7 +4463,8 @@
 							"DisplayName": "Blight Resistance" 
 						}, 
 						"Value": 0.1, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 140, 
@@ -4429,7 +4473,8 @@
 							"DisplayName": "Bleed Resistance" 
 						}, 
 						"Value": 2, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 141, 
@@ -4438,7 +4483,8 @@
 							"DisplayName": "Debuff Resistance" 
 						}, 
 						"Value": 0.15, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 142, 
@@ -4447,7 +4493,8 @@
 							"DisplayName": "Move Resistance" 
 						}, 
 						"Value": 0.1, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					} 
 				], 
 				"Locations": [ 
@@ -4473,7 +4520,8 @@
 							"DisplayName": "Max Hit Points" 
 						}, 
 						"Value": 10, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 128, 
@@ -4482,7 +4530,8 @@
 							"DisplayName": "Protection" 
 						}, 
 						"Value": 0.15, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 129, 
@@ -4491,7 +4540,8 @@
 							"DisplayName": "Speed" 
 						}, 
 						"Value": 2, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 130, 
@@ -4500,7 +4550,8 @@
 							"DisplayName": "Stun Resistance" 
 						}, 
 						"Value": 0.2, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 131, 
@@ -4509,7 +4560,8 @@
 							"DisplayName": "Blight Resistance" 
 						}, 
 						"Value": 0.1, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 132, 
@@ -4518,7 +4570,8 @@
 							"DisplayName": "Bleed Resistance" 
 						}, 
 						"Value": 2, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 133, 
@@ -4527,7 +4580,8 @@
 							"DisplayName": "Debuff Resistance" 
 						}, 
 						"Value": 0.15, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 134, 
@@ -4536,7 +4590,8 @@
 							"DisplayName": "Move Resistance" 
 						}, 
 						"Value": 0.2, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					} 
 				], 
 				"Locations": [ 
@@ -4562,7 +4617,8 @@
 							"DisplayName": "Max Hit Points" 
 						}, 
 						"Value": 13, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 151, 
@@ -4571,7 +4627,8 @@
 							"DisplayName": "Dodge" 
 						}, 
 						"Value": 0.125, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 152, 
@@ -4580,7 +4637,8 @@
 							"DisplayName": "Speed" 
 						}, 
 						"Value": 7, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 153, 
@@ -4589,7 +4647,8 @@
 							"DisplayName": "Stun Resistance" 
 						}, 
 						"Value": 0.25, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 154, 
@@ -4598,7 +4657,8 @@
 							"DisplayName": "Blight Resistance" 
 						}, 
 						"Value": 0.2, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 155, 
@@ -4607,7 +4667,8 @@
 							"DisplayName": "Bleed Resistance" 
 						}, 
 						"Value": 0.2, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 156, 
@@ -4616,7 +4677,8 @@
 							"DisplayName": "Debuff Resistance" 
 						}, 
 						"Value": 0.4, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 157, 
@@ -4625,7 +4687,8 @@
 							"DisplayName": "Move Resistance" 
 						}, 
 						"Value": 0.25, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					} 
 				], 
 				"Locations": [ 
@@ -4667,7 +4730,8 @@
 							"DisplayName": "Max Hit Points" 
 						}, 
 						"Value": 15, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 144, 
@@ -4676,7 +4740,8 @@
 							"DisplayName": "Speed" 
 						}, 
 						"Value": 5, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 145, 
@@ -4685,7 +4750,8 @@
 							"DisplayName": "Stun Resistance" 
 						}, 
 						"Value": 0.25, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 146, 
@@ -4694,7 +4760,8 @@
 							"DisplayName": "Blight Resistance" 
 						}, 
 						"Value": 0.2, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 147, 
@@ -4703,7 +4770,8 @@
 							"DisplayName": "Bleed Resistance" 
 						}, 
 						"Value": 0.2, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 148, 
@@ -4712,7 +4780,8 @@
 							"DisplayName": "Debuff Resistance" 
 						}, 
 						"Value": 0.15, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 149, 
@@ -4721,7 +4790,8 @@
 							"DisplayName": "Move Resistance" 
 						}, 
 						"Value": 0.25, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					} 
 				], 
 				"Locations": [ 
@@ -4763,7 +4833,8 @@
 							"DisplayName": "Max Hit Points" 
 						}, 
 						"Value": 21, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 159, 
@@ -4772,7 +4843,8 @@
 							"DisplayName": "Protection" 
 						}, 
 						"Value": 0.15, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 160, 
@@ -4781,7 +4853,8 @@
 							"DisplayName": "Speed" 
 						}, 
 						"Value": 3, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 161, 
@@ -4790,7 +4863,8 @@
 							"DisplayName": "Stun Resistance" 
 						}, 
 						"Value": 0.25, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 162, 
@@ -4799,7 +4873,8 @@
 							"DisplayName": "Blight Resistance" 
 						}, 
 						"Value": 0.6, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 163, 
@@ -4808,7 +4883,8 @@
 							"DisplayName": "Bleed Resistance" 
 						}, 
 						"Value": 0.2, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 164, 
@@ -4817,7 +4893,8 @@
 							"DisplayName": "Debuff Resistance" 
 						}, 
 						"Value": 0.15, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 165, 
@@ -4826,7 +4903,8 @@
 							"DisplayName": "Move Resistance" 
 						}, 
 						"Value": 0.5, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					} 
 				], 
 				"Locations": [ 
@@ -4852,7 +4930,8 @@
 							"DisplayName": "Max Hit Points" 
 						}, 
 						"Value": 12, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 167, 
@@ -4861,7 +4940,8 @@
 							"DisplayName": "Dodge" 
 						}, 
 						"Value": 0.125, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 168, 
@@ -4870,7 +4950,8 @@
 							"DisplayName": "Speed" 
 						}, 
 						"Value": 8, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 169, 
@@ -4879,7 +4960,8 @@
 							"DisplayName": "Stun Resistance" 
 						}, 
 						"Value": 0.1, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 170, 
@@ -4888,7 +4970,8 @@
 							"DisplayName": "Blight Resistance" 
 						}, 
 						"Value": 0.4, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 171, 
@@ -4897,7 +4980,8 @@
 							"DisplayName": "Bleed Resistance" 
 						}, 
 						"Value": 0.1, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 172, 
@@ -4906,7 +4990,8 @@
 							"DisplayName": "Debuff Resistance" 
 						}, 
 						"Value": 0.15, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					} 
 				], 
 				"Locations": [ 
@@ -5465,7 +5550,8 @@
 							"DisplayName": "Bleed Resistance" 
 						}, 
 						"Value": -0.1, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": "Diseases" 
 					} 
 				] 
 			}, 
@@ -5487,7 +5573,8 @@
 						"Condition": { 
 							"Id": "MonsterTypeBeast", 
 							"DisplayName": "MonsterTypeBeast" 
-						} 
+						}, 
+						"EffectTags": "Mental Buff" 
 					}, 
 					{ 
 						"Id": 2, 
@@ -5499,7 +5586,8 @@
 						"Condition": { 
 							"Id": "MonsterTypeBeast", 
 							"DisplayName": "MonsterTypeBeast" 
-						} 
+						}, 
+						"EffectTags": null 
 					} 
 				] 
 			}, 
@@ -5518,7 +5606,8 @@
 							"DisplayName": "Bleed Resistance" 
 						}, 
 						"Value": 0.15, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					} 
 				] 
 			}, 
@@ -5537,7 +5626,8 @@
 							"DisplayName": "Dodge" 
 						}, 
 						"Value": -0.05, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					} 
 				] 
 			}, 
@@ -5556,7 +5646,8 @@
 							"DisplayName": "Dodge" 
 						}, 
 						"Value": 0.05, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					} 
 				] 
 			}, 
@@ -5578,7 +5669,8 @@
 						"Condition": { 
 							"Id": "MonsterTypeBeast", 
 							"DisplayName": "MonsterTypeBeast" 
-						} 
+						}, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 4, 
@@ -5590,7 +5682,8 @@
 						"Condition": { 
 							"Id": "MonsterTypeBeast", 
 							"DisplayName": "MonsterTypeBeast" 
-						} 
+						}, 
+						"EffectTags": null 
 					} 
 				] 
 			}, 
@@ -5612,7 +5705,8 @@
 						"Condition": { 
 							"Id": "LocationHarbor", 
 							"DisplayName": "LocationHarbor" 
-						} 
+						}, 
+						"EffectTags": null 
 					} 
 				] 
 			}, 
@@ -5634,7 +5728,8 @@
 						"Condition": { 
 							"Id": "LocationHarbor", 
 							"DisplayName": "LocationHarbor" 
-						} 
+						}, 
+						"EffectTags": null 
 					} 
 				] 
 			} 
@@ -5729,7 +5824,8 @@
 							"DisplayName": "Accuracy" 
 						}, 
 						"Value": 0.04, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 20, 
@@ -5738,7 +5834,8 @@
 							"DisplayName": "Speed" 
 						}, 
 						"Value": -1, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					} 
 				] 
 			}, 
@@ -5770,7 +5867,8 @@
 						"Condition": { 
 							"Id": "MonsterTypeBeast", 
 							"DisplayName": "MonsterTypeBeast" 
-						} 
+						}, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 27, 
@@ -5779,7 +5877,8 @@
 							"DisplayName": "Dodge" 
 						}, 
 						"Value": -0.08, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					} 
 				] 
 			}, 
@@ -5811,7 +5910,8 @@
 							"DisplayName": "Scouting Chance" 
 						}, 
 						"Value": 0.1, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 22, 
@@ -5823,7 +5923,8 @@
 						"Condition": { 
 							"Id": "FirstRound", 
 							"DisplayName": "FirstRound" 
-						} 
+						}, 
+						"EffectTags": null 
 					} 
 				] 
 			}, 
@@ -5855,7 +5956,8 @@
 						"Condition": { 
 							"Id": "Dark", 
 							"DisplayName": "Dark" 
-						} 
+						}, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 24, 
@@ -5867,7 +5969,8 @@
 						"Condition": { 
 							"Id": "Shadowy", 
 							"DisplayName": "Shadowy" 
-						} 
+						}, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 25, 
@@ -5879,7 +5982,8 @@
 						"Condition": { 
 							"Id": "AboveDimLight", 
 							"DisplayName": "AboveDimLight" 
-						} 
+						}, 
+						"EffectTags": null 
 					} 
 				] 
 			}, 
@@ -5908,7 +6012,8 @@
 							"DisplayName": "Virtue Chance" 
 						}, 
 						"Value": 0.25, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					} 
 				] 
 			}, 
@@ -5937,7 +6042,8 @@
 							"DisplayName": "Speed" 
 						}, 
 						"Value": -1, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					}, 
 					{ 
 						"Id": 31, 
@@ -5946,7 +6052,8 @@
 							"DisplayName": "Protection" 
 						}, 
 						"Value": 0.15, 
-						"Condition": null 
+						"Condition": null, 
+						"EffectTags": null 
 					} 
 				] 
 			} 

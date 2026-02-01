@@ -16,6 +16,7 @@
 #include "GameData/UGameDataDocument.h"
 #include "GameData/FGameDataDocumentReference.h"
 #include "GameData/FLocalizedText.h"
+#include "GameData/UGameDataLibrary.h"
 #include "JsonObjectWrapper.h"
 
 #include "UHero.generated.h"
@@ -39,11 +40,11 @@ public:
 	/**
 	  * De-referenced collection of documents for DislikeHeroes. Should not be directly used.
 	  */
-	TMap<FString,UHero*> _dislikeHeroesDocuments;
+	mutable TMap<FString,UHero*> _dislikeHeroesDocuments;
 	/**
 	  * De-referenced document of Provisions. Should not be directly used.
 	  */
-	UProvision* _provisionsDocument;
+	mutable UProvision* _provisionsDocument;
 public:
 	/**
 	  * Id property of Text type. Not Empty, Unique.
@@ -54,7 +55,7 @@ public:
 	  * Name property of Localized Text type. Not Null.
 	  */
 	UFUNCTION(BlueprintCallable)
-	FText GetName();
+	FText GetName() const;
 	/**
 	  * Raw value of Name.
 	  */
@@ -64,7 +65,7 @@ public:
 	  * Bio property of Localized Text type. Not Null.
 	  */
 	UFUNCTION(BlueprintCallable)
-	FText GetBio();
+	FText GetBio() const;
 	/**
 	  * Raw value of Bio.
 	  */
@@ -79,7 +80,7 @@ public:
 	  * List of heroes which dislikes current hero. Not Null.
 	  */
 	UFUNCTION(BlueprintCallable)
-	TMap<FString,UHero*> GetDislikeHeroes();
+	TMap<FString,UHero*> GetDislikeHeroes() const;
 	/**
 	  * Raw value of DislikeHeroes.
 	  */
@@ -89,7 +90,7 @@ public:
 	  * Provisions property of Reference type. Can Be Null.
 	  */
 	UFUNCTION(BlueprintCallable)
-	UProvision* GetProvisions();
+	UProvision* GetProvisions() const;
 	/**
 	  * Raw value of Provisions.
 	  */
@@ -175,4 +176,14 @@ public:
 	  */
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 	FString Picture;
+	/**
+	  * Picture Bounds property of Text type. Not Null.
+	  */
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	FString PictureBounds;
+	/**
+	  * Picture Bounds property of Text type. Not Null.
+	  */
+	UFUNCTION(BlueprintCallable)
+	FVector4 GetParsedPictureBounds() const;
 };

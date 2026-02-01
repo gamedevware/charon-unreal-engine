@@ -17,6 +17,6 @@
 const FString UWeapon::SchemaId = TEXT("59f9e745983a364298db5e22");
 const FString UWeapon::SchemaName = TEXT("Weapon");
 
-FText UWeapon::GetName() {
+FText UWeapon::GetName() const {
 	return NameRaw.GetCurrent();
 }

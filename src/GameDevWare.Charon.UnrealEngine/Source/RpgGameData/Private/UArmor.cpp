@@ -17,6 +17,6 @@
 const FString UArmor::SchemaId = TEXT("59f9e7b6983a364298db5e2c");
 const FString UArmor::SchemaName = TEXT("Armor");
 
-FText UArmor::GetName() {
+FText UArmor::GetName() const {
 	return NameRaw.GetCurrent();
 }

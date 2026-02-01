@@ -22,8 +22,8 @@ struct CHARON_API FGameDataDocumentReference
 {
 	GENERATED_BODY()
 private:
-	FStringView LastRevisionHash;
-	TWeakObjectPtr<UGameDataDocument> LastDocument;
+	mutable FStringView LastRevisionHash;
+	mutable TWeakObjectPtr<UGameDataDocument> LastDocument;
 	
 public:
 	/*
@@ -56,7 +56,7 @@ public:
 	 * Nullptr in case if document is not found.
 	 * Use Cast<T> to get strongly typed version of document. 
 	 */
-	UGameDataDocument* GetReferencedDocument()
+	UGameDataDocument* GetReferencedDocument() const
 	{
 		if (!IsValid())
 		{
@@ -75,7 +75,7 @@ public:
 	/*
 	 * Reset currently cached document. Call this method when you change Id or SchemaIdOrName fields.
 	 */
-	void ResetCachedValue()
+	void ResetCachedValue() const
 	{
 		this->LastDocument = nullptr;
 		this->LastRevisionHash = FStringView();
@@ -86,7 +86,7 @@ public:
 	 * In case if referenced documents are not found, nothing will be added to DocumentsById map. Partial resolve results apply.
 	 */
 	template <typename IdType, typename DocumentType>
-	static void GetReferencedDocuments(TArray<FGameDataDocumentReference>& References, TMap<IdType, DocumentType*>& DocumentsById)
+	static void GetReferencedDocuments(const TArray<FGameDataDocumentReference>& References, TMap<IdType, DocumentType*>& DocumentsById)
 	{
 		if (DocumentsById.Num() != 0 || References.Num() == 0)
 		{
@@ -109,7 +109,7 @@ public:
 	 * Get referenced document and put it into specified Document& output parameter.
 	 */
 	template <typename DocumentType>
-	static void GetReferencedDocument(FGameDataDocumentReference& Reference, DocumentType*& Document)
+	static void GetReferencedDocument(const FGameDataDocumentReference& Reference, DocumentType*& Document)
 	{
 		if (Document != nullptr)
 		{

@@ -19,10 +19,10 @@
 const FString UMonster::SchemaId = TEXT("59f5b7f330bb84165c06b58a");
 const FString UMonster::SchemaName = TEXT("Monster");
 
-FText UMonster::GetName() {
+FText UMonster::GetName() const {
 	return NameRaw.GetCurrent();
 }
-TMap<FString,ULocation*> UMonster::GetLocations() {
+TMap<FString,ULocation*> UMonster::GetLocations() const {
 	FGameDataDocumentReference::GetReferencedDocuments(LocationsRaw, _locationsDocuments);
 	return _locationsDocuments;
 }

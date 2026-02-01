@@ -20,7 +20,7 @@
 const FString UCurioCleansingOption::SchemaId = TEXT("59f5bac130bb84165c06b5a4");
 const FString UCurioCleansingOption::SchemaName = TEXT("CurioCleansingOption");
 
-UItem* UCurioCleansingOption::GetItem() {
+UItem* UCurioCleansingOption::GetItem() const {
 		FGameDataDocumentReference::GetReferencedDocument(ItemRaw, _itemDocument);
 		return _itemDocument;
 }

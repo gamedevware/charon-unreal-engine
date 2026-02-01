@@ -16,6 +16,7 @@
 #include "GameData/UGameDataDocument.h"
 #include "GameData/FGameDataDocumentReference.h"
 #include "GameData/FLocalizedText.h"
+#include "GameData/UGameDataLibrary.h"
 #include "JsonObjectWrapper.h"
 
 #include "UStartingSet.generated.h"
@@ -39,11 +40,11 @@ public:
 	/**
 	  * De-referenced collection of documents for Heroes. Should not be directly used.
 	  */
-	TMap<FString,UHero*> _heroesDocuments;
+	mutable TMap<FString,UHero*> _heroesDocuments;
 	/**
 	  * De-referenced document of Location. Should not be directly used.
 	  */
-	ULocation* _locationDocument;
+	mutable ULocation* _locationDocument;
 public:
 	/**
 	  * Id property of Integer type. Not Null, Unique.
@@ -59,7 +60,7 @@ public:
 	  * Heroes property of Reference Collection type. Not Null.
 	  */
 	UFUNCTION(BlueprintCallable)
-	TMap<FString,UHero*> GetHeroes();
+	TMap<FString,UHero*> GetHeroes() const;
 	/**
 	  * Raw value of Heroes.
 	  */
@@ -69,7 +70,7 @@ public:
 	  * Location property of Reference type. Not Null.
 	  */
 	UFUNCTION(BlueprintCallable)
-	ULocation* GetLocation();
+	ULocation* GetLocation() const;
 	/**
 	  * Raw value of Location.
 	  */

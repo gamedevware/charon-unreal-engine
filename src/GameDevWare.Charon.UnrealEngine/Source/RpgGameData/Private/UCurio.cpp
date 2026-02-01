@@ -19,13 +19,13 @@
 const FString UCurio::SchemaId = TEXT("59f5bbc230bb84165c06b5ae");
 const FString UCurio::SchemaName = TEXT("Curio");
 
-FText UCurio::GetName() {
+FText UCurio::GetName() const {
 	return NameRaw.GetCurrent();
 }
-FText UCurio::GetDescription() {
+FText UCurio::GetDescription() const {
 	return DescriptionRaw.GetCurrent();
 }
-TMap<FString,ULocation*> UCurio::GetLocations() {
+TMap<FString,ULocation*> UCurio::GetLocations() const {
 	FGameDataDocumentReference::GetReferencedDocuments(LocationsRaw, _locationsDocuments);
 	return _locationsDocuments;
 }
