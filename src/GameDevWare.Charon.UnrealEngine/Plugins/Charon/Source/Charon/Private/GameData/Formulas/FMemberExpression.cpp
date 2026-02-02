@@ -69,7 +69,7 @@ FFormulaExecutionResult FMemberExpression::Execute(const FFormulaExecutionContex
 			return Result; // propagate error
 		}
 
-		const auto Target = Result.GetValue();
+		const auto& Target = Result.GetValue();
 		if (Target->IsNull())
 		{
 			if (IsNullPropagationEnabled() || Context.AutoNullPropagation)
@@ -155,7 +155,7 @@ bool FMemberExpression::IsValid() const
 	{
 		return false;
 	}
-	for (auto ArgumentPair : this->TypeArguments)
+	for (const auto& ArgumentPair : this->TypeArguments)
 	{
 		if (!ArgumentPair.IsValid())
 		{
@@ -182,7 +182,7 @@ void FMemberExpression::DebugPrintTo(FString& OutValue) const
 	{
 		OutValue.Append("<");
 		bool bFirstArgument = true;;
-		for (auto Argument : this->TypeArguments)
+		for (const auto& Argument : this->TypeArguments)
 		{
 			if (!bFirstArgument)
 			{
@@ -284,7 +284,7 @@ void FMemberExpression::GetGlobalMemberNames(TSet<FString>& MemberNames, const F
 		const auto GlobalType = Context.TypeResolver->GetType(Context.Global);
 		MemberNames.Append(GlobalType->GetPropertyNames(/*bStatic*/ false));
 	}
-	for (auto ArgumentPair : Context.Arguments)
+	for (const auto& ArgumentPair : Context.Arguments)
 	{
 		MemberNames.Add(ArgumentPair.Key);
 	}

@@ -39,7 +39,7 @@ FFormulaExecutionResult FConvertExpression::Execute(const FFormulaExecutionConte
 		return Result; // propagate error
 	}
 
-	const auto FromValue = Result.GetValue();
+	const auto& FromValue = Result.GetValue();
 	const auto ToType = Context.TypeResolver->FindType(this->ConversionType);
 	if (!ToType.IsValid())
 	{

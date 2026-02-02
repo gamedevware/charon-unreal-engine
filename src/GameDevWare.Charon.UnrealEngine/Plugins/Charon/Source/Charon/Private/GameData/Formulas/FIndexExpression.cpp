@@ -45,7 +45,7 @@ FFormulaExecutionResult FIndexExpression::Execute(const FFormulaExecutionContext
 	}
 
 	const bool IsNullPropagation = IsNullPropagationEnabled() || Context.AutoNullPropagation;
-	const auto Target = Result.GetValue();
+	const auto& Target = Result.GetValue();
 	if (Target->IsNull())
 	{
 		if (IsNullPropagation)
@@ -61,7 +61,7 @@ FFormulaExecutionResult FIndexExpression::Execute(const FFormulaExecutionContext
 	const FProperty* TargetType = Target->GetType();
 	bool bFirstArgument = true;
 	TArray<TSharedPtr<FFormulaValue>> PreparedArguments;
-	for (const auto ArgumentPair : this->Arguments)
+	for (const auto& ArgumentPair : this->Arguments)
 	{
 		FProperty* ExpectedIndexerType = nullptr;
 		if (bFirstArgument)
@@ -161,7 +161,7 @@ FFormulaExecutionResult FIndexExpression::Execute(const FFormulaExecutionContext
 	}
 
 	TArray<FString> ArgumentValueTypes;
-	for (auto PreparedArgument : PreparedArguments)
+	for (const auto& PreparedArgument : PreparedArguments)
 	{
 		ArgumentValueTypes.Push(PreparedArgument->GetCPPType());
 	}
@@ -174,7 +174,7 @@ bool FIndexExpression::IsValid() const
 	{
 		return false;
 	}
-	for (auto ArgumentPair : this->Arguments)
+	for (const auto& ArgumentPair : this->Arguments)
 	{
 		if (!ArgumentPair.Value.IsValid())
 		{
@@ -209,7 +209,7 @@ void FIndexExpression::DebugPrintTo(FString& OutValue) const
 	}
 	OutValue.Append("[");
 	bool bFirstArgument = true;;
-	for (auto ArgumentPair : this->Arguments)
+	for (const auto& ArgumentPair : this->Arguments)
 	{
 		if (!bFirstArgument)
 		{

@@ -24,7 +24,7 @@ bool FFormulaMemberMemberBinding::IsValid() const
 	{
 		return false;
 	}
-	for (auto Binding : this->Bindings)
+	for (const auto& Binding : this->Bindings)
 	{
 		if (!Binding.IsValid())
 		{
@@ -46,7 +46,7 @@ FFormulaExecutionResult FFormulaMemberMemberBinding::ApplyToMember(const TShared
 		return FFormulaExecutionError::MemberAccessFailed(Target->GetCPPType(), this->MemberName);
 	}
 	
-	for (const auto FormulaMemberBinding : this->Bindings)
+	for (const auto& FormulaMemberBinding : this->Bindings)
 	{
 		auto ApplyResult = FormulaMemberBinding->Apply(MemberValue.ToSharedRef(), Context);
 		if (ApplyResult.HasError())
@@ -62,7 +62,7 @@ void FFormulaMemberMemberBinding::DebugPrintTo(FString& OutValue) const
 	OutValue.Append(this->RawMemberName);
 	OutValue.Append(TEXT(": { "));
 	bool bFirstBindings = true;
-	for (auto Binding : this->Bindings)
+	for (const auto& Binding : this->Bindings)
 	{
 		if (!bFirstBindings)
 		{

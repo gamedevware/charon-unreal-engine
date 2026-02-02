@@ -34,7 +34,7 @@ FFormulaExecutionResult FTypeIsExpression::Execute(const FFormulaExecutionContex
 		return FFormulaExecutionError::UnableToResolveType(this->CheckType->GetFullName(/* include generics */ true));
 	}
 
-	const auto Target = Result.GetValue();
+	const auto& Target = Result.GetValue();
 	const bool bIsAssignable = ToType->IsAssignableFrom(Target->GetType(), /*bWithoutConversion*/ true);
 	return MakeShared<FFormulaValue>(bIsAssignable);
 }

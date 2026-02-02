@@ -247,7 +247,7 @@ TMap<FString, TSharedPtr<FFormulaExpression>> FExpressionBuildHelper::GetArgumen
 
 	if (ExpressionObj.IsValid() && ExpressionObj->TryGetObjectField(PropertyName, ArgsObj))
 	{
-		for (auto& Pair : (*ArgsObj)->Values)
+		for (const auto& Pair : (*ArgsObj)->Values)
 		{
 			auto CreatedExpression = GetExpression(*ArgsObj, Pair.Key, false);
 			Arguments.Add(Pair.Key, CreatedExpression);
@@ -267,7 +267,7 @@ TArray<TSharedPtr<FFormulaExpression>> FExpressionBuildHelper::GetArgumentsList(
 	const TSharedPtr<FJsonObject>* ArgumentsObjPtr;
 	if (ExpressionObj.IsValid() && ExpressionObj->TryGetObjectField(PropertyName, ArgumentsObjPtr))
 	{
-		for (auto& ArgumentPair : (*ArgumentsObjPtr)->Values)
+		for (const auto& ArgumentPair : (*ArgumentsObjPtr)->Values)
 		{
 			auto CreatedExpression = GetExpression(*ArgumentsObjPtr, ArgumentPair.Key, false);
 			Arguments.Add(CreatedExpression);
@@ -277,7 +277,7 @@ TArray<TSharedPtr<FFormulaExpression>> FExpressionBuildHelper::GetArgumentsList(
 	const TArray<TSharedPtr<FJsonValue>>* ArgumentsArrayPtr;
 	if (ExpressionObj.IsValid() && ExpressionObj->TryGetArrayField(PropertyName, ArgumentsArrayPtr))
 	{
-		for (auto& Argument : *ArgumentsArrayPtr)
+		for (const auto& Argument : *ArgumentsArrayPtr)
 		{
 			const TSharedPtr<FJsonObject>* ArgumentObj;
 			if (!Argument->TryGetObject(ArgumentObj))
@@ -325,7 +325,7 @@ TArray<TSharedPtr<FFormulaMemberBinding>> FExpressionBuildHelper::GetBindings(
 	if (ExpressionObj.IsValid() && ExpressionObj->TryGetArrayField(PropertyName, BindingsArrayPtr))
 	{
 			
-		for (auto& BindingValue : *BindingsArrayPtr)
+		for (const auto& BindingValue : *BindingsArrayPtr)
 		{
 			const TSharedPtr<FJsonObject>* BindingObjPtr;
 			if (!BindingValue->TryGetObject(BindingObjPtr))
@@ -348,7 +348,7 @@ TArray<TSharedPtr<FFormulaElementInitBinding>> FExpressionBuildHelper::GetElemen
 	const TArray<TSharedPtr<FJsonValue>>* BindingsArrayPtr;
 	if (ExpressionObj.IsValid() && ExpressionObj->TryGetArrayField(PropertyName, BindingsArrayPtr))
 	{
-		for (auto& BindingValue : *BindingsArrayPtr)
+		for (const auto& BindingValue : *BindingsArrayPtr)
 		{
 			const TSharedPtr<FJsonObject>* BindingObjPtr;
 			if (!BindingValue->TryGetObject(BindingObjPtr))

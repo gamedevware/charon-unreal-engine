@@ -20,7 +20,11 @@
 #include "UNumberTestEntity.h"
 #include "UUniqueAttributeEntity.h"
 #include "UUnionType.h"
+#include "UAllTypesTest.h"
 #include "UTestEntityFormulaFieldFormula.h"
+#include "UAllTypesTestVoidFormulaFormula.h"
+#include "UAllTypesTestNoParamsFormulaFormula.h"
+#include "UAllTypesTestParamsFormulaFormula.h"
 
 DEFINE_LOG_CATEGORY(LogUTestData);
 
@@ -34,6 +38,7 @@ TSharedRef<FFormulaTypeResolver> UTestData::GetSharedFormulaTypeResolver()
 		UNumberTestEntity::StaticClass(),
 		UUniqueAttributeEntity::StaticClass(),
 		UUnionType::StaticClass(),
+		UAllTypesTest::StaticClass(),
 		StaticEnum<ETestEntityPickListField>(),
 		StaticEnum<ETestEntityMultiPickListField>(),
 		StaticEnum<ENumberTestEntityPickList8Bit>(),
@@ -82,6 +87,8 @@ void UTestData::Empty()
 	UniqueAttributeEntities.Reset();
 	AllUnionTypes.Reset();
 	UnionTypes.Reset();
+	AllAllTypesTests.Reset();
+	AllTypesTests.Reset();
 
 	SupportedLanguages.Reset();
 
@@ -268,6 +275,10 @@ const TArray<UGameDataDocument*>& UTestData::GetAllDocuments() const
 	{
 		FoundDocuments->Add(DocumentById.Value);
 	}
+	for (const auto DocumentById : AllAllTypesTests)
+	{
+		FoundDocuments->Add(DocumentById.Value);
+	}
 	const_cast<UTestData*>(this)->AllDocuments = FoundDocuments;
 	return FoundDocuments.Get();
 }
@@ -301,6 +312,10 @@ const TArray<UGameDataDocument*>& UTestData::GetRootDocuments() const
 		FoundDocuments->Add(DocumentById.Value);
 	}
 	for (const auto DocumentById : UnionTypes)
+	{
+		FoundDocuments->Add(DocumentById.Value);
+	}
+	for (const auto DocumentById : AllTypesTests)
 	{
 		FoundDocuments->Add(DocumentById.Value);
 	}
@@ -394,6 +409,16 @@ UGameDataDocument* UTestData::FindGameDataDocumentById(const FString& SchemaName
 			return *FoundDocument;
 		}
 	}
+	else if (SchemaNameOrId == TEXT("AllTypesTest") || SchemaNameOrId == TEXT("697fa0a4ecd20b7208b73d2d"))
+	{
+		FString Id;
+		FGameDataDocumentIdConvert::ConvertToType(DocumentId, Id);
+		const auto FoundDocument = this->AllAllTypesTests.Find(Id);
+		if (FoundDocument != nullptr)
+		{
+			return *FoundDocument;
+		}
+	}
 	return nullptr;
 }
 
@@ -426,6 +451,10 @@ UClass* UTestData::FindDocumentSchemaClass(const FString& SchemaNameOrId)
 	else if (SchemaNameOrId == TEXT("UnionType") || SchemaNameOrId == TEXT("691255870642d17fc832c712"))
 	{
 		return UUnionType::StaticClass();
+	}
+	else if (SchemaNameOrId == TEXT("AllTypesTest") || SchemaNameOrId == TEXT("697fa0a4ecd20b7208b73d2d"))
+	{
+		return UAllTypesTest::StaticClass();
 	}
 	return nullptr;
 }
@@ -490,6 +519,15 @@ void UTestData::GetDocumentIds(const FString& SchemaNameOrId, TArray<FString>& A
 			AllIds.Add(IdString);
 		}
 	}
+	else if (SchemaNameOrId == TEXT("AllTypesTest") || SchemaNameOrId == TEXT("697fa0a4ecd20b7208b73d2d"))
+	{
+		for (auto DocumentById : AllAllTypesTests)
+		{
+			FString IdString;
+			FGameDataDocumentIdConvert::ConvertToString(DocumentById.Key, IdString);
+			AllIds.Add(IdString);
+		}
+	}
 }
 
 void UTestData::GetDocumentSchemaNames(TArray<FString>& AllSchemaNames)
@@ -500,6 +538,7 @@ void UTestData::GetDocumentSchemaNames(TArray<FString>& AllSchemaNames)
 	AllSchemaNames.Add(TEXT("NumberTestEntity"));
 	AllSchemaNames.Add(TEXT("UniqueAttributeEntity"));
 	AllSchemaNames.Add(TEXT("UnionType"));
+	AllSchemaNames.Add(TEXT("AllTypesTest"));
 }
 
 void UTestData::SetSupportedLanguages(const TArray<FString>& LanguageIds)
@@ -523,15 +562,14 @@ TSharedRef<IGameDataReader> UTestData::CreateReader(FArchive* const GameDataStre
 	}
 }
 
-PRAGMA_DISABLE_DEPRECATION_WARNINGS
 #if UE_VERSION_NEWER_THAN(5, 4, -1)
-static constexpr EObjectFlags GARBAGE_FLAG = EObjectFlags::RF_MirroredGarbage;
+static constexpr EObjectFlags UTestData_GARBAGE_FLAG = static_cast<EObjectFlags>(0x40000000); /* EObjectFlags::RF_MirroredGarbage */
 #else
-static constexpr EObjectFlags GARBAGE_FLAG = EObjectFlags::RF_Garbage;
-#endif
-PRAGMA_ENABLE_DEPRECATION_WARNINGS
+static constexpr EObjectFlags UTestData_GARBAGE_FLAG = static_cast<EObjectFlags>(0x40000000); /* EObjectFlags::RF_Garbage */
 
-static UObject* FindDocumentByUniqueName(const FString& ObjectName, TSharedPtr<TMap<FString, UObject*>> DocumentsById)
+#endif
+
+static UObject* UTestData_FindDocumentByUniqueName(const FString& ObjectName, TSharedPtr<TMap<FString, UObject*>> DocumentsById)
 {
 	if (!DocumentsById)
 	{
@@ -545,13 +583,13 @@ static UObject* FindDocumentByUniqueName(const FString& ObjectName, TSharedPtr<T
 	}
 
 	UObject* FoundObject = const_cast<UObject*>(*ConstFoundObject);
-	if (FoundObject->HasAnyFlags(GARBAGE_FLAG))
+	if (FoundObject->HasAnyFlags(UTestData_GARBAGE_FLAG))
 	{
 		return nullptr; // object has been marked for deletion
 	}
 	return FoundObject;
 }
-static void FillDocumentByUniqueNameMap(UObject* Outer, TSharedPtr<TMap<FString, UObject*>>& DocumentsById)
+static void UTestData_FillDocumentByUniqueNameMap(UObject* Outer, TSharedPtr<TMap<FString, UObject*>>& DocumentsById)
 {
 	if (!Outer) {
 		UE_LOG(LogUTestData, Error, TEXT("Can't fill documents by unique name map for `null` Outer."));
@@ -571,7 +609,7 @@ static void FillDocumentByUniqueNameMap(UObject* Outer, TSharedPtr<TMap<FString,
 	ForEachObjectWithOuter(Outer, [DocumentsById](UObject* Child)
 	{
 		// skip already deleted or non-document objects
-		if (Child->HasAnyFlags(GARBAGE_FLAG) ||
+		if (Child->HasAnyFlags(UTestData_GARBAGE_FLAG) ||
 			!Cast<UGameDataDocument>(Child))
 		{
 			return;
@@ -587,7 +625,7 @@ static void FillDocumentByUniqueNameMap(UObject* Outer, TSharedPtr<TMap<FString,
 	},
 	/* bIncludeNested */ true);
 }
-static void ClearDocumentByUniqueNameMap(TSharedPtr<TMap<FString, UObject*>> DocumentsById)
+static void UTestData_ClearDocumentByUniqueNameMap(TSharedPtr<TMap<FString, UObject*>> DocumentsById)
 {
 	if (!DocumentsById)
 	{
@@ -597,7 +635,7 @@ static void ClearDocumentByUniqueNameMap(TSharedPtr<TMap<FString, UObject*>> Doc
 }
 
 template <typename DocumentType>
-static FString MakeUniqueDocumentName(DocumentType* Document)
+static FString UTestData_MakeUniqueDocumentName(DocumentType* Document)
 {
 	if (!Document) {
 		UE_LOG(LogUTestData, Error, TEXT("Can't make unique name for `null` document."));
@@ -611,7 +649,7 @@ static FString MakeUniqueDocumentName(DocumentType* Document)
 	return DocumentUniqueName;
 }
 
-static void TryRenameDocument(UObject* Document, const TCHAR* NewName)
+static void UTestData_TryRenameDocument(UObject* Document, const TCHAR* NewName)
 {
 	if (!Document) {
 		UE_LOG(LogUTestData, Error, TEXT("Can't rename `null` document."));
@@ -629,7 +667,7 @@ static void TryRenameDocument(UObject* Document, const TCHAR* NewName)
 	}
 }
 
-static void TryDeleteDocument(UObject* Document)
+static void UTestData_TryDeleteDocument(UObject* Document)
 {
 	if (!Document) {
 		UE_LOG(LogUTestData, Error, TEXT("Can't delete `null` document."));
@@ -639,7 +677,7 @@ static void TryDeleteDocument(UObject* Document)
 	Document->Rename(nullptr, GetTransientPackage(), REN_DontCreateRedirectors | REN_NonTransactional | REN_ForceNoResetLoaders);
 }
 
-static void MarkChildDocumentsForDeletion(UObject* Document)
+static void UTestData_MarkChildDocumentsForDeletion(UObject* Document)
 {
 	if (!Document) {
 		UE_LOG(LogUTestData, Error, TEXT("Can't mark as orphand children for deletion for `null` document."));
@@ -659,7 +697,7 @@ static void MarkChildDocumentsForDeletion(UObject* Document)
 	/* bIncludeNested */ false);
 }
 
-static void SweepMarkedChildDocuments(UObject* Document)
+static void UTestData_SweepMarkedChildDocuments(UObject* Document)
 {
 	if (!Document) {
 		UE_LOG(LogUTestData, Error, TEXT("Can't sweep orphained children for `null` document."));
@@ -670,7 +708,7 @@ static void SweepMarkedChildDocuments(UObject* Document)
 	ForEachObjectWithOuter(Document, [&](UObject* Child)
 	{
 		// skip already deleted or non-document objects
-		if (Child->HasAnyFlags(GARBAGE_FLAG) ||
+		if (Child->HasAnyFlags(UTestData_GARBAGE_FLAG) ||
 			!Cast<UGameDataDocument>(Child) ||
 			!Child->HasAnyFlags(EObjectFlags::RF_TagGarbageTemp))
 		{
@@ -699,8 +737,8 @@ bool UTestData::ReadGameData(const TSharedRef<IGameDataReader>& Reader)
 		return false;
 	}
 
-	FillDocumentByUniqueNameMap(this, this->NameLookupDuringLoading);
-	MarkChildDocumentsForDeletion(this);
+	UTestData_FillDocumentByUniqueNameMap(this, this->NameLookupDuringLoading);
+	UTestData_MarkChildDocumentsForDeletion(this);
 
 	while (Reader->GetNotation() != EJsonNotation::ObjectEnd)
 	{
@@ -768,6 +806,26 @@ bool UTestData::ReadGameData(const TSharedRef<IGameDataReader>& Reader)
 							if (!ReadDocumentCollection(Reader, this->TestEntities, 1, this, GameDataPath))
 							{
 								UE_LOG(LogUTestData, Error, TEXT("Failed to read '%s' document collection. Path: %s."), TEXT("TestEntity"), *CombineGameDataPath(GameDataPath));
+								return false;
+							}
+							GameDataPath.Pop();
+						}
+						else
+						{
+							Reader->SkipAny();
+						}
+						break;
+					case 12:
+						if (CollectionName.IsEmpty())
+						{
+							Reader->SkipAny();
+						}
+						else if (CollectionName == TEXT("697fa0a4ecd20b7208b73d2d") || CollectionName == TEXT("AllTypesTest"))
+						{
+							GameDataPath.Add(TEXT("AllTypesTest"));
+							if (!ReadDocumentCollection(Reader, this->AllTypesTests, 100, this, GameDataPath))
+							{
+								UE_LOG(LogUTestData, Error, TEXT("Failed to read '%s' document collection. Path: %s."), TEXT("AllTypesTest"), *CombineGameDataPath(GameDataPath));
 								return false;
 							}
 							GameDataPath.Pop();
@@ -870,8 +928,8 @@ bool UTestData::ReadGameData(const TSharedRef<IGameDataReader>& Reader)
 		return false;
 	}
 
-	ClearDocumentByUniqueNameMap(this->NameLookupDuringLoading);
-	SweepMarkedChildDocuments(this);
+	UTestData_ClearDocumentByUniqueNameMap(this->NameLookupDuringLoading);
+	UTestData_SweepMarkedChildDocuments(this);
 
 	return true;
 }
@@ -917,8 +975,8 @@ bool UTestData::ReadDocument
 				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("ProjectSettings.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = UTestData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = UTestData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UTestDataProjectSettings* ExistingDocument = Cast<UTestDataProjectSettings>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -930,20 +988,20 @@ bool UTestData::ReadDocument
 				ExistingDocument->Version = Document->Version;
 				ExistingDocument->Extensions = Document->Extensions;
 
-				TryDeleteDocument(Document);
+				UTestData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				UTestData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				UTestData_TryDeleteDocument(ExistingObject);
+				UTestData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				UTestData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Name"))
@@ -1045,7 +1103,7 @@ bool UTestData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	UTestData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -1090,8 +1148,8 @@ bool UTestData::ReadDocument
 				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("TestEntity.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = UTestData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = UTestData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UTestEntity* ExistingDocument = Cast<UTestEntity>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -1115,20 +1173,20 @@ bool UTestData::ReadDocument
 				ExistingDocument->IsPublished = Document->IsPublished;
 				ExistingDocument->UnionField = Document->UnionField;
 
-				TryDeleteDocument(Document);
+				UTestData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				UTestData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				UTestData_TryDeleteDocument(ExistingObject);
+				UTestData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				UTestData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("TextField"))
@@ -1398,7 +1456,7 @@ bool UTestData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	UTestData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -1443,8 +1501,8 @@ bool UTestData::ReadDocument
 				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("RecursiveEntity.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = UTestData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = UTestData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			URecursiveEntity* ExistingDocument = Cast<URecursiveEntity>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -1452,20 +1510,20 @@ bool UTestData::ReadDocument
 				ExistingDocument->Title = Document->Title;
 				ExistingDocument->Children = Document->Children;
 
-				TryDeleteDocument(Document);
+				UTestData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				UTestData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				UTestData_TryDeleteDocument(ExistingObject);
+				UTestData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				UTestData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Title"))
@@ -1511,7 +1569,7 @@ bool UTestData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	UTestData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -1556,8 +1614,8 @@ bool UTestData::ReadDocument
 				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("NumberTestEntity.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = UTestData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = UTestData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UNumberTestEntity* ExistingDocument = Cast<UNumberTestEntity>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -1577,20 +1635,20 @@ bool UTestData::ReadDocument
 				ExistingDocument->MultiPickList32Bit = Document->MultiPickList32Bit;
 				ExistingDocument->MultiPickList64Bit = Document->MultiPickList64Bit;
 
-				TryDeleteDocument(Document);
+				UTestData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				UTestData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				UTestData_TryDeleteDocument(ExistingObject);
+				UTestData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				UTestData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Number32Bit"))
@@ -1804,7 +1862,7 @@ bool UTestData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	UTestData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -1849,8 +1907,8 @@ bool UTestData::ReadDocument
 				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("UniqueAttributeEntity.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = UTestData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = UTestData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UUniqueAttributeEntity* ExistingDocument = Cast<UUniqueAttributeEntity>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -1867,20 +1925,20 @@ bool UTestData::ReadDocument
 				ExistingDocument->TimeSpanKey = Document->TimeSpanKey;
 				ExistingDocument->DateTimeKey = Document->DateTimeKey;
 
-				TryDeleteDocument(Document);
+				UTestData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				UTestData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				UTestData_TryDeleteDocument(ExistingObject);
+				UTestData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				UTestData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("snake_case_key"))
@@ -2052,7 +2110,7 @@ bool UTestData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	UTestData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -2105,8 +2163,8 @@ bool UTestData::ReadDocument
 				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("UnionType.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = UTestData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = UTestData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UUnionType* ExistingDocument = Cast<UUnionType>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -2126,20 +2184,20 @@ bool UTestData::ReadDocument
 				ExistingDocument->CollectionofReferences13Raw = Document->CollectionofReferences13Raw;
 				ExistingDocument->Formula14 = Document->Formula14;
 
-				TryDeleteDocument(Document);
+				UTestData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				UTestData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				UTestData_TryDeleteDocument(ExistingObject);
+				UTestData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				UTestData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Text1"))
@@ -2359,7 +2417,315 @@ bool UTestData::ReadDocument
 		UE_LOG(LogUTestData, Error, TEXT("Tagged Union has no selected option."));
 	}
 
-	SweepMarkedChildDocuments(Document);
+	UTestData_SweepMarkedChildDocuments(Document);
+
+	return true;
+}
+bool UTestData::ReadDocument
+(
+	const TSharedRef<IGameDataReader>& Reader,
+	UAllTypesTest*& Document,
+	UObject* Outer,
+	TArray<FString>& GameDataPath,
+	bool NextToken
+)
+{
+	Document = NewObject<UAllTypesTest>(Outer, UAllTypesTest::StaticClass(), NAME_None, EObjectFlags::RF_NoFlags);
+	Outer = Document;
+
+	Reader->ReadObjectBegin();
+	while (Reader->GetNotation() != EJsonNotation::ObjectEnd)
+	{
+		if (Reader->IsError())
+		{
+			UE_LOG(LogUTestData, Error, TEXT("File pasing failed due error '%s'. Path: %s."), *Reader->GetErrorMessage(), *CombineGameDataPath(GameDataPath));
+			return false;
+		}
+
+		auto PropertyName = Reader->ReadMember();
+		bool bReadSuccess;
+		GameDataPath.Add(PropertyName);
+		if (PropertyName.IsEmpty())
+		{
+			Reader->SkipAny();
+		}
+		else if (PropertyName == TEXT("Id"))
+		{
+			if (Reader->IsNull())
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Unexpected null value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.Id"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			bReadSuccess = Reader->ReadValue(Document->Id) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.Id"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			FString NewName = UTestData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = UTestData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			UAllTypesTest* ExistingDocument = Cast<UAllTypesTest>(ExistingObject);
+			if (ExistingDocument)
+			{
+				ExistingDocument->Id = Document->Id;
+				ExistingDocument->AssetPath = Document->AssetPath;
+				ExistingDocument->AssetPathCollection = Document->AssetPathCollection;
+				ExistingDocument->Rectangle = Document->Rectangle;
+				ExistingDocument->Vector2 = Document->Vector2;
+				ExistingDocument->Vector3 = Document->Vector3;
+				ExistingDocument->Vector4 = Document->Vector4;
+				ExistingDocument->IntegerRectangle = Document->IntegerRectangle;
+				ExistingDocument->IntegerVector2 = Document->IntegerVector2;
+				ExistingDocument->IntegerVector3 = Document->IntegerVector3;
+				ExistingDocument->IntegerVector4 = Document->IntegerVector4;
+				ExistingDocument->Tag = Document->Tag;
+				ExistingDocument->TagCollection = Document->TagCollection;
+				ExistingDocument->VoidFormula = Document->VoidFormula;
+				ExistingDocument->NoParamsFormula = Document->NoParamsFormula;
+				ExistingDocument->ParamsFormula = Document->ParamsFormula;
+
+				UTestData_TryDeleteDocument(Document);
+				Document->MarkAsGarbage();
+				Document = ExistingDocument;
+
+				UTestData_MarkChildDocumentsForDeletion(ExistingDocument);
+			}
+			else if (ExistingObject)
+			{
+				UTestData_TryDeleteDocument(ExistingObject);
+				UTestData_TryRenameDocument(Document, *NewName);
+			}
+			else
+			{
+				UTestData_TryRenameDocument(Document, *NewName);
+			}
+		}
+		else if (PropertyName == TEXT("AssetPath"))
+		{
+			if (Reader->IsNull())
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Unexpected null value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.AssetPath"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			bReadSuccess = Reader->ReadValue(Document->AssetPath) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.AssetPath"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("AssetPathCollection"))
+		{
+			if (Reader->IsNull())
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Unexpected null value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.AssetPathCollection"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			bReadSuccess = Reader->ReadValue(Document->AssetPathCollection) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.AssetPathCollection"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("Rectangle"))
+		{
+			if (Reader->IsNull())
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Unexpected null value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.Rectangle"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			bReadSuccess = Reader->ReadValue(Document->Rectangle) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.Rectangle"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("Vector2"))
+		{
+			if (Reader->IsNull())
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Unexpected null value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.Vector2"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			bReadSuccess = Reader->ReadValue(Document->Vector2) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.Vector2"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("Vector3"))
+		{
+			if (Reader->IsNull())
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Unexpected null value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.Vector3"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			bReadSuccess = Reader->ReadValue(Document->Vector3) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.Vector3"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("Vector4"))
+		{
+			if (Reader->IsNull())
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Unexpected null value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.Vector4"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			bReadSuccess = Reader->ReadValue(Document->Vector4) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.Vector4"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("IntegerRectangle"))
+		{
+			if (Reader->IsNull())
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Unexpected null value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.IntegerRectangle"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			bReadSuccess = Reader->ReadValue(Document->IntegerRectangle) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.IntegerRectangle"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("IntegerVector2"))
+		{
+			if (Reader->IsNull())
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Unexpected null value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.IntegerVector2"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			bReadSuccess = Reader->ReadValue(Document->IntegerVector2) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.IntegerVector2"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("IntegerVector3"))
+		{
+			if (Reader->IsNull())
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Unexpected null value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.IntegerVector3"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			bReadSuccess = Reader->ReadValue(Document->IntegerVector3) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.IntegerVector3"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("IntegerVector4"))
+		{
+			if (Reader->IsNull())
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Unexpected null value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.IntegerVector4"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			bReadSuccess = Reader->ReadValue(Document->IntegerVector4) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.IntegerVector4"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("Tag"))
+		{
+			if (Reader->IsNull())
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Unexpected null value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.Tag"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			bReadSuccess = Reader->ReadValue(Document->Tag) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.Tag"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("TagCollection"))
+		{
+			if (Reader->IsNull())
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Unexpected null value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.TagCollection"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			bReadSuccess = Reader->ReadValue(Document->TagCollection) && Reader->ReadNext();
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.TagCollection"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("VoidFormula"))
+		{
+			if (Reader->IsNull())
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Unexpected null value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.VoidFormula"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			bReadSuccess = ReadFormula(Reader, Document->VoidFormula, Outer, GameDataPath);
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.VoidFormula"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("NoParamsFormula"))
+		{
+			if (Reader->IsNull())
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Unexpected null value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.NoParamsFormula"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			bReadSuccess = ReadFormula(Reader, Document->NoParamsFormula, Outer, GameDataPath);
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.NoParamsFormula"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else if (PropertyName == TEXT("ParamsFormula"))
+		{
+			if (Reader->IsNull())
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Unexpected null value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.ParamsFormula"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+			bReadSuccess = ReadFormula(Reader, Document->ParamsFormula, Outer, GameDataPath);
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("AllTypesTest.ParamsFormula"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
+		else
+		{
+			Reader->SkipAny();
+		}
+		GameDataPath.Pop();
+	}
+	Reader->ReadObjectEnd(NextToken);
+
+	if (Reader->IsError())
+	{
+		UE_LOG(LogUTestData, Error, TEXT("File pasing failed due error '%s'. Path: %s."), *Reader->GetErrorMessage(), *CombineGameDataPath(GameDataPath));
+		return false;
+	}
+
+
+	UTestData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -2877,6 +3243,37 @@ TSharedPtr<FJsonObject> UTestData::MergeGameData(const TSharedPtr<FJsonObject>& 
 				}
 			}
 			else
+			if (SchemaName == TEXT("697fa0a4ecd20b7208b73d2d") || SchemaName == TEXT("AllTypesTest"))
+			{
+				VisitedSchemas.Add(TEXT("697fa0a4ecd20b7208b73d2d"));
+				VisitedSchemas.Add(TEXT("AllTypesTest"));
+
+				auto GameDataDocumentCollection = GameDataCollectionsMap.Find(TEXT("697fa0a4ecd20b7208b73d2d"));
+				if (GameDataDocumentCollection == nullptr)
+				{
+					GameDataDocumentCollection = GameDataCollectionsMap.Find(TEXT("AllTypesTest"));
+				}
+				auto PatchDocumentCollection = PatchCollectionsMap.Find(TEXT("697fa0a4ecd20b7208b73d2d"));
+				if (PatchDocumentCollection == nullptr)
+				{
+					PatchDocumentCollection = PatchCollectionsMap.Find(TEXT("AllTypesTest"));
+				}
+
+				if (GameDataDocumentCollection != nullptr && PatchDocumentCollection != nullptr)
+				{
+					auto MergedCollection = MergeDocumentCollection<UAllTypesTest>(GameDataDocumentCollection->ToSharedRef(), PatchDocumentCollection->ToSharedRef(), false);
+					MergedCollections->SetField(TEXT("AllTypesTest"), MergedCollection);
+				}
+				else if (GameDataDocumentCollection != nullptr)
+				{
+					MergedCollections->SetField(TEXT("AllTypesTest"), *GameDataDocumentCollection);
+				}
+				else if (PatchDocumentCollection != nullptr)
+				{
+					MergedCollections->SetField(TEXT("AllTypesTest"), *PatchDocumentCollection);
+				}
+			}
+			else
 			{
 				/* ignore schema */
 			}
@@ -2918,7 +3315,7 @@ TSharedPtr<FJsonObject> UTestData::MergeGameData(const TSharedPtr<FJsonObject>& 
 	return MergedGameData;
 }
 
-struct ToIdMapper
+struct UTestData_ToIdMapper
 {
 	static TSharedPtr<FJsonObject> ToDocumentById(TSharedRef<FJsonValue> Collection)
 	{
@@ -2967,8 +3364,8 @@ struct ToIdMapper
 template <typename DocumentType>
 TSharedPtr<FJsonValue> UTestData::MergeDocumentCollection(TSharedRef<FJsonValue> OriginalCollection, TSharedRef<FJsonValue> ModifiedCollection, bool PurgeRest)
 {
-	auto OriginalCollectionById = ToIdMapper::ToDocumentById(OriginalCollection);
-	auto ModifiedCollectionById = ToIdMapper::ToDocumentById(ModifiedCollection);
+	auto OriginalCollectionById = UTestData_ToIdMapper::ToDocumentById(OriginalCollection);
+	auto ModifiedCollectionById = UTestData_ToIdMapper::ToDocumentById(ModifiedCollection);
 	auto MergedCollectionById = MakeShared<FJsonObject>();
 	auto DocumentIds = PurgeRest ? MergeKeys(ModifiedCollectionById->Values, TMap<FString, TSharedPtr<FJsonValue>>()) : MergeKeys(OriginalCollectionById->Values, ModifiedCollectionById->Values);
 
@@ -3139,6 +3536,26 @@ TSharedPtr<FJsonValue> UTestData::MergeDocument(TSharedRef<FJsonValue> OriginalD
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Reference12"));
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("CollectionofReferences13"), OptionalMergeValueFunc([this](TSharedRef<FJsonValue> OriginalValue, TSharedRef<FJsonValue> ModifiedValue) { return MergeDocumentCollection<UNumberTestEntity>(OriginalValue, ModifiedValue, true); }));
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Formula14"));
+	}
+	else
+	if constexpr (std::is_same_v<DocumentType, UAllTypesTest>)
+	{
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Id"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("AssetPath"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("AssetPathCollection"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Rectangle"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Vector2"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Vector3"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Vector4"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("IntegerRectangle"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("IntegerVector2"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("IntegerVector3"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("IntegerVector4"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("Tag"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("TagCollection"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("VoidFormula"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("NoParamsFormula"));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("ParamsFormula"));
 	}
 	else
 	{
@@ -3396,6 +3813,7 @@ void UTestData::FindAllDocuments()
 	ToMapById(this->AllNumberTestEntities, FindingVisitor.NumberTestEntity);
 	ToMapById(this->AllUniqueAttributeEntities, FindingVisitor.UniqueAttributeEntity);
 	ToMapById(this->AllUnionTypes, FindingVisitor.UnionType);
+	ToMapById(this->AllAllTypesTests, FindingVisitor.AllTypesTest);
 }
 
 void UTestData::FVisitor::Visit(UGameDataDocument* Document)
@@ -3427,6 +3845,10 @@ void UTestData::FVisitor::Visit(UGameDataDocument* Document)
 	else if ((Document->GetClass() == UUnionType::StaticClass()))
 	{
 		Visit(static_cast<UUnionType&>(*Document));
+	}
+	else if ((Document->GetClass() == UAllTypesTest::StaticClass()))
+	{
+		Visit(static_cast<UAllTypesTest&>(*Document));
 	}
 }
 void UTestData::FVisitor::Visit(UTestDataProjectSettings& Document)
@@ -3474,6 +3896,9 @@ void UTestData::FVisitor::Visit(UUnionType& Document)
 		if (SubDocumentById.Value == nullptr) { continue; }
 		Visit(static_cast<UGameDataDocument*>(SubDocumentById.Value));
 	}
+}
+void UTestData::FVisitor::Visit(UAllTypesTest& Document)
+{
 }
 void UTestData::FFindingVisitor::Visit(UTestDataProjectSettings& Document)
 {
@@ -3535,6 +3960,16 @@ void UTestData::FFindingVisitor::Visit(UUnionType& Document)
 
 	FVisitor::Visit(Document);
 }
+void UTestData::FFindingVisitor::Visit(UAllTypesTest& Document)
+{
+	if (this->AllTypesTest.Num() == 0)
+	{
+		this->AllTypesTest.Reserve(50);
+	}
+	this->AllTypesTest.Add(&Document);
+
+	FVisitor::Visit(Document);
+}
 void UTestData::FDereferencingVisitor::Visit(UTestDataProjectSettings& Document)
 {
 	FVisitor::Visit(Document);
@@ -3567,6 +4002,10 @@ void UTestData::FDereferencingVisitor::Visit(UUnionType& Document)
 	{ auto _ = Reference.IsValid() ? Reference.GetReferencedDocument() : nullptr; }
 	FVisitor::Visit(Document);
 }
+void UTestData::FDereferencingVisitor::Visit(UAllTypesTest& Document)
+{
+	FVisitor::Visit(Document);
+}
 void UTestData::FLanguagesUpdateVisitor::Visit(UTestDataProjectSettings& Document)
 {
 	FVisitor::Visit(Document);
@@ -3591,6 +4030,10 @@ void UTestData::FLanguagesUpdateVisitor::Visit(UUniqueAttributeEntity& Document)
 void UTestData::FLanguagesUpdateVisitor::Visit(UUnionType& Document)
 {
 	RemoveExtraKeys(Document.TextLocalizable2Raw.TextByLanguageId);
+	FVisitor::Visit(Document);
+}
+void UTestData::FLanguagesUpdateVisitor::Visit(UAllTypesTest& Document)
+{
 	FVisitor::Visit(Document);
 }
 UTestData::FLanguagesUpdateVisitor::FLanguagesUpdateVisitor(const TArray<FString>& LanguageIds)

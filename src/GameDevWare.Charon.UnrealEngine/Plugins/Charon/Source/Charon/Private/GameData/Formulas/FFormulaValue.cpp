@@ -13,6 +13,8 @@
 #if __has_include("UObject/StrProperty.h")
 #include "UObject/StrProperty.h"
 #endif
+#include "DynamicMesh/DynamicMeshOverlay.h"
+#include "Templates/UnrealTemplate.h"
 
 #include "Misc/EngineVersionComparison.h"
 
@@ -451,7 +453,7 @@ bool FFormulaValue::TryCopyObjectValue(const FObjectPropertyBase* DestinationObj
 bool FFormulaValue::TryCopyNumericValue(const FProperty* DestinationType, void* DestinationPtr) const
 {
 	EFormulaValueType ToTypeCode = GetPropertyTypeCode(DestinationType);
-
+	
 	// unwrap types to primitive values
 	if (const FEnumProperty* EnumProperty = CastField<FEnumProperty>(DestinationType))
 	{
@@ -460,7 +462,7 @@ bool FFormulaValue::TryCopyNumericValue(const FProperty* DestinationType, void* 
 	
 	return this->VisitValue([ToTypeCode, DestinationPtr](FProperty&, const auto& InValue) -> bool
 	{
-		using InT = std::decay_t<decltype(InValue)>;
+		using InT = std::remove_reference_t<std::decay_t<decltype(InValue)>>;
 		
 		constexpr bool bIsInteger = std::is_integral_v<InT>;
 		constexpr bool bIsFloat = std::is_floating_point_v<InT>;
@@ -471,24 +473,31 @@ bool FFormulaValue::TryCopyNumericValue(const FProperty* DestinationType, void* 
 			// Helper lambda to perform the actual assignment
 			auto TryAssign = [InValue](auto TypedDestination) -> bool
 			{
-				using OutT = std::decay_t<decltype(TypedDestination)>;
-					
+				using OutT = std::remove_pointer_t<std::decay_t<decltype(TypedDestination)>>;
+
 				if constexpr (std::is_integral_v<InT> && std::is_integral_v<OutT>)
 				{
 					// Check if the value fits in the destination type without overflow
-					if (!std::in_range<OutT>(InValue))
+					if (!IntFitsIn<OutT, InT>(InValue))
 					{
 						return false; // will lose some data on  conversion
+					}
+					else
+					{
+						*TypedDestination = static_cast<OutT>(static_cast<InT>(InValue));
+						return true;
 					}
 				}
 				else if (std::is_floating_point_v<InT> && !std::is_floating_point_v<OutT>)
 				{
-					// can't convert from floating point to non-floating point
-					// and cannot narrow floating point
+					// Can't convert from floating point to non-floating point
 					return false;
 				}
-				*TypedDestination = static_cast<InT>(InValue);
-				return true;
+				else
+				{
+					*TypedDestination = static_cast<OutT>(static_cast<InT>(InValue));
+					return true;
+				}
 			};
 
 			switch (ToTypeCode)

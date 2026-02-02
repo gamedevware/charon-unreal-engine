@@ -42,7 +42,7 @@ FFormulaExecutionResult FNewArrayInitExpression::Execute(const FFormulaExecution
 	}
 	
 	TArray<TSharedRef<FFormulaValue>> AddValues;
-	for (const auto Initializer : this->Initializers)
+	for (const auto& Initializer : this->Initializers)
 	{
 		const auto ValueResult = Initializer->Execute(Context, ExpectedElementProperty);
 		if (ValueResult.HasError())
@@ -73,7 +73,7 @@ FFormulaExecutionResult FNewArrayInitExpression::Execute(const FFormulaExecution
 	FProperty* ElementProperty = ArrayProperty->Inner;
 	FScriptArrayHelper ArrayWrap(ArrayProperty, ArrayValuePtr);
 	
-	for (const auto ValueToAdd : AddValues)
+	for (const auto& ValueToAdd : AddValues)
 	{
 		const int32 AddedIndex = ArrayWrap.AddUninitializedValue();
 		void* ElementPtr = ArrayWrap.GetElementPtr(AddedIndex);
@@ -96,7 +96,7 @@ bool FNewArrayInitExpression::IsValid() const
 	{
 		return false;
 	}
-	for (auto InitializationValue : this->Initializers)
+	for (const auto& InitializationValue : this->Initializers)
 	{
 		if (!InitializationValue.IsValid())
 		{
@@ -120,7 +120,7 @@ void FNewArrayInitExpression::DebugPrintTo(FString& OutValue) const
 	OutValue.Append("[").AppendInt(this->Initializers.Num());
 	OutValue.Append("] { ");
 	bool bFirstArgument = true;;
-	for (auto InitializationValue : this->Initializers)
+	for (const auto& InitializationValue : this->Initializers)
 	{
 		if (!bFirstArgument)
 		{

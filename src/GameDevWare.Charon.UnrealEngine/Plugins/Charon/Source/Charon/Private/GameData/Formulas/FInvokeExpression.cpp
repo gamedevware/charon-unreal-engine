@@ -46,7 +46,7 @@ FFormulaExecutionResult FInvokeExpression::Execute(const FFormulaExecutionContex
 	const FMemberExpression* MemberExpression = CastExpression<FMemberExpression>(this->Expression.Get());
 
 	// resolve type arguments
-	for (auto TypeArgumentReference : MemberExpression->TypeArguments)
+	for (const auto& TypeArgumentReference : MemberExpression->TypeArguments)
 	{
 		const auto TypeArgument = Context.TypeResolver->FindType(TypeArgumentReference);
 		if (!TypeArgument.IsValid() || !TypeArgument->GetTypeClassOrStruct())
@@ -112,7 +112,7 @@ bool FInvokeExpression::IsValid() const
 	{
 		return false;
 	}
-	for (auto ArgumentPair : this->Arguments)
+	for (const auto& ArgumentPair : this->Arguments)
 	{
 		if (!ArgumentPair.Value.IsValid())
 		{
@@ -143,7 +143,7 @@ void FInvokeExpression::DebugPrintTo(FString& OutValue) const
 	}
 	OutValue.Append("(");
 	bool bFirstArgument = true;;
-	for (auto ArgumentPair : this->Arguments)
+	for (const auto& ArgumentPair : this->Arguments)
 	{
 		if (!bFirstArgument)
 		{
@@ -177,7 +177,7 @@ FFormulaExecutionResult FInvokeExpression::ExecuteExpression(const TSharedRef<FF
 		return TargetResult; // propagate error
 	}
 
-	const auto Target = TargetResult.GetValue();
+	const auto& Target = TargetResult.GetValue();
 	if (Target->IsNull())
 	{
 		if (IsNullPropagation)
@@ -224,7 +224,7 @@ FFormulaExecutionResult FInvokeExpression::InvokeFunction(const TSharedRef<FForm
 	check(FormulaFunction);
 	
 	FFormulaInvokeArguments CallArguments;
-	for (auto ArgumentPair : this->Arguments)
+	for (const auto& ArgumentPair : this->Arguments)
 	{
 		const TSharedPtr<FFormulaExpression>& ArgumentExpression = ArgumentPair.Value;
 		const FString& ArgumentIndexOrName = ArgumentPair.Key;
@@ -234,7 +234,7 @@ FFormulaExecutionResult FInvokeExpression::InvokeFunction(const TSharedRef<FForm
 		{
 			return ArgumentResult;
 		}
-		const auto ArgumentValue = ArgumentResult.GetValue();
+		const auto& ArgumentValue = ArgumentResult.GetValue();
 		CallArguments.AddArgument(ArgumentPair.Key, ArgumentValue, FFormulaInvokeArguments::GetArgumentFlags(ArgumentExpression, ArgumentValue, Context));
 	}
 
@@ -242,7 +242,7 @@ FFormulaExecutionResult FInvokeExpression::InvokeFunction(const TSharedRef<FForm
 	if (FormulaFunction->TryInvoke(Target, CallArguments, nullptr, TypeArguments, InvokeValue))
 	{
 		// copy out parameters back to Context
-		for (auto UpdatedOutArgument : CallArguments.GetUpdatedOutArguments())
+		for (const auto& UpdatedOutArgument : CallArguments.GetUpdatedOutArguments())
 		{
 			if (const FString* ContextArgumentName = Context.Arguments.FindKey(UpdatedOutArgument.Key))
 			{
@@ -293,7 +293,7 @@ void FInvokeExpression::GetGlobalFunctionNames(TSet<FString> FunctionNames, cons
 		const auto GlobalType = Context.TypeResolver->GetType(Context.Global);
 		FunctionNames.Append(GlobalType->GetFunctionNames(/*bStatic*/ false));
 	}
-	for (auto ArgumentPair : Context.Arguments)
+	for (const auto& ArgumentPair : Context.Arguments)
 	{
 		FunctionNames.Add(ArgumentPair.Key);
 	}

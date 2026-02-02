@@ -68,12 +68,12 @@ FFormulaFunctionInvokeFunc FFormulaFunction::CreateDefaultFunctionInvoker(UFunct
 			return false; // type arguments are not supported
 		}
 
-		UFunction* Function = FunctionPtr.Get();
-		const UClass* DeclaringClass = Cast<UClass>(DeclaringClassPtr.Get());
-		check(Function);
-		check(DeclaringClass);
+		UFunction* FunctionOrNull = FunctionPtr.Get();
+		const UClass* DeclaringClassOrNull = Cast<UClass>(DeclaringClassPtr.Get());
+		check(FunctionOrNull);
+		check(DeclaringClassOrNull);
 
-		if (!Function || !DeclaringClass)
+		if (!FunctionOrNull || !DeclaringClassOrNull)
 		{
 			UE_LOG(LogFormulaFunction, Warning, TEXT("Method binding failed because the metadata object was unloaded or garbage collected."));
 			return false; // function is gone
@@ -81,7 +81,7 @@ FFormulaFunctionInvokeFunc FFormulaFunction::CreateDefaultFunctionInvoker(UFunct
 
 		UObject* TargetPtr = nullptr;
 		if (Target->TryGetObjectPtr(TargetPtr) &&
-			!TargetPtr->GetClass()->IsChildOf(DeclaringClass))
+			!TargetPtr->GetClass()->IsChildOf(DeclaringClassOrNull))
 		{
 			TargetPtr = nullptr; // invalid target class
 		}
@@ -105,12 +105,12 @@ FFormulaFunctionInvokeFunc FFormulaFunction::CreateDefaultFunctionInvoker(UFunct
 		bool bIsMatching = true;
 		
 		TArray<uint8> ArgumentsBuffer;
-		ArgumentsBuffer.AddZeroed(Function->ParmsSize);
+		ArgumentsBuffer.AddZeroed(FunctionOrNull->ParmsSize);
 		void* ArgumentBufferPtr = ArgumentsBuffer.GetData();
 
 		// bind input parameters
 		int32 ParameterIndex = 0;
-		for (TFieldIterator<FProperty> It(Function); It; ++It, ParameterIndex++)
+		for (TFieldIterator<FProperty> It(FunctionOrNull); It; ++It, ParameterIndex++)
 		{
 			const FProperty* Parameter = *It;
 			if (Parameter->HasAnyPropertyFlags(CPF_ReturnParm))
@@ -141,11 +141,11 @@ FFormulaFunctionInvokeFunc FFormulaFunction::CreateDefaultFunctionInvoker(UFunct
 			return false;
 		}
 
-		TargetPtr->ProcessEvent(Function, ArgumentBufferPtr);
+		TargetPtr->ProcessEvent(FunctionOrNull, ArgumentBufferPtr);
 
 		// copy output parameters
 		ParameterIndex = 0;
-		for (TFieldIterator<FProperty> It(Function); It; ++It, ++ParameterIndex)
+		for (TFieldIterator<FProperty> It(FunctionOrNull); It; ++It, ++ParameterIndex)
 		{
 			FProperty* Parameter = *It;
 			if (Parameter->HasAnyPropertyFlags(CPF_ReturnParm))

@@ -91,7 +91,7 @@ FFormulaExecutionResult FUnaryExpression::Execute(const FFormulaExecutionContext
 		return Result; // propagate error
 	}
 
-	const auto Operand = Result.GetValue();
+	const auto& Operand = Result.GetValue();
 	if (Operand->IsNull())
 	{
 		return Result; // unary operations on null lifted to null

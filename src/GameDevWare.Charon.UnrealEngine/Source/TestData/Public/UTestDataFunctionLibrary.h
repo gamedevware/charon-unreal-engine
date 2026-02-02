@@ -23,6 +23,7 @@
 #include "UNumberTestEntity.h"
 #include "UUniqueAttributeEntity.h"
 #include "UUnionType.h"
+#include "UAllTypesTest.h"
 #include "ETestEntityPickListField.h"
 #include "ETestEntityMultiPickListField.h"
 #include "ENumberTestEntityPickList8Bit.h"
@@ -49,6 +50,9 @@
 #include "EUniqueAttributeEntityTimeSpanKey.h"
 #include "EUniqueAttributeEntityDateTimeKey.h"
 #include "UTestEntityFormulaFieldFormula.h"
+#include "UAllTypesTestVoidFormulaFormula.h"
+#include "UAllTypesTestNoParamsFormulaFormula.h"
+#include "UAllTypesTestParamsFormulaFormula.h"
 
 #include "UTestDataFunctionLibrary.generated.h"
 
@@ -152,6 +156,23 @@ class TESTDATA_API UTestDataFunctionLibrary : public UBlueprintFunctionLibrary
 	static UUnionType* GetUnionType(FGameDataDocumentReference DocumentReference, EDocumentReferenceGetResult& Branches)
 	{
 		UUnionType* Document = Cast<UUnionType>(DocumentReference.GetReferencedDocument());
+		if (Document == nullptr)
+		{
+			Branches = EDocumentReferenceGetResult::NotFound;
+		}
+		else
+		{
+			Branches = EDocumentReferenceGetResult::Found;
+		}
+		return Document;
+	}
+	/*
+	 * Get UAllTypesTest referenced in specified DocumentReference.
+	 */
+	UFUNCTION(BlueprintCallable, Meta = (ExpandEnumAsExecs = "Branches"))
+	static UAllTypesTest* GetAllTypesTest(FGameDataDocumentReference DocumentReference, EDocumentReferenceGetResult& Branches)
+	{
+		UAllTypesTest* Document = Cast<UAllTypesTest>(DocumentReference.GetReferencedDocument());
 		if (Document == nullptr)
 		{
 			Branches = EDocumentReferenceGetResult::NotFound;

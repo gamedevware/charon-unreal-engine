@@ -1024,15 +1024,14 @@ TSharedRef<IGameDataReader> URpgGameData::CreateReader(FArchive* const GameDataS
 	}
 }
 
-PRAGMA_DISABLE_DEPRECATION_WARNINGS
 #if UE_VERSION_NEWER_THAN(5, 4, -1)
-static constexpr EObjectFlags GARBAGE_FLAG = EObjectFlags::RF_MirroredGarbage;
+static constexpr EObjectFlags URpgGameData_GARBAGE_FLAG = static_cast<EObjectFlags>(0x40000000); /* EObjectFlags::RF_MirroredGarbage */
 #else
-static constexpr EObjectFlags GARBAGE_FLAG = EObjectFlags::RF_Garbage;
-#endif
-PRAGMA_ENABLE_DEPRECATION_WARNINGS
+static constexpr EObjectFlags URpgGameData_GARBAGE_FLAG = static_cast<EObjectFlags>(0x40000000); /* EObjectFlags::RF_Garbage */
 
-static UObject* FindDocumentByUniqueName(const FString& ObjectName, TSharedPtr<TMap<FString, UObject*>> DocumentsById)
+#endif
+
+static UObject* URpgGameData_FindDocumentByUniqueName(const FString& ObjectName, TSharedPtr<TMap<FString, UObject*>> DocumentsById)
 {
 	if (!DocumentsById)
 	{
@@ -1046,13 +1045,13 @@ static UObject* FindDocumentByUniqueName(const FString& ObjectName, TSharedPtr<T
 	}
 
 	UObject* FoundObject = const_cast<UObject*>(*ConstFoundObject);
-	if (FoundObject->HasAnyFlags(GARBAGE_FLAG))
+	if (FoundObject->HasAnyFlags(URpgGameData_GARBAGE_FLAG))
 	{
 		return nullptr; // object has been marked for deletion
 	}
 	return FoundObject;
 }
-static void FillDocumentByUniqueNameMap(UObject* Outer, TSharedPtr<TMap<FString, UObject*>>& DocumentsById)
+static void URpgGameData_FillDocumentByUniqueNameMap(UObject* Outer, TSharedPtr<TMap<FString, UObject*>>& DocumentsById)
 {
 	if (!Outer) {
 		UE_LOG(LogURpgGameData, Error, TEXT("Can't fill documents by unique name map for `null` Outer."));
@@ -1072,7 +1071,7 @@ static void FillDocumentByUniqueNameMap(UObject* Outer, TSharedPtr<TMap<FString,
 	ForEachObjectWithOuter(Outer, [DocumentsById](UObject* Child)
 	{
 		// skip already deleted or non-document objects
-		if (Child->HasAnyFlags(GARBAGE_FLAG) ||
+		if (Child->HasAnyFlags(URpgGameData_GARBAGE_FLAG) ||
 			!Cast<UGameDataDocument>(Child))
 		{
 			return;
@@ -1088,7 +1087,7 @@ static void FillDocumentByUniqueNameMap(UObject* Outer, TSharedPtr<TMap<FString,
 	},
 	/* bIncludeNested */ true);
 }
-static void ClearDocumentByUniqueNameMap(TSharedPtr<TMap<FString, UObject*>> DocumentsById)
+static void URpgGameData_ClearDocumentByUniqueNameMap(TSharedPtr<TMap<FString, UObject*>> DocumentsById)
 {
 	if (!DocumentsById)
 	{
@@ -1098,7 +1097,7 @@ static void ClearDocumentByUniqueNameMap(TSharedPtr<TMap<FString, UObject*>> Doc
 }
 
 template <typename DocumentType>
-static FString MakeUniqueDocumentName(DocumentType* Document)
+static FString URpgGameData_MakeUniqueDocumentName(DocumentType* Document)
 {
 	if (!Document) {
 		UE_LOG(LogURpgGameData, Error, TEXT("Can't make unique name for `null` document."));
@@ -1112,7 +1111,7 @@ static FString MakeUniqueDocumentName(DocumentType* Document)
 	return DocumentUniqueName;
 }
 
-static void TryRenameDocument(UObject* Document, const TCHAR* NewName)
+static void URpgGameData_TryRenameDocument(UObject* Document, const TCHAR* NewName)
 {
 	if (!Document) {
 		UE_LOG(LogURpgGameData, Error, TEXT("Can't rename `null` document."));
@@ -1130,7 +1129,7 @@ static void TryRenameDocument(UObject* Document, const TCHAR* NewName)
 	}
 }
 
-static void TryDeleteDocument(UObject* Document)
+static void URpgGameData_TryDeleteDocument(UObject* Document)
 {
 	if (!Document) {
 		UE_LOG(LogURpgGameData, Error, TEXT("Can't delete `null` document."));
@@ -1140,7 +1139,7 @@ static void TryDeleteDocument(UObject* Document)
 	Document->Rename(nullptr, GetTransientPackage(), REN_DontCreateRedirectors | REN_NonTransactional | REN_ForceNoResetLoaders);
 }
 
-static void MarkChildDocumentsForDeletion(UObject* Document)
+static void URpgGameData_MarkChildDocumentsForDeletion(UObject* Document)
 {
 	if (!Document) {
 		UE_LOG(LogURpgGameData, Error, TEXT("Can't mark as orphand children for deletion for `null` document."));
@@ -1160,7 +1159,7 @@ static void MarkChildDocumentsForDeletion(UObject* Document)
 	/* bIncludeNested */ false);
 }
 
-static void SweepMarkedChildDocuments(UObject* Document)
+static void URpgGameData_SweepMarkedChildDocuments(UObject* Document)
 {
 	if (!Document) {
 		UE_LOG(LogURpgGameData, Error, TEXT("Can't sweep orphained children for `null` document."));
@@ -1171,7 +1170,7 @@ static void SweepMarkedChildDocuments(UObject* Document)
 	ForEachObjectWithOuter(Document, [&](UObject* Child)
 	{
 		// skip already deleted or non-document objects
-		if (Child->HasAnyFlags(GARBAGE_FLAG) ||
+		if (Child->HasAnyFlags(URpgGameData_GARBAGE_FLAG) ||
 			!Cast<UGameDataDocument>(Child) ||
 			!Child->HasAnyFlags(EObjectFlags::RF_TagGarbageTemp))
 		{
@@ -1200,8 +1199,8 @@ bool URpgGameData::ReadGameData(const TSharedRef<IGameDataReader>& Reader)
 		return false;
 	}
 
-	FillDocumentByUniqueNameMap(this, this->NameLookupDuringLoading);
-	MarkChildDocumentsForDeletion(this);
+	URpgGameData_FillDocumentByUniqueNameMap(this, this->NameLookupDuringLoading);
+	URpgGameData_MarkChildDocumentsForDeletion(this);
 
 	while (Reader->GetNotation() != EJsonNotation::ObjectEnd)
 	{
@@ -1591,8 +1590,8 @@ bool URpgGameData::ReadGameData(const TSharedRef<IGameDataReader>& Reader)
 		return false;
 	}
 
-	ClearDocumentByUniqueNameMap(this->NameLookupDuringLoading);
-	SweepMarkedChildDocuments(this);
+	URpgGameData_ClearDocumentByUniqueNameMap(this->NameLookupDuringLoading);
+	URpgGameData_SweepMarkedChildDocuments(this);
 
 	return true;
 }
@@ -1638,8 +1637,8 @@ bool URpgGameData::ReadDocument
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("ProjectSettings.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = URpgGameData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = URpgGameData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			URpgGameDataProjectSettings* ExistingDocument = Cast<URpgGameDataProjectSettings>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -1651,20 +1650,20 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->Version = Document->Version;
 				ExistingDocument->Extensions = Document->Extensions;
 
-				TryDeleteDocument(Document);
+				URpgGameData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				URpgGameData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryDeleteDocument(ExistingObject);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Name"))
@@ -1766,7 +1765,7 @@ bool URpgGameData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	URpgGameData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -1811,8 +1810,8 @@ bool URpgGameData::ReadDocument
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("Parameter.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = URpgGameData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = URpgGameData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UParameter* ExistingDocument = Cast<UParameter>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -1823,20 +1822,20 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->MaxValueParameterRaw = Document->MaxValueParameterRaw;
 				ExistingDocument->ValueKind = Document->ValueKind;
 
-				TryDeleteDocument(Document);
+				URpgGameData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				URpgGameData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryDeleteDocument(ExistingObject);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("MinValue"))
@@ -1924,7 +1923,7 @@ bool URpgGameData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	URpgGameData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -1969,8 +1968,8 @@ bool URpgGameData::ReadDocument
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("ParameterValue.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = URpgGameData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = URpgGameData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UParameterValue* ExistingDocument = Cast<UParameterValue>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -1980,20 +1979,20 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->ConditionRaw = Document->ConditionRaw;
 				ExistingDocument->EffectTags = Document->EffectTags;
 
-				TryDeleteDocument(Document);
+				URpgGameData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				URpgGameData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryDeleteDocument(ExistingObject);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Parameter"))
@@ -2067,7 +2066,7 @@ bool URpgGameData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	URpgGameData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -2112,8 +2111,8 @@ bool URpgGameData::ReadDocument
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("Provision.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = URpgGameData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = URpgGameData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UProvision* ExistingDocument = Cast<UProvision>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -2121,20 +2120,20 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->Cost = Document->Cost;
 				ExistingDocument->Item = Document->Item;
 
-				TryDeleteDocument(Document);
+				URpgGameData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				URpgGameData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryDeleteDocument(ExistingObject);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Cost"))
@@ -2180,7 +2179,7 @@ bool URpgGameData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	URpgGameData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -2225,8 +2224,8 @@ bool URpgGameData::ReadDocument
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("Hero.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = URpgGameData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = URpgGameData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UHero* ExistingDocument = Cast<UHero>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -2254,20 +2253,20 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->Picture = Document->Picture;
 				ExistingDocument->PictureBounds = Document->PictureBounds;
 
-				TryDeleteDocument(Document);
+				URpgGameData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				URpgGameData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryDeleteDocument(ExistingObject);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Name"))
@@ -2593,7 +2592,7 @@ bool URpgGameData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	URpgGameData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -2638,8 +2637,8 @@ bool URpgGameData::ReadDocument
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("Item.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = URpgGameData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = URpgGameData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UItem* ExistingDocument = Cast<UItem>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -2650,20 +2649,20 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->GoldValue = Document->GoldValue;
 				ExistingDocument->ActivationEffects = Document->ActivationEffects;
 
-				TryDeleteDocument(Document);
+				URpgGameData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				URpgGameData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryDeleteDocument(ExistingObject);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Name"))
@@ -2751,7 +2750,7 @@ bool URpgGameData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	URpgGameData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -2796,8 +2795,8 @@ bool URpgGameData::ReadDocument
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("Location.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = URpgGameData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = URpgGameData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			ULocation* ExistingDocument = Cast<ULocation>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -2805,20 +2804,20 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->NameRaw = Document->NameRaw;
 				ExistingDocument->Flags = Document->Flags;
 
-				TryDeleteDocument(Document);
+				URpgGameData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				URpgGameData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryDeleteDocument(ExistingObject);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Name"))
@@ -2864,7 +2863,7 @@ bool URpgGameData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	URpgGameData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -2909,8 +2908,8 @@ bool URpgGameData::ReadDocument
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("Trinket.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = URpgGameData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = URpgGameData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UTrinket* ExistingDocument = Cast<UTrinket>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -2921,20 +2920,20 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->Item = Document->Item;
 				ExistingDocument->Effects = Document->Effects;
 
-				TryDeleteDocument(Document);
+				URpgGameData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				URpgGameData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryDeleteDocument(ExistingObject);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Rarity"))
@@ -3022,7 +3021,7 @@ bool URpgGameData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	URpgGameData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -3067,8 +3066,8 @@ bool URpgGameData::ReadDocument
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("Monster.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = URpgGameData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = URpgGameData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UMonster* ExistingDocument = Cast<UMonster>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -3079,20 +3078,20 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->Parameters = Document->Parameters;
 				ExistingDocument->LocationsRaw = Document->LocationsRaw;
 
-				TryDeleteDocument(Document);
+				URpgGameData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				URpgGameData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryDeleteDocument(ExistingObject);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Name"))
@@ -3180,7 +3179,7 @@ bool URpgGameData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	URpgGameData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -3225,8 +3224,8 @@ bool URpgGameData::ReadDocument
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("Loot.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = URpgGameData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = URpgGameData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			ULoot* ExistingDocument = Cast<ULoot>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -3234,20 +3233,20 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->Type = Document->Type;
 				ExistingDocument->Amount = Document->Amount;
 
-				TryDeleteDocument(Document);
+				URpgGameData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				URpgGameData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryDeleteDocument(ExistingObject);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Type"))
@@ -3293,7 +3292,7 @@ bool URpgGameData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	URpgGameData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -3338,8 +3337,8 @@ bool URpgGameData::ReadDocument
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("CombatEffect.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = URpgGameData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = URpgGameData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UCombatEffect* ExistingDocument = Cast<UCombatEffect>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -3348,20 +3347,20 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->Duration = Document->Duration;
 				ExistingDocument->DurationUnit = Document->DurationUnit;
 
-				TryDeleteDocument(Document);
+				URpgGameData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				URpgGameData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryDeleteDocument(ExistingObject);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Changes"))
@@ -3421,7 +3420,7 @@ bool URpgGameData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	URpgGameData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -3466,8 +3465,8 @@ bool URpgGameData::ReadDocument
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("CurioCleansingOption.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = URpgGameData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = URpgGameData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UCurioCleansingOption* ExistingDocument = Cast<UCurioCleansingOption>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -3480,20 +3479,20 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->Effects = Document->Effects;
 				ExistingDocument->ItemIsConsumed = Document->ItemIsConsumed;
 
-				TryDeleteDocument(Document);
+				URpgGameData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				URpgGameData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryDeleteDocument(ExistingObject);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Chance"))
@@ -3609,7 +3608,7 @@ bool URpgGameData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	URpgGameData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -3654,8 +3653,8 @@ bool URpgGameData::ReadDocument
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("Curio.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = URpgGameData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = URpgGameData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UCurio* ExistingDocument = Cast<UCurio>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -3667,20 +3666,20 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->PlacementRestictions = Document->PlacementRestictions;
 				ExistingDocument->LocationsRaw = Document->LocationsRaw;
 
-				TryDeleteDocument(Document);
+				URpgGameData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				URpgGameData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryDeleteDocument(ExistingObject);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Type"))
@@ -3782,7 +3781,7 @@ bool URpgGameData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	URpgGameData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -3827,8 +3826,8 @@ bool URpgGameData::ReadDocument
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("Disease.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = URpgGameData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = URpgGameData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UDisease* ExistingDocument = Cast<UDisease>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -3836,20 +3835,20 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->NameRaw = Document->NameRaw;
 				ExistingDocument->Effects = Document->Effects;
 
-				TryDeleteDocument(Document);
+				URpgGameData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				URpgGameData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryDeleteDocument(ExistingObject);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Name"))
@@ -3895,7 +3894,7 @@ bool URpgGameData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	URpgGameData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -3940,8 +3939,8 @@ bool URpgGameData::ReadDocument
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("Quirk.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = URpgGameData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = URpgGameData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UQuirk* ExistingDocument = Cast<UQuirk>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -3950,20 +3949,20 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->IsPositive = Document->IsPositive;
 				ExistingDocument->Effects = Document->Effects;
 
-				TryDeleteDocument(Document);
+				URpgGameData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				URpgGameData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryDeleteDocument(ExistingObject);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Name"))
@@ -4023,7 +4022,7 @@ bool URpgGameData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	URpgGameData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -4068,8 +4067,8 @@ bool URpgGameData::ReadDocument
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("Conditions.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = URpgGameData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = URpgGameData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UCondition* ExistingDocument = Cast<UCondition>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -4078,20 +4077,20 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->Check = Document->Check;
 				ExistingDocument->UnboundCheck = Document->UnboundCheck;
 
-				TryDeleteDocument(Document);
+				URpgGameData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				URpgGameData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryDeleteDocument(ExistingObject);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Description"))
@@ -4153,7 +4152,7 @@ bool URpgGameData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	URpgGameData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -4198,8 +4197,8 @@ bool URpgGameData::ReadDocument
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("Weapon.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = URpgGameData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = URpgGameData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UWeapon* ExistingDocument = Cast<UWeapon>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -4210,20 +4209,20 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->CriticalStrikeChance = Document->CriticalStrikeChance;
 				ExistingDocument->Speed = Document->Speed;
 
-				TryDeleteDocument(Document);
+				URpgGameData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				URpgGameData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryDeleteDocument(ExistingObject);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Name"))
@@ -4311,7 +4310,7 @@ bool URpgGameData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	URpgGameData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -4356,8 +4355,8 @@ bool URpgGameData::ReadDocument
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("Armor.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = URpgGameData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = URpgGameData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UArmor* ExistingDocument = Cast<UArmor>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -4366,20 +4365,20 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->Dodge = Document->Dodge;
 				ExistingDocument->HitPoints = Document->HitPoints;
 
-				TryDeleteDocument(Document);
+				URpgGameData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				URpgGameData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryDeleteDocument(ExistingObject);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Name"))
@@ -4439,7 +4438,7 @@ bool URpgGameData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	URpgGameData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -4484,8 +4483,8 @@ bool URpgGameData::ReadDocument
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("ItemWithCount.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = URpgGameData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = URpgGameData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UItemWithCount* ExistingDocument = Cast<UItemWithCount>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -4493,20 +4492,20 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->ItemRaw = Document->ItemRaw;
 				ExistingDocument->Count = Document->Count;
 
-				TryDeleteDocument(Document);
+				URpgGameData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				URpgGameData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryDeleteDocument(ExistingObject);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Item"))
@@ -4552,7 +4551,7 @@ bool URpgGameData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	URpgGameData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -4597,8 +4596,8 @@ bool URpgGameData::ReadDocument
 				UE_LOG(LogURpgGameData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("StartingSet.Id"), *CombineGameDataPath(GameDataPath));
 				return false;
 			}
-			FString NewName = MakeUniqueDocumentName(Document);
-			UObject* ExistingObject = FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
+			FString NewName = URpgGameData_MakeUniqueDocumentName(Document);
+			UObject* ExistingObject = URpgGameData_FindDocumentByUniqueName(NewName, this->NameLookupDuringLoading);
 			UStartingSet* ExistingDocument = Cast<UStartingSet>(ExistingObject);
 			if (ExistingDocument)
 			{
@@ -4607,20 +4606,20 @@ bool URpgGameData::ReadDocument
 				ExistingDocument->HeroesRaw = Document->HeroesRaw;
 				ExistingDocument->LocationRaw = Document->LocationRaw;
 
-				TryDeleteDocument(Document);
+				URpgGameData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
 				Document = ExistingDocument;
 
-				MarkChildDocumentsForDeletion(ExistingDocument);
+				URpgGameData_MarkChildDocumentsForDeletion(ExistingDocument);
 			}
 			else if (ExistingObject)
 			{
-				TryDeleteDocument(ExistingObject);
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryDeleteDocument(ExistingObject);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 			else
 			{
-				TryRenameDocument(Document, *NewName);
+				URpgGameData_TryRenameDocument(Document, *NewName);
 			}
 		}
 		else if (PropertyName == TEXT("Items"))
@@ -4680,7 +4679,7 @@ bool URpgGameData::ReadDocument
 	}
 
 
-	SweepMarkedChildDocuments(Document);
+	URpgGameData_SweepMarkedChildDocuments(Document);
 
 	return true;
 }
@@ -5673,7 +5672,7 @@ TSharedPtr<FJsonObject> URpgGameData::MergeGameData(const TSharedPtr<FJsonObject
 	return MergedGameData;
 }
 
-struct ToIdMapper
+struct URpgGameData_ToIdMapper
 {
 	static TSharedPtr<FJsonObject> ToDocumentById(TSharedRef<FJsonValue> Collection)
 	{
@@ -5722,8 +5721,8 @@ struct ToIdMapper
 template <typename DocumentType>
 TSharedPtr<FJsonValue> URpgGameData::MergeDocumentCollection(TSharedRef<FJsonValue> OriginalCollection, TSharedRef<FJsonValue> ModifiedCollection, bool PurgeRest)
 {
-	auto OriginalCollectionById = ToIdMapper::ToDocumentById(OriginalCollection);
-	auto ModifiedCollectionById = ToIdMapper::ToDocumentById(ModifiedCollection);
+	auto OriginalCollectionById = URpgGameData_ToIdMapper::ToDocumentById(OriginalCollection);
+	auto ModifiedCollectionById = URpgGameData_ToIdMapper::ToDocumentById(ModifiedCollection);
 	auto MergedCollectionById = MakeShared<FJsonObject>();
 	auto DocumentIds = PurgeRest ? MergeKeys(ModifiedCollectionById->Values, TMap<FString, TSharedPtr<FJsonValue>>()) : MergeKeys(OriginalCollectionById->Values, ModifiedCollectionById->Values);
 

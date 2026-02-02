@@ -11,7 +11,7 @@ FFormulaInvokeArguments::FFormulaInvokeArguments()
 
 FFormulaInvokeArguments::FFormulaInvokeArguments(std::initializer_list<InvokeArgument> InitList)
 {
-	for (InvokeArgument Argument : InitList)
+	for (const auto& Argument : InitList)
 	{
 		this->ArgumentsByName.Add(Argument.Name, Argument);
 	}
@@ -81,7 +81,7 @@ void FFormulaInvokeArguments::UpdateArgumentValue(const FString& InParameterName
 
 void FFormulaInvokeArguments::GetParameterTypes(TArray<FString>& OutParameterTypes)
 {
-	for (auto ArgumentPair : this->ArgumentsByName)
+	for (const auto& ArgumentPair : this->ArgumentsByName)
 	{
 		OutParameterTypes.Add(ArgumentPair.Value.Value->GetCPPType());
 	}
@@ -90,7 +90,7 @@ void FFormulaInvokeArguments::GetParameterTypes(TArray<FString>& OutParameterTyp
 TArray<FUpdatedArgumentPair> FFormulaInvokeArguments::GetUpdatedOutArguments()
 {
 	TArray<FUpdatedArgumentPair> OutArguments;
-	for (auto Argument : this->ArgumentsByName)
+	for (const auto& Argument : this->ArgumentsByName)
 	{
 		if ((Argument.Value.Flags & EPropertyFlags::CPF_OutParm) != 0 && 
 			Argument.Value.UpdatedValue.IsValid())

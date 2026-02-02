@@ -105,7 +105,7 @@ public:
 	 * Parse space separated vector components into vector structure. 
 	 */
 	UFUNCTION(BlueprintCallable, Category="Conversion")
-	static FIntVector2 ParseIntVector2(FString VectorStr /* space separated vector components */)
+	static FIntPoint ParseFIntPoint(FString VectorStr /* space separated vector components */)
 	{
 		TArray<FString> Components;
 		VectorStr.ParseIntoArray(Components, TEXT(" "), true);
@@ -113,7 +113,7 @@ public:
 		double X = (Components.Num() > 0) ? FCString::Atoi(*Components[0]) : 0.0;
 		double Y = (Components.Num() > 1) ? FCString::Atoi(*Components[1]) : 0.0;
 
-		return FIntVector2(X, Y);
+		return FIntPoint(X, Y);
 	}
 	
 	/*

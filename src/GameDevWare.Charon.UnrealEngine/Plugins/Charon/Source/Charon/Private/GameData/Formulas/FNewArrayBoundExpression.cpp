@@ -46,14 +46,14 @@ FFormulaExecutionResult FNewArrayBoundExpression::Execute(const FFormulaExecutio
 	}
 	
 	int32 ArraySize = 0;
-	for (const auto ArgumentPair : this->Arguments)
+	for (const auto& ArgumentPair : this->Arguments)
 	{
 		const auto ArgumentResult = ArgumentPair.Value->Execute(Context, UDotNetInt32::GetLiteralProperty());
 		if (ArgumentResult.HasError())
 		{
 			return ArgumentResult; // propagate error
 		}
-		const auto ArgumentValue = ArgumentResult.GetValue();
+		const auto& ArgumentValue = ArgumentResult.GetValue();
 		if (!ArgumentValue->TryGetInt32(ArraySize))
 		{
 			return FFormulaExecutionError::InvalidArraySizeValue(ArgumentValue->GetCPPType());
@@ -90,7 +90,7 @@ bool FNewArrayBoundExpression::IsValid() const
 	{
 		return false;
 	}
-	for (auto ArgumentPair : this->Arguments)
+	for (const auto& ArgumentPair : this->Arguments)
 	{
 		if (!ArgumentPair.Value.IsValid())
 		{
@@ -113,7 +113,7 @@ void FNewArrayBoundExpression::DebugPrintTo(FString& OutValue) const
 	}
 	OutValue.Append("[");
 	bool bFirstArgument = true;;
-	for (auto ArgumentPair : this->Arguments)
+	for (const auto& ArgumentPair : this->Arguments)
 	{
 		if (!bFirstArgument)
 		{

@@ -121,7 +121,7 @@ bool FNewExpression::IsValid() const
 	{
 		return false;
 	}
-	for (auto ArgumentPair : this->Arguments)
+	for (const auto& ArgumentPair : this->Arguments)
 	{
 		if (!ArgumentPair.Value.IsValid())
 		{
@@ -144,7 +144,7 @@ void FNewExpression::DebugPrintTo(FString& OutValue) const
 	}
 	OutValue.Append("(");
 	bool bFirstArgument = true;;
-	for (auto ArgumentPair : this->Arguments)
+	for (const auto& ArgumentPair : this->Arguments)
 	{
 		if (!bFirstArgument)
 		{

@@ -18,6 +18,7 @@
 #include "GameData/FLocalizedText.h"
 #include "GameData/UGameDataLibrary.h"
 #include "JsonObjectWrapper.h"
+#include "Misc/EngineVersionComparison.h"
 
 #include "UQuirk.generated.h"
 

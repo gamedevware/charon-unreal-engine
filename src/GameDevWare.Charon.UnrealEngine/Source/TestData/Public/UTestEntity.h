@@ -16,7 +16,9 @@
 #include "GameData/UGameDataDocument.h"
 #include "GameData/FGameDataDocumentReference.h"
 #include "GameData/FLocalizedText.h"
+#include "GameData/UGameDataLibrary.h"
 #include "JsonObjectWrapper.h"
+#include "Misc/EngineVersionComparison.h"
 
 #include "ETestEntityPickListField.h"
 #include "ETestEntityMultiPickListField.h"
@@ -40,11 +42,11 @@ public:
 	/**
 	  * De-referenced document of ReferenceField. Should not be directly used.
 	  */
-	UTestEntity* _referenceFieldDocument;
+	mutable UTestEntity* _referenceFieldDocument;
 	/**
 	  * De-referenced collection of documents for ListOfReferencesField. Should not be directly used.
 	  */
-	TMap<FString,UTestEntity*> _listOfReferencesFieldDocuments;
+	mutable TMap<FString,UTestEntity*> _listOfReferencesFieldDocuments;
 public:
 	/**
 	  * Id property of Text type. Not Empty, Unique.
@@ -60,7 +62,7 @@ public:
 	  * Localized Text Field property of Localized Text type. Can Be Null.
 	  */
 	UFUNCTION(BlueprintCallable)
-	FText GetLocalizedTextField();
+	FText GetLocalizedTextField() const;
 	/**
 	  * Raw value of LocalizedTextField.
 	  */
@@ -125,7 +127,7 @@ public:
 	  * Reference Field property of Reference type. Can Be Null.
 	  */
 	UFUNCTION(BlueprintCallable)
-	UTestEntity* GetReferenceField();
+	UTestEntity* GetReferenceField() const;
 	/**
 	  * Raw value of ReferenceField.
 	  */
@@ -135,7 +137,7 @@ public:
 	  * List Of References Field property of Reference Collection type. Not Null.
 	  */
 	UFUNCTION(BlueprintCallable)
-	TMap<FString,UTestEntity*> GetListOfReferencesField();
+	TMap<FString,UTestEntity*> GetListOfReferencesField() const;
 	/**
 	  * Raw value of ListOfReferencesField.
 	  */

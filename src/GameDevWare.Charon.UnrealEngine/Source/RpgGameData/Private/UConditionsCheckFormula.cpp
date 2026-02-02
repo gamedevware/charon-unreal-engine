@@ -19,7 +19,7 @@ DEFINE_LOG_CATEGORY(LogUConditionsCheckFormula);
 
 #if defined(CHARON_FEATURE_FORMULAS_V2) && CHARON_FEATURE_FORMULAS_V2
 
-static TSharedRef<FFormulaTypeResolver> GetOrCreateTypeResolver()
+static TSharedRef<FFormulaTypeResolver> UConditionsCheckFormula_GetOrCreateTypeResolver()
 {
 	static TSharedRef<FFormulaTypeResolver> __TypeResolver = MakeShared<FFormulaTypeResolver>(URpgGameData::GetSharedFormulaTypeResolver(), TArray<UObject*> {
 		UObject::StaticClass(),
@@ -29,7 +29,7 @@ static TSharedRef<FFormulaTypeResolver> GetOrCreateTypeResolver()
 	return __TypeResolver;
 }
 
-static UFunction* GetInvokeFunction()
+static UFunction* UConditionsCheckFormula_GetInvokeFunction()
 {
 	static TWeakObjectPtr<UFunction> InvokeFunction = UConditionsCheckFormula::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UConditionsCheckFormula, Invoke));
 
@@ -40,7 +40,7 @@ static UFunction* GetInvokeFunction()
 	return InvokeFunction.Get();
 }
 
-static FProperty* GetGlobalProperty()
+static FProperty* UConditionsCheckFormula_GetGlobalProperty()
 {
 	static TWeakFieldPtr<FProperty> GlobalProperty = UConditionsCheckFormula::StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UConditionsCheckFormula, Global));
 
@@ -51,12 +51,12 @@ static FProperty* GetGlobalProperty()
 	return GlobalProperty.Get();
 }
 
-static FProperty* GetInvokeParameterAt(int32 Index)
+static FProperty* UConditionsCheckFormula_GetInvokeParameterAt(int32 Index)
 {
 	static TArray<FProperty*> Parameters = []()
 	{
 		TArray<FProperty*> Params;
-		for (TFieldIterator<FProperty> It(GetInvokeFunction()); It; ++It)
+		for (TFieldIterator<FProperty> It(UConditionsCheckFormula_GetInvokeFunction()); It; ++It)
 		{
 			FProperty* Prop = *It;
 
@@ -77,21 +77,21 @@ bool UConditionsCheckFormula::Invoke(UObject* Context) const
 	const int32 PARAMETER_CONTEXT_INDEX = 0;
 
 	auto __ParsedExpression = this->GetExpression();
-	auto __InvokeFunction = GetInvokeFunction();
+	auto __InvokeFunction = UConditionsCheckFormula_GetInvokeFunction();
 
-	bool __Result = {};
+	bool __Result = {}; // default
 	if (!__ParsedExpression.IsValid() || !__InvokeFunction)
 	{
 		UE_LOG(LogUConditionsCheckFormula, Error, TEXT("The expression tree is missing or contains errors, or the function metadata is not available."));
-		return __Result; // default
+		return __Result;
 	}
 
 	const TMap<FString, const TSharedRef<FFormulaValue>> __Arguments = {
-		{ TEXT("context"), MakeShared<FFormulaValue>(GetInvokeParameterAt(PARAMETER_CONTEXT_INDEX), &Context ) },
+		{ TEXT("context"), MakeShared<FFormulaValue>(UConditionsCheckFormula_GetInvokeParameterAt(PARAMETER_CONTEXT_INDEX), &Context ) },
 	};
 
-	auto __Global = MakeShared<FFormulaValue>(GetGlobalProperty(), &this->Global);
-	auto __Context = FFormulaExecutionContext(this->AutoNullPropagation, __Arguments, __Global, GetOrCreateTypeResolver());
+	auto __Global = MakeShared<FFormulaValue>(UConditionsCheckFormula_GetGlobalProperty(), &this->Global);
+	auto __Context = FFormulaExecutionContext(this->AutoNullPropagation, __Arguments, __Global, UConditionsCheckFormula_GetOrCreateTypeResolver());
 
 	auto __ReturnValueType = __InvokeFunction->GetReturnProperty();
 	auto __InvokeResult = __ParsedExpression->Execute(__Context, __ReturnValueType);

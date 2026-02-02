@@ -30,7 +30,7 @@ FFormulaExecutionResult FConditionExpression::Execute(const FFormulaExecutionCon
 		return Result; // propagate error
 	}
 
-	const auto TestValue = Result.GetValue();
+	const auto& TestValue = Result.GetValue();
 	if (bool ConditionResult; TestValue->TryGetBoolean(ConditionResult))
 	{
 		if (ConditionResult)

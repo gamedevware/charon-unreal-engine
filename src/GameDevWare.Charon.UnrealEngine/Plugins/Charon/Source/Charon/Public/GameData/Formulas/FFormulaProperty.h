@@ -27,7 +27,7 @@ class FFormulaProperty
 	bool const bUseClassDefaultObject;
 	FFormulaPropertyGetterFunc const GetterFunc;
 	FFormulaPropertySetterFunc const SetterFunc;
-	TWeakFieldPtr<FProperty> const Property;
+	TWeakFieldPtr<FProperty> const PropertyPtr;
 	
 public:
 	FFormulaProperty(FProperty* Property, UField* DeclaringType, const bool bUseClassDefaultObject);
@@ -36,7 +36,7 @@ public:
 	bool TryGetValue(const TSharedRef<FFormulaValue>& InTarget, TSharedPtr<FFormulaValue>& OutValue) const;
 	bool TrySetValue(const TSharedRef<FFormulaValue>& InTarget, const TSharedPtr<FFormulaValue>& InValue) const;
 
-	FProperty* GetType() const { return Property.Get(); }
+	FProperty* GetType() const { return PropertyPtr.Get(); }
 	
 	// Create property getter from extension function which has signature like `static Get[PropertyName]([ThisType] Self) -> [PropertyValueType]`
 	static FFormulaPropertyGetterFunc CreateGetterFromFunctionInvoker(FFormulaFunctionInvokeFunc FunctionInvoker);

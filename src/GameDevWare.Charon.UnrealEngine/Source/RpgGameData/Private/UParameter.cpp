@@ -18,10 +18,10 @@ const FString UParameter::SchemaId = TEXT("59f5b0a730bb84165c06b547");
 const FString UParameter::SchemaName = TEXT("Parameter");
 
 UParameter* UParameter::GetMinValueParameter() const {
-		FGameDataDocumentReference::GetReferencedDocument(MinValueParameterRaw, _minValueParameterDocument);
-		return _minValueParameterDocument;
+	FGameDataDocumentReference::GetReferencedDocument(MinValueParameterRaw, _minValueParameterDocument);
+	return _minValueParameterDocument;
 }
 UParameter* UParameter::GetMaxValueParameter() const {
-		FGameDataDocumentReference::GetReferencedDocument(MaxValueParameterRaw, _maxValueParameterDocument);
-		return _maxValueParameterDocument;
+	FGameDataDocumentReference::GetReferencedDocument(MaxValueParameterRaw, _maxValueParameterDocument);
+	return _maxValueParameterDocument;
 }

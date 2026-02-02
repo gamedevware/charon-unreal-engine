@@ -41,6 +41,7 @@
 #include "UNumberTestEntity.h"
 #include "UUniqueAttributeEntity.h"
 #include "UUnionType.h"
+#include "UAllTypesTest.h"
 #include "ETestEntityPickListField.h"
 #include "ETestEntityMultiPickListField.h"
 #include "ENumberTestEntityPickList8Bit.h"
@@ -67,6 +68,9 @@
 #include "EUniqueAttributeEntityTimeSpanKey.h"
 #include "EUniqueAttributeEntityDateTimeKey.h"
 #include "UTestEntityFormulaFieldFormula.h"
+#include "UAllTypesTestVoidFormulaFormula.h"
+#include "UAllTypesTestNoParamsFormulaFormula.h"
+#include "UAllTypesTestParamsFormulaFormula.h"
 #include "UTestData.generated.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogUTestData, Log, All);
@@ -132,6 +136,10 @@ public:
 	TMap<int32,UUnionType*> AllUnionTypes;
 	UPROPERTY(BlueprintReadOnly)
 	TMap<int32,UUnionType*> UnionTypes;
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	TMap<FString,UAllTypesTest*> AllAllTypesTests;
+	UPROPERTY(BlueprintReadOnly)
+	TMap<FString,UAllTypesTest*> AllTypesTests;
 
 #if defined(CHARON_FEATURE_FORMULAS_V2) && CHARON_FEATURE_FORMULAS_V2
 	static TSharedRef<FFormulaTypeResolver> GetSharedFormulaTypeResolver();
@@ -234,6 +242,14 @@ private:
 		TArray<FString>& GameDataPath,
 		bool NextToken = true
 	);
+	bool ReadDocument
+	(
+		const TSharedRef<IGameDataReader>& Reader,
+		UAllTypesTest*& Document,
+		UObject* Outer,
+		TArray<FString>& GameDataPath,
+		bool NextToken = true
+	);
 	template <typename IdType, typename DocumentType>
 	bool ReadDocumentCollection
 	(
@@ -314,6 +330,7 @@ public:
 		virtual void Visit(UNumberTestEntity& Document);
 		virtual void Visit(UUniqueAttributeEntity& Document);
 		virtual void Visit(UUnionType& Document);
+		virtual void Visit(UAllTypesTest& Document);
 	};
 
 	void ApplyVisitor(FVisitor& Visitor) const;
@@ -328,6 +345,7 @@ public:
 		TArray<UNumberTestEntity*> NumberTestEntity = TArray<UNumberTestEntity*>();
 		TArray<UUniqueAttributeEntity*> UniqueAttributeEntity = TArray<UUniqueAttributeEntity*>();
 		TArray<UUnionType*> UnionType = TArray<UUnionType*>();
+		TArray<UAllTypesTest*> AllTypesTest = TArray<UAllTypesTest*>();
 
 		// visit methods
 		virtual void Visit(UTestDataProjectSettings& Document) override;
@@ -336,6 +354,7 @@ public:
 		virtual void Visit(UNumberTestEntity& Document) override;
 		virtual void Visit(UUniqueAttributeEntity& Document) override;
 		virtual void Visit(UUnionType& Document) override;
+		virtual void Visit(UAllTypesTest& Document) override;
 	};
 
 private:
@@ -348,6 +367,7 @@ private:
 		virtual void Visit(UNumberTestEntity& Document) override;
 		virtual void Visit(UUniqueAttributeEntity& Document) override;
 		virtual void Visit(UUnionType& Document) override;
+		virtual void Visit(UAllTypesTest& Document) override;
 	};
 
 	class FLanguagesUpdateVisitor : public FVisitor
@@ -365,6 +385,7 @@ private:
 		virtual void Visit(UNumberTestEntity& Document) override;
 		virtual void Visit(UUniqueAttributeEntity& Document) override;
 		virtual void Visit(UUnionType& Document) override;
+		virtual void Visit(UAllTypesTest& Document) override;
 		void RemoveExtraKeys(TMap<FString, FText>& TextByLanguageId);
 	};
 };

@@ -9,7 +9,7 @@
 static TArray<TPair<FString, TSharedPtr<FFormulaTypeReference>>> PrepareLambdaArguments(const TSharedRef<FJsonObject>& ExpressionObj)
 {
 	TArray<TPair<FString, TSharedPtr<FFormulaTypeReference>>> Arguments; 
-	for (TTuple<FString, TSharedPtr<FFormulaExpression>>& ArgumentTuple : FExpressionBuildHelper::GetArguments(ExpressionObj, FFormulaNotation::ARGUMENTS_ATTRIBUTE))
+	for (const auto& ArgumentTuple : FExpressionBuildHelper::GetArguments(ExpressionObj, FFormulaNotation::ARGUMENTS_ATTRIBUTE))
 	{
 		const FMemberExpression* MemberExpression = CastExpression<FMemberExpression>(ArgumentTuple.Value.Get());
 		if (!MemberExpression)
@@ -39,7 +39,7 @@ bool FLambdaExpression::IsValid() const
 	{
 		return false;
 	}
-	for (auto ArgumentPair : this->Arguments)
+	for (const auto& ArgumentPair : this->Arguments)
 	{
 		if (ArgumentPair.Key.IsEmpty())
 		{
@@ -53,7 +53,7 @@ void FLambdaExpression::DebugPrintTo(FString& OutValue) const
 {
 	OutValue.Append("(");
 	bool bFirstArgument = true;;
-	for (auto ArgumentPair : this->Arguments)
+	for (const auto& ArgumentPair : this->Arguments)
 	{
 		if (!bFirstArgument)
 		{

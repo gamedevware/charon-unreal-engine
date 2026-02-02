@@ -25,6 +25,6 @@ TMap<FString,UHero*> UStartingSet::GetHeroes() const {
 	return _heroesDocuments;
 }
 ULocation* UStartingSet::GetLocation() const {
-		FGameDataDocumentReference::GetReferencedDocument(LocationRaw, _locationDocument);
-		return _locationDocument;
+	FGameDataDocumentReference::GetReferencedDocument(LocationRaw, _locationDocument);
+	return _locationDocument;
 }

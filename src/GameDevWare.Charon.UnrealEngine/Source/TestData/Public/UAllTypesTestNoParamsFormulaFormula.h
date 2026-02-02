@@ -27,19 +27,19 @@
 #include "GameData/Formulas/FFormulaExecutionContext.h"
 #include "GameData/Formulas/FFormulaValue.h"
 #endif
-#if __has_include("URpgGameDataFormulaTypes.h")
-    #include "URpgGameDataFormulaTypes.h"
+#if __has_include("UTestDataFormulaTypes.h")
+    #include "UTestDataFormulaTypes.h"
 #endif
 
-DECLARE_LOG_CATEGORY_EXTERN(LogUConditionsCheckFormula, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogUAllTypesTestNoParamsFormulaFormula, Log, All);
 
-#include "UConditionsCheckFormula.generated.h"
+#include "UAllTypesTestNoParamsFormulaFormula.generated.h"
 
 /**
-  * Formula Signature: (UObject context) -> System.Boolean
+  * Formula Signature: () -> bool
   */
 UCLASS(BlueprintType)
-class RPGGAMEDATA_API UConditionsCheckFormula : public UObject
+class TESTDATA_API UAllTypesTestNoParamsFormulaFormula : public UObject
 {
 	GENERATED_BODY()
 
@@ -70,7 +70,7 @@ public:
 	  * Evaluates the formula and returns the resulting value.
 	  */
 	UFUNCTION(BlueprintCallable)
-	bool Invoke(UObject* Context) const;
+	bool Invoke() const;
 
 #if defined(CHARON_FEATURE_FORMULAS_V2) && CHARON_FEATURE_FORMULAS_V2
 	/**

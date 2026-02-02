@@ -16,7 +16,9 @@
 #include "GameData/UGameDataDocument.h"
 #include "GameData/FGameDataDocumentReference.h"
 #include "GameData/FLocalizedText.h"
+#include "GameData/UGameDataLibrary.h"
 #include "JsonObjectWrapper.h"
+#include "Misc/EngineVersionComparison.h"
 
 #include "ENumberTestEntityPickList8Bit.h"
 #include "ENumberTestEntityPickList16Bit.h"

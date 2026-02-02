@@ -19,7 +19,7 @@ DEFINE_LOG_CATEGORY(LogUTestEntityFormulaFieldFormula);
 
 #if defined(CHARON_FEATURE_FORMULAS_V2) && CHARON_FEATURE_FORMULAS_V2
 
-static TSharedRef<FFormulaTypeResolver> GetOrCreateTypeResolver()
+static TSharedRef<FFormulaTypeResolver> UTestEntityFormulaFieldFormula_GetOrCreateTypeResolver()
 {
 	static TSharedRef<FFormulaTypeResolver> __TypeResolver = MakeShared<FFormulaTypeResolver>(UTestData::GetSharedFormulaTypeResolver(), TArray<UObject*> {
 		AActor::StaticClass(),
@@ -28,7 +28,7 @@ static TSharedRef<FFormulaTypeResolver> GetOrCreateTypeResolver()
 	return __TypeResolver;
 }
 
-static UFunction* GetInvokeFunction()
+static UFunction* UTestEntityFormulaFieldFormula_GetInvokeFunction()
 {
 	static TWeakObjectPtr<UFunction> InvokeFunction = UTestEntityFormulaFieldFormula::StaticClass()->FindFunctionByName(GET_FUNCTION_NAME_CHECKED(UTestEntityFormulaFieldFormula, Invoke));
 
@@ -39,7 +39,7 @@ static UFunction* GetInvokeFunction()
 	return InvokeFunction.Get();
 }
 
-static FProperty* GetGlobalProperty()
+static FProperty* UTestEntityFormulaFieldFormula_GetGlobalProperty()
 {
 	static TWeakFieldPtr<FProperty> GlobalProperty = UTestEntityFormulaFieldFormula::StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UTestEntityFormulaFieldFormula, Global));
 
@@ -50,12 +50,12 @@ static FProperty* GetGlobalProperty()
 	return GlobalProperty.Get();
 }
 
-static FProperty* GetInvokeParameterAt(int32 Index)
+static FProperty* UTestEntityFormulaFieldFormula_GetInvokeParameterAt(int32 Index)
 {
 	static TArray<FProperty*> Parameters = []()
 	{
 		TArray<FProperty*> Params;
-		for (TFieldIterator<FProperty> It(GetInvokeFunction()); It; ++It)
+		for (TFieldIterator<FProperty> It(UTestEntityFormulaFieldFormula_GetInvokeFunction()); It; ++It)
 		{
 			FProperty* Prop = *It;
 
@@ -79,24 +79,24 @@ int32 UTestEntityFormulaFieldFormula::Invoke(int32 Arg1, int32 Arg2, int32 Arg3,
 	const int32 PARAMETER_ARG4_INDEX = 3;
 
 	auto __ParsedExpression = this->GetExpression();
-	auto __InvokeFunction = GetInvokeFunction();
+	auto __InvokeFunction = UTestEntityFormulaFieldFormula_GetInvokeFunction();
 
-	int32 __Result = {};
+	int32 __Result = {}; // default
 	if (!__ParsedExpression.IsValid() || !__InvokeFunction)
 	{
 		UE_LOG(LogUTestEntityFormulaFieldFormula, Error, TEXT("The expression tree is missing or contains errors, or the function metadata is not available."));
-		return __Result; // default
+		return __Result;
 	}
 
 	const TMap<FString, const TSharedRef<FFormulaValue>> __Arguments = {
-		{ TEXT("arg1"), MakeShared<FFormulaValue>(GetInvokeParameterAt(PARAMETER_ARG1_INDEX), &Arg1 ) },
-		{ TEXT("arg2"), MakeShared<FFormulaValue>(GetInvokeParameterAt(PARAMETER_ARG2_INDEX), &Arg2 ) },
-		{ TEXT("arg3"), MakeShared<FFormulaValue>(GetInvokeParameterAt(PARAMETER_ARG3_INDEX), &Arg3 ) },
-		{ TEXT("arg4"), MakeShared<FFormulaValue>(GetInvokeParameterAt(PARAMETER_ARG4_INDEX), &Arg4 ) },
+		{ TEXT("arg1"), MakeShared<FFormulaValue>(UTestEntityFormulaFieldFormula_GetInvokeParameterAt(PARAMETER_ARG1_INDEX), &Arg1 ) },
+		{ TEXT("arg2"), MakeShared<FFormulaValue>(UTestEntityFormulaFieldFormula_GetInvokeParameterAt(PARAMETER_ARG2_INDEX), &Arg2 ) },
+		{ TEXT("arg3"), MakeShared<FFormulaValue>(UTestEntityFormulaFieldFormula_GetInvokeParameterAt(PARAMETER_ARG3_INDEX), &Arg3 ) },
+		{ TEXT("arg4"), MakeShared<FFormulaValue>(UTestEntityFormulaFieldFormula_GetInvokeParameterAt(PARAMETER_ARG4_INDEX), &Arg4 ) },
 	};
 
-	auto __Global = MakeShared<FFormulaValue>(GetGlobalProperty(), &this->Global);
-	auto __Context = FFormulaExecutionContext(this->AutoNullPropagation, __Arguments, __Global, GetOrCreateTypeResolver());
+	auto __Global = MakeShared<FFormulaValue>(UTestEntityFormulaFieldFormula_GetGlobalProperty(), &this->Global);
+	auto __Context = FFormulaExecutionContext(this->AutoNullPropagation, __Arguments, __Global, UTestEntityFormulaFieldFormula_GetOrCreateTypeResolver());
 
 	auto __ReturnValueType = __InvokeFunction->GetReturnProperty();
 	auto __InvokeResult = __ParsedExpression->Execute(__Context, __ReturnValueType);

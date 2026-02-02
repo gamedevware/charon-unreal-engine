@@ -30,8 +30,8 @@ FFormulaExecutionResult FListInitExpression::Execute(const FFormulaExecutionCont
 		return NewListResult; // propagate error
 	}
 
-	const auto NewListValue = NewListResult.GetValue();
-	for (const auto ElementInitBinding : this->Initializers)
+	const auto& NewListValue = NewListResult.GetValue();
+	for (const auto& ElementInitBinding : this->Initializers)
 	{
 		const auto ElementInitResult = ElementInitBinding->Apply(NewListValue, Context);
 		if (ElementInitResult.HasError())
@@ -51,7 +51,7 @@ bool FListInitExpression::IsValid() const
 	{
 		return  false;
 	}
-	for (auto Initializer : this->Initializers)
+	for (const auto& Initializer : this->Initializers)
 	{
 		if (!Initializer.IsValid())
 		{
@@ -73,7 +73,7 @@ void FListInitExpression::DebugPrintTo(FString& OutValue) const
 	}
 	OutValue.Append(TEXT(" { "));
 	bool bFirstArgument = true;
-	for (auto ListInitBinding : this->Initializers)
+	for (const auto& ListInitBinding : this->Initializers)
 	{
 		if (!bFirstArgument)
 		{

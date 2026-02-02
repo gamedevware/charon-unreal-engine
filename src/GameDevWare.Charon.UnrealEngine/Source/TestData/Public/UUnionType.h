@@ -16,7 +16,9 @@
 #include "GameData/UGameDataDocument.h"
 #include "GameData/FGameDataDocumentReference.h"
 #include "GameData/FLocalizedText.h"
+#include "GameData/UGameDataLibrary.h"
 #include "JsonObjectWrapper.h"
+#include "Misc/EngineVersionComparison.h"
 
 #include "EUnionTypePickList8.h"
 #include "EUnionTypeMultiPickList9.h"
@@ -39,11 +41,11 @@ public:
 	/**
 	  * De-referenced document of Reference12. Should not be directly used.
 	  */
-	UNumberTestEntity* _reference12Document;
+	mutable UNumberTestEntity* _reference12Document;
 	/**
 	  * De-referenced collection of documents for CollectionofReferences13. Should not be directly used.
 	  */
-	TMap<int32,UNumberTestEntity*> _collectionofReferences13Documents;
+	mutable TMap<int32,UNumberTestEntity*> _collectionofReferences13Documents;
 public:
 	/**
 	  * Id property of Integer type. Not Null, Unique.
@@ -59,7 +61,7 @@ public:
 	  * Text Localizable 2 property of Localized Text type. Can Be Null.
 	  */
 	UFUNCTION(BlueprintCallable)
-	FText GetTextLocalizable2();
+	FText GetTextLocalizable2() const;
 	/**
 	  * Raw value of TextLocalizable2.
 	  */
@@ -114,7 +116,7 @@ public:
 	  * Reference 12 property of Reference type. Can Be Null.
 	  */
 	UFUNCTION(BlueprintCallable)
-	UNumberTestEntity* GetReference12();
+	UNumberTestEntity* GetReference12() const;
 	/**
 	  * Raw value of Reference12.
 	  */
@@ -124,7 +126,7 @@ public:
 	  * Collectionof References 13 property of Reference Collection type. Can Be Null.
 	  */
 	UFUNCTION(BlueprintCallable)
-	TMap<int32,UNumberTestEntity*> GetCollectionofReferences13();
+	TMap<int32,UNumberTestEntity*> GetCollectionofReferences13() const;
 	/**
 	  * Raw value of CollectionofReferences13.
 	  */

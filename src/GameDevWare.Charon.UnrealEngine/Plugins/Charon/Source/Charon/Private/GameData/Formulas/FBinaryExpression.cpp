@@ -185,14 +185,14 @@ FFormulaExecutionResult FBinaryExpression::Execute(const FFormulaExecutionContex
 	{
 		return LeftResult; // propagate error
 	}
-	const auto LeftOperand = LeftResult.GetValue();
+	const auto& LeftOperand = LeftResult.GetValue();
 
 	const auto RightResult = this->Right->Execute(Context, nullptr);
 	if (RightResult.HasError())
 	{
 		return RightResult; // propagate error
 	}
-	const auto RightOperand = RightResult.GetValue();
+	const auto& RightOperand = RightResult.GetValue();
 
 	if (this->BinaryOperationType == EBinaryOperationType::Power)
 	{
@@ -451,7 +451,7 @@ FFormulaExecutionResult FBinaryExpression::ExecuteCoalesce(const FFormulaExecuti
 	{
 		return LeftResult; // propagate error
 	}
-	const auto LeftOperand = LeftResult.GetValue();
+	const auto& LeftOperand = LeftResult.GetValue();
 	if (!LeftOperand->IsNull())
 	{
 		return LeftResult;
@@ -468,7 +468,7 @@ FFormulaExecutionResult FBinaryExpression::ExecuteJunction(const FFormulaExecuti
 	{
 		return LeftResult; // propagate error
 	}
-	const auto LeftOperand = LeftResult.GetValue();
+	const auto& LeftOperand = LeftResult.GetValue();
 	bool LeftBool;
 	if (LeftOperand->GetTypeCode() != EFormulaValueType::Boolean ||
 			!LeftOperand->TryGetBoolean(LeftBool))
@@ -493,7 +493,7 @@ FFormulaExecutionResult FBinaryExpression::ExecuteJunction(const FFormulaExecuti
 	{
 		return RightResult; // propagate error
 	}
-	const auto RightOperand = RightResult.GetValue();
+	const auto& RightOperand = RightResult.GetValue();
 	bool RightBool;
 	if (RightOperand->GetTypeCode() != EFormulaValueType::Boolean ||
 			!RightOperand->TryGetBoolean(RightBool))

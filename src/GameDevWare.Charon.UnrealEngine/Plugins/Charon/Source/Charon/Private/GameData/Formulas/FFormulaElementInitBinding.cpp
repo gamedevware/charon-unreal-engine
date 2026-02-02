@@ -7,7 +7,7 @@
 static FString GetValueTypes(const TArray<TSharedRef<FFormulaValue>>& InValues)
 {
 	TArray<FString> ValueTypes;
-	for (auto Value : InValues)
+	for (const auto& Value : InValues)
 	{
 		ValueTypes.Add(Value->GetCPPType());
 	}
@@ -26,7 +26,7 @@ FFormulaElementInitBinding::FFormulaElementInitBinding(const TArray<TSharedPtr<F
 
 bool FFormulaElementInitBinding::IsValid() const
 {
-	for (auto Initializer : this->Initializers)
+	for (const auto& Initializer : this->Initializers)
 	{
 		if (!Initializer.IsValid())
 		{
@@ -68,7 +68,7 @@ FFormulaExecutionResult FFormulaElementInitBinding::Apply(const TSharedRef<FForm
 	}
 	
 	TArray<TSharedRef<FFormulaValue>> AddValues;
-	for (const auto Initializer : this->Initializers)
+	for (const auto& Initializer : this->Initializers)
 	{
 		FProperty* AddValueType = AddValues.Num() < AddTypes.Num() ? AddTypes[AddValues.Num()] : nullptr;
 		const auto ValueResult = Initializer->Execute(Context, AddValueType);
@@ -206,7 +206,7 @@ void FFormulaElementInitBinding::CompleteCollectionInitialization(const TSharedR
 void FFormulaElementInitBinding::DebugPrintTo(FString& OutValue) const
 {
 	bool bFirstInitializer = true;
-	for (auto Initializer : this->Initializers)
+	for (const auto& Initializer : this->Initializers)
 	{
 		if (!bFirstInitializer)
 		{

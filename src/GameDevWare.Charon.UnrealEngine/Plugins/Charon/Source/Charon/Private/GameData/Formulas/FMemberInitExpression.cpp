@@ -30,8 +30,8 @@ FFormulaExecutionResult FMemberInitExpression::Execute(const FFormulaExecutionCo
 		return NewObjectResult; // propagate error
 	}
 
-	const auto NewObjectValue = NewObjectResult.GetValue();
-	for (const auto MemberBinding : this->Bindings)
+	const auto& NewObjectValue = NewObjectResult.GetValue();
+	for (const auto& MemberBinding : this->Bindings)
 	{
 		const auto MemberBindingResult = MemberBinding->Apply(NewObjectValue, Context);
 		if (MemberBindingResult.HasError())
@@ -49,7 +49,7 @@ bool FMemberInitExpression::IsValid() const
 	{
 		return  false;
 	}
-	for (auto Binding : this->Bindings)
+	for (const auto& Binding : this->Bindings)
 	{
 		if (!Binding.IsValid())
 		{
@@ -71,7 +71,7 @@ void FMemberInitExpression::DebugPrintTo(FString& OutValue) const
 	}
 	OutValue.Append(TEXT(" { "));
 	bool bFirstArgument = true;
-	for (auto Binding : this->Bindings)
+	for (const auto& Binding : this->Bindings)
 	{
 		if (!bFirstArgument)
 		{

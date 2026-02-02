@@ -19,6 +19,6 @@ const FString UItemWithCount::SchemaId = TEXT("5a1d78d107ff9a7b889cba7d");
 const FString UItemWithCount::SchemaName = TEXT("ItemWithCount");
 
 UItem* UItemWithCount::GetItem() const {
-		FGameDataDocumentReference::GetReferencedDocument(ItemRaw, _itemDocument);
-		return _itemDocument;
+	FGameDataDocumentReference::GetReferencedDocument(ItemRaw, _itemDocument);
+	return _itemDocument;
 }

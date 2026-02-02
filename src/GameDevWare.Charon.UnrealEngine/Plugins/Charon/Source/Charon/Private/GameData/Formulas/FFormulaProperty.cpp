@@ -22,7 +22,7 @@ FFormulaProperty::FFormulaProperty(FProperty* Property, UField* DeclaringType, c
 	bUseClassDefaultObject(bUseClassDefaultObject),
 	GetterFunc(CreateDefaultPropertyGetter(TWeakFieldPtr<FProperty>(Property), TWeakObjectPtr<UField>(DeclaringType))),
 	SetterFunc(CreateDefaultPropertySetter(TWeakFieldPtr<FProperty>(Property), TWeakObjectPtr<UField>(DeclaringType))),
-	Property(Property)
+	PropertyPtr(Property)
 {
 	check(Property);
 	check(DeclaringType);
@@ -33,7 +33,7 @@ FFormulaProperty::FFormulaProperty(FProperty* Property, FFormulaPropertyGetterFu
 	bUseClassDefaultObject(bUseClassDefaultObject),
 	GetterFunc(MoveTemp(GetterFunc)),
 	SetterFunc(MoveTemp(SetterFunc)),
-	Property(Property)
+	PropertyPtr(Property)
 {
 }
 
@@ -83,12 +83,12 @@ FFormulaPropertyGetterFunc FFormulaProperty::CreateDefaultPropertyGetter(TWeakFi
 {
 	return FFormulaPropertyGetterFunc([PropertyPtr, DeclaringTypePtr](const TSharedRef<FFormulaValue>& InTarget, TSharedPtr<FFormulaValue>& OutValue) -> bool
 	{
-		FProperty* Property = PropertyPtr.Get();
-		UField* DeclaringType = DeclaringTypePtr.Get();
-		check(Property);
-		check(DeclaringType);
+		FProperty* PropertyOrNull = PropertyPtr.Get();
+		UField* DeclaringTypeOrNull = DeclaringTypePtr.Get();
+		check(PropertyOrNull);
+		check(DeclaringTypeOrNull);
 		
-		if (!Property || !DeclaringType)
+		if (!PropertyOrNull || !DeclaringTypeOrNull)
 		{
 			UE_LOG(LogFormulaProperty, Warning, TEXT("Property get access failed because the metadata object was unloaded or garbage collected."));
 			
@@ -113,8 +113,8 @@ FFormulaPropertyGetterFunc FFormulaProperty::CreateDefaultPropertyGetter(TWeakFi
 				return false; // null reference target
 			}
 			
-			const void* ValuePtr = Property->ContainerPtrToValuePtr<void>(ContainerPtr);
-			OutValue = MakeShared<FFormulaValue>(Property, ValuePtr);
+			const void* ValuePtr = PropertyOrNull->ContainerPtrToValuePtr<void>(ContainerPtr);
+			OutValue = MakeShared<FFormulaValue>(PropertyOrNull, ValuePtr);
 			return true;
 		}
 		else if (const UScriptStruct* DeclaringStruct = Cast<UScriptStruct>(DeclaringTypePtr.Get()))
@@ -136,8 +136,8 @@ FFormulaPropertyGetterFunc FFormulaProperty::CreateDefaultPropertyGetter(TWeakFi
 				return false; // null reference target
 			}
 
-			const void* ValuePtr = Property->ContainerPtrToValuePtr<void>(ContainerPtr);
-			OutValue = MakeShared<FFormulaValue>(Property, ValuePtr);
+			const void* ValuePtr = PropertyOrNull->ContainerPtrToValuePtr<void>(ContainerPtr);
+			OutValue = MakeShared<FFormulaValue>(PropertyOrNull, ValuePtr);
 			return true;
 		}
 		return false;
@@ -148,19 +148,19 @@ FFormulaPropertySetterFunc FFormulaProperty::CreateDefaultPropertySetter(TWeakFi
 {
 	return FFormulaPropertySetterFunc([PropertyPtr, DeclaringTypePtr](const TSharedRef<FFormulaValue>& InTarget, const TSharedPtr<FFormulaValue>& InValue) -> bool
 	{
-		FProperty* Property = PropertyPtr.Get();
-		UField* DeclaringType = DeclaringTypePtr.Get();
-		check(Property);
-		check(DeclaringType);
+		FProperty* PropertyOrNull = PropertyPtr.Get();
+		UField* DeclaringTypeOrNull = DeclaringTypePtr.Get();
+		check(PropertyOrNull);
+		check(DeclaringTypeOrNull);
 		
-		if (!Property || !DeclaringType)
+		if (!PropertyOrNull || !DeclaringTypeOrNull)
 		{
 			UE_LOG(LogFormulaProperty, Warning, TEXT("Property set access failed because the metadata object was unloaded or garbage collected."));
 
 			return false; // metadata is gone
 		}
 
-		if (const UClass* DeclaringClass = Cast<UClass>(DeclaringType))
+		if (const UClass* DeclaringClass = Cast<UClass>(DeclaringTypeOrNull))
 		{
 			UObject* ContainerPtr = nullptr;
 			if (InTarget->TryGetObjectPtr(ContainerPtr) &&
@@ -177,9 +177,9 @@ FFormulaPropertySetterFunc FFormulaProperty::CreateDefaultPropertySetter(TWeakFi
 				
 				return false; // null reference target
 			}
-			return InValue->TrySetPropertyValue_InContainer(Property, ContainerPtr, 0);
+			return InValue->TrySetPropertyValue_InContainer(PropertyOrNull, ContainerPtr, 0);
 		}
-		else if (const UScriptStruct* DeclaringStruct = Cast<UScriptStruct>(DeclaringType))
+		else if (const UScriptStruct* DeclaringStruct = Cast<UScriptStruct>(DeclaringTypeOrNull))
 		{
 			void* ContainerPtr = nullptr;
 			if (InTarget->GetTypeCode() == EFormulaValueType::Struct &&
@@ -198,10 +198,10 @@ FFormulaPropertySetterFunc FFormulaProperty::CreateDefaultPropertySetter(TWeakFi
 				return false; // null reference target
 			}
 		
-			auto bSetSuccess = InValue->TrySetPropertyValue_InContainer(Property, ContainerPtr, 0);
+			auto bSetSuccess = InValue->TrySetPropertyValue_InContainer(PropertyOrNull, ContainerPtr, 0);
 			if (!bSetSuccess)
 			{
-				UE_LOG(LogFormulaProperty, Warning, TEXT("Property set access failed because the '%s' value of the %s value could not be cast/coerced to the %s type."), *InValue->GetCPPType(), *Property->GetName(), *FFormulaValue::GetExtendedCppName(Property) );
+				UE_LOG(LogFormulaProperty, Warning, TEXT("Property set access failed because the '%s' value of the %s value could not be cast/coerced to the %s type."), *InValue->GetCPPType(), *PropertyOrNull->GetName(), *FFormulaValue::GetExtendedCppName(PropertyOrNull) );
 			}
 			return bSetSuccess;
 		}

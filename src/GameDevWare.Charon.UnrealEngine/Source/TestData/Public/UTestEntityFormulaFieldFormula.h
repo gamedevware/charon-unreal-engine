@@ -51,25 +51,25 @@ public:
 	/**
 	  * Gets or sets the Abstract Syntax Tree (AST) of the formula. Used internally.
 	  */
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	FJsonObjectWrapper ExpressionTree;
 	/**
 	  * Gets or sets the root provider for global identifiers. Properties and methods of this
 	  * object can be referenced directly within the formula without a qualifier.
 	  */
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UObject> Global;
 	/**
 	  * Gets or sets a value indicating whether null propagation should be applied
 	  * implicitly to this formula during evaluation or code generation.
 	  */
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	bool AutoNullPropagation;
 
 	/**
 	  * Evaluates the formula and returns the resulting value.
 	  */
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	int32 Invoke(int32 Arg1, int32 Arg2, int32 Arg3, int32 Arg4) const;
 
 #if defined(CHARON_FEATURE_FORMULAS_V2) && CHARON_FEATURE_FORMULAS_V2

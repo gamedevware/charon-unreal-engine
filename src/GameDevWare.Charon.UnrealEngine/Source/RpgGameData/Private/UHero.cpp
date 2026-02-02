@@ -31,8 +31,8 @@ TMap<FString,UHero*> UHero::GetDislikeHeroes() const {
 	return _dislikeHeroesDocuments;
 }
 UProvision* UHero::GetProvisions() const {
-		FGameDataDocumentReference::GetReferencedDocument(ProvisionsRaw, _provisionsDocument);
-		return _provisionsDocument;
+	FGameDataDocumentReference::GetReferencedDocument(ProvisionsRaw, _provisionsDocument);
+	return _provisionsDocument;
 }
 FVector4 UHero::GetParsedPictureBounds() const
 {

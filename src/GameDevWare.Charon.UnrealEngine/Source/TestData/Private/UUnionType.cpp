@@ -18,14 +18,14 @@
 const FString UUnionType::SchemaId = TEXT("691255870642d17fc832c712");
 const FString UUnionType::SchemaName = TEXT("UnionType");
 
-FText UUnionType::GetTextLocalizable2() {
+FText UUnionType::GetTextLocalizable2() const {
 	return TextLocalizable2Raw.GetCurrent();
 }
-UNumberTestEntity* UUnionType::GetReference12() {
-		FGameDataDocumentReference::GetReferencedDocument(Reference12Raw, _reference12Document);
-		return _reference12Document;
+UNumberTestEntity* UUnionType::GetReference12() const {
+	FGameDataDocumentReference::GetReferencedDocument(Reference12Raw, _reference12Document);
+	return _reference12Document;
 }
-TMap<int32,UNumberTestEntity*> UUnionType::GetCollectionofReferences13() {
+TMap<int32,UNumberTestEntity*> UUnionType::GetCollectionofReferences13() const {
 	FGameDataDocumentReference::GetReferencedDocuments(CollectionofReferences13Raw, _collectionofReferences13Documents);
 	return _collectionofReferences13Documents;
 }

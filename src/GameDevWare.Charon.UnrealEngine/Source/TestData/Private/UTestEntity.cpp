@@ -19,14 +19,14 @@
 const FString UTestEntity::SchemaId = TEXT("592fc86c983a36266c0912a0");
 const FString UTestEntity::SchemaName = TEXT("TestEntity");
 
-FText UTestEntity::GetLocalizedTextField() {
+FText UTestEntity::GetLocalizedTextField() const {
 	return LocalizedTextFieldRaw.GetCurrent();
 }
-UTestEntity* UTestEntity::GetReferenceField() {
-		FGameDataDocumentReference::GetReferencedDocument(ReferenceFieldRaw, _referenceFieldDocument);
-		return _referenceFieldDocument;
+UTestEntity* UTestEntity::GetReferenceField() const {
+	FGameDataDocumentReference::GetReferencedDocument(ReferenceFieldRaw, _referenceFieldDocument);
+	return _referenceFieldDocument;
 }
-TMap<FString,UTestEntity*> UTestEntity::GetListOfReferencesField() {
+TMap<FString,UTestEntity*> UTestEntity::GetListOfReferencesField() const {
 	FGameDataDocumentReference::GetReferencedDocuments(ListOfReferencesFieldRaw, _listOfReferencesFieldDocuments);
 	return _listOfReferencesFieldDocuments;
 }
