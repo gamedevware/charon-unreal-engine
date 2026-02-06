@@ -52,6 +52,14 @@ public:
 	}
 
 	/*
+	 * True if currently cached document reference is actual in referenced UGameDataBase asset.
+	 */
+	bool IsActual() const
+	{
+		return !this->LastRevisionHash.IsEmpty() && this->LastRevisionHash.Equals(GameData->GetRevisionHash());
+	}
+	
+	/*
 	 * Get document referenced by this struct.
 	 * Nullptr in case if document is not found.
 	 * Use Cast<T> to get strongly typed version of document. 
@@ -63,11 +71,10 @@ public:
 			return nullptr;
 		}
 
-		const auto GameDataRevisionHash = GameData->GetRevisionHash();
-		if (this->LastRevisionHash.IsEmpty() || !this->LastRevisionHash.Equals(GameDataRevisionHash))
+		if (!this->IsActual())
 		{
 			this->LastDocument = GameData->FindGameDataDocumentById(SchemaIdOrName, Id);
-			this->LastRevisionHash = GameDataRevisionHash;
+			this->LastRevisionHash = GameData->GetRevisionHash();
 		}
 		return this->LastDocument.Get();
 	}
@@ -88,12 +95,13 @@ public:
 	template <typename IdType, typename DocumentType>
 	static void GetReferencedDocuments(const TArray<FGameDataDocumentReference>& References, TMap<IdType, DocumentType*>& DocumentsById)
 	{
-		if (DocumentsById.Num() != 0 || References.Num() == 0)
+		if (DocumentsById.Num() == 0 && References.Num() == 0)
 		{
-			return;
+			return; // empty refs
 		}
 
-		for (auto DocumentReference : References)
+		DocumentsById.Reset();
+		for (const auto& DocumentReference : References)
 		{
 			DocumentType* Document;
 			GetReferencedDocument(DocumentReference, Document);
@@ -102,28 +110,24 @@ public:
 				DocumentsById.Add(Document->Id, Document);
 			}
 		}
-
 	}
-
+	
 	/*
 	 * Get referenced document and put it into specified Document& output parameter.
 	 */
 	template <typename DocumentType>
 	static void GetReferencedDocument(const FGameDataDocumentReference& Reference, DocumentType*& Document)
 	{
-		if (Document != nullptr)
-		{
-			return;
-		}
-
 		const auto FoundDocument = Reference.GetReferencedDocument();
 		if (FoundDocument == nullptr)
 		{
+			Document = nullptr;
 			return;
 		}
 
 		if (FoundDocument->GetClass() != DocumentType::StaticClass())
 		{
+			Document = nullptr;
 			return;
 		}
 
