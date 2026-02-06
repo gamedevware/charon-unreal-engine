@@ -12,11 +12,11 @@ DEFINE_LOG_CATEGORY(LogNewArrayBoundExpression);
 
 FNewArrayBoundExpression::FNewArrayBoundExpression(const TSharedRef<FJsonObject>& ExpressionObj):
 	Arguments(FExpressionBuildHelper::GetArguments(ExpressionObj, FFormulaNotation::ARGUMENTS_ATTRIBUTE)),
-	ArrayType(FExpressionBuildHelper::GetTypeRef(ExpressionObj, FFormulaNotation::TYPE_ATTRIBUTE))
+	ElementTypeRef(FExpressionBuildHelper::GetTypeRef(ExpressionObj, FFormulaNotation::TYPE_ATTRIBUTE))
 {}
 
-FNewArrayBoundExpression::FNewArrayBoundExpression(const TSharedPtr<FFormulaTypeReference>& ArrayType,
-	const TMap<FString, TSharedPtr<FFormulaExpression>>& Arguments) : Arguments(Arguments), ArrayType(ArrayType) 
+FNewArrayBoundExpression::FNewArrayBoundExpression(const TSharedPtr<FFormulaTypeReference>& ElementType,
+	const TMap<FString, TSharedPtr<FFormulaExpression>>& Arguments) : Arguments(Arguments), ElementTypeRef(ElementType) 
 {
 }
 
@@ -26,18 +26,12 @@ FFormulaExecutionResult FNewArrayBoundExpression::Execute(const FFormulaExecutio
 	{
 		return FFormulaExecutionError::ExpressionIsInvalid();
 	}
-
-	if (this->Arguments.Num() != 1)
-	{
-		UE_LOG(LogNewArrayBoundExpression, Error, TEXT("'%s': array 'new' expression must have exactly one argument (found %d)."), *this->ArrayType->GetFullName(true), this->Arguments.Num());
-	}
-
+	
 	FArrayProperty* ExpectedArrayProperty = CastField<FArrayProperty>(ExpectedType);
-	const auto ElementTypeReference = this->ArrayType->TypeArguments[0];
-	const auto ElementType = Context.TypeResolver->FindType(ElementTypeReference);
+	const auto ElementType = Context.TypeResolver->FindType(this->ElementTypeRef);
 	if (!ElementType.IsValid())
 	{
-		return FFormulaExecutionError::UnableToResolveType(ElementTypeReference->GetFullName(/* include generics */ true));
+		return FFormulaExecutionError::UnableToResolveType(this->ElementTypeRef->GetFullName(/* include generics */ true));
 	}
 
 	if (ExpectedArrayProperty && !ElementType->IsAssignableFrom(ExpectedArrayProperty->Inner, /*bWithoutConversion*/ true))
@@ -60,20 +54,13 @@ FFormulaExecutionResult FNewArrayBoundExpression::Execute(const FFormulaExecutio
 		}
 		break;
 	}
-
-	FString FullName = this->ArrayType->GetFullName(/*bWriteGenerics*/ false);
-	if ((FullName != TEXT("Array") && FullName != TEXT("System.Array")) ||
-		ArrayType->TypeArguments.Num() != 1)
-	{
-		return FFormulaExecutionError::InvalidArrayType(this->ArrayType->GetFullName(/*bWriteGenerics*/ false));
-	}
-
+	
 	TSharedPtr<FFormulaValue> ArrayValue = FFormulaValue::Null();
 	void* ArrayValuePtr = nullptr;
 	if (!FNewExpression::TryCreateArray(ElementType, ExpectedArrayProperty, ArrayValue) ||
 		!ArrayValue->TryGetContainerAddress(ArrayValuePtr))
 	{
-		return FFormulaExecutionError::MissingContextForStruct(this->ArrayType->GetFullName(/*bWriteGenerics*/ true));
+		return FFormulaExecutionError::MissingContextForStruct(this->ElementTypeRef->GetFullName(/*bWriteGenerics*/ true));
 	}
 	check(ArrayValuePtr);
 	
@@ -86,7 +73,7 @@ FFormulaExecutionResult FNewArrayBoundExpression::Execute(const FFormulaExecutio
 
 bool FNewArrayBoundExpression::IsValid() const
 {
-	if (!this->ArrayType.IsValid())
+	if (!this->ElementTypeRef.IsValid())
 	{
 		return false;
 	}
@@ -103,9 +90,9 @@ bool FNewArrayBoundExpression::IsValid() const
 void FNewArrayBoundExpression::DebugPrintTo(FString& OutValue) const
 {
 	OutValue.Append("new ");
-	if (this->ArrayType.IsValid())
+	if (this->ElementTypeRef.IsValid())
 	{
-		OutValue.Append(this->ArrayType->GetFullName(true));
+		OutValue.Append(this->ElementTypeRef->GetFullName(true));
 	}
 	else
 	{

@@ -83,15 +83,7 @@ void FListInitExpression::DebugPrintTo(FString& OutValue) const
 
 		if (ListInitBinding)
 		{
-			if (ListInitBinding->Initializers.Num() > 1)
-			{
-				OutValue.Append(TEXT("{ "));
-			}
 			ListInitBinding->DebugPrintTo(OutValue);
-			if (ListInitBinding->Initializers.Num() > 1)
-			{
-				OutValue.Append(TEXT(" }"));
-			}
 		}
 		else
 		{

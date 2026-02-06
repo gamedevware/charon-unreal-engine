@@ -298,7 +298,6 @@ TArray<TSharedPtr<FFormulaTypeReference>> FExpressionBuildHelper::GetTypeRefArgu
 {
 	TArray<TSharedPtr<FFormulaTypeReference>> Arguments;
 	const TSharedPtr<FJsonObject>* ArgumentsObjPtr;
-
 	if (ExpressionObj.IsValid() && ExpressionObj->TryGetObjectField(PropertyName, ArgumentsObjPtr))
 	{
 		int32 Index = 0;
@@ -321,6 +320,21 @@ TArray<TSharedPtr<FFormulaMemberBinding>> FExpressionBuildHelper::GetBindings(
 {
 	TArray<TSharedPtr<FFormulaMemberBinding>> Bindings;
 	
+	const TSharedPtr<FJsonObject>* BindingsObjPtr;
+	if (ExpressionObj.IsValid() && ExpressionObj->TryGetObjectField(PropertyName, BindingsObjPtr))
+	{
+		for (const auto& ArgumentPair : (*BindingsObjPtr)->Values)
+		{
+			const TSharedPtr<FJsonObject>* BindingObjPtr;
+			if (!ArgumentPair.Value->TryGetObject(BindingObjPtr))
+			{
+				Bindings.Add(nullptr);
+				continue; // invalid object
+			}
+			Bindings.Add(CreateBinding(BindingObjPtr));
+		}
+	}
+	
 	const TArray<TSharedPtr<FJsonValue>>* BindingsArrayPtr;
 	if (ExpressionObj.IsValid() && ExpressionObj->TryGetArrayField(PropertyName, BindingsArrayPtr))
 	{
@@ -334,8 +348,7 @@ TArray<TSharedPtr<FFormulaMemberBinding>> FExpressionBuildHelper::GetBindings(
 				continue; // invalid object
 			}
 			
-			auto Binding = CreateBinding(BindingObjPtr);
-			Bindings.Add(Binding);
+			Bindings.Add(CreateBinding(BindingObjPtr));
 		}
 	}
 	return Bindings;
@@ -346,6 +359,31 @@ TArray<TSharedPtr<FFormulaElementInitBinding>> FExpressionBuildHelper::GetElemen
 	TArray<TSharedPtr<FFormulaElementInitBinding>> Bindings;
 	
 	const TArray<TSharedPtr<FJsonValue>>* BindingsArrayPtr;
+	
+	const TSharedPtr<FJsonObject>* BindingsObjPtr;
+	if (ExpressionObj.IsValid() && ExpressionObj->TryGetObjectField(PropertyName, BindingsObjPtr))
+	{
+		for (const auto& ArgumentPair : (*BindingsObjPtr)->Values)
+		{
+			const TSharedPtr<FJsonObject>* BindingObjPtr;
+			if (!ArgumentPair.Value->TryGetObject(BindingObjPtr))
+			{
+				Bindings.Add(nullptr);
+				continue; // invalid object
+			}
+			
+			const FString ExpressionType = GetString(*BindingObjPtr, FFormulaNotation::EXPRESSION_TYPE_ATTRIBUTE, /*optional*/ true);
+			if (ExpressionType.IsEmpty() || ExpressionType == FFormulaNotation::EXPRESSION_TYPE_ELEMENT_INIT_BINDING)
+			{
+				Bindings.Add(MakeShared<FFormulaElementInitBinding>(BindingObjPtr->ToSharedRef()));
+			}
+			else
+			{
+				UE_LOG(LogExpressionBuildHelper, Error, TEXT("Unknown expression type: %s"), *ExpressionType);
+			}
+		}
+	}
+	
 	if (ExpressionObj.IsValid() && ExpressionObj->TryGetArrayField(PropertyName, BindingsArrayPtr))
 	{
 		for (const auto& BindingValue : *BindingsArrayPtr)
@@ -360,8 +398,7 @@ TArray<TSharedPtr<FFormulaElementInitBinding>> FExpressionBuildHelper::GetElemen
 			const FString ExpressionType = GetString(*BindingObjPtr, FFormulaNotation::EXPRESSION_TYPE_ATTRIBUTE, /*optional*/ true);
 			if (ExpressionType.IsEmpty() || ExpressionType == FFormulaNotation::EXPRESSION_TYPE_ELEMENT_INIT_BINDING)
 			{
-				auto Binding = MakeShared<FFormulaElementInitBinding>(BindingObjPtr->ToSharedRef());
-				Bindings.Add(Binding);
+				Bindings.Add(MakeShared<FFormulaElementInitBinding>(BindingObjPtr->ToSharedRef()));
 			}
 			else
 			{

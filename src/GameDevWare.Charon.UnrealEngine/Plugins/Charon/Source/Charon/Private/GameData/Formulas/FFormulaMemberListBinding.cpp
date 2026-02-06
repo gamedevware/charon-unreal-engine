@@ -3,18 +3,17 @@
 #include "GameData/Formulas/FExpressionBuildHelper.h"
 #include "GameData/Formulas/FFormulaNotation.h"
 #include "GameData/Formulas/FFormulaProperty.h"
-#include "GameData/Formulas/Expressions/FFormulaExpression.h"
 
 FFormulaMemberListBinding::FFormulaMemberListBinding(const TSharedRef<FJsonObject>& ExpressionObj) :
 	FFormulaMemberBinding(GetExpressionRawMemberName(ExpressionObj)),
-	ElementInit(MakeUnique<FFormulaElementInitBinding>(FExpressionBuildHelper::GetArgumentsList(ExpressionObj, FFormulaNotation::INITIALIZERS_ATTRIBUTE)))
+	Initializers(FExpressionBuildHelper::GetElementInitBindings(ExpressionObj, FFormulaNotation::INITIALIZERS_ATTRIBUTE))
 {
 }
 
 FFormulaMemberListBinding::FFormulaMemberListBinding(const FString& RawMemberName,
-                                                     const TArray<TSharedPtr<FFormulaExpression>>& Initializers) :
+                                                     const TArray<TSharedPtr<FFormulaElementInitBinding>>& Initializers) :
 	FFormulaMemberBinding(RawMemberName),
-	ElementInit(MakeUnique<FFormulaElementInitBinding>(FFormulaElementInitBinding(Initializers)))
+	Initializers(Initializers)
 {
 }
 
@@ -24,7 +23,14 @@ bool FFormulaMemberListBinding::IsValid() const
 	{
 		return false;
 	}
-	return this->ElementInit.IsValid();;
+	for (const auto& Initializer : Initializers)
+	{
+		if (!Initializer.IsValid())
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 FFormulaExecutionResult FFormulaMemberListBinding::ApplyToMember(const TSharedRef<FFormulaValue>& Target,
@@ -38,14 +44,17 @@ FFormulaExecutionResult FFormulaMemberListBinding::ApplyToMember(const TSharedRe
 	{
 		return FFormulaExecutionError::MemberAccessFailed(Target->GetCPPType(), this->MemberName);
 	}
-	
-	FFormulaExecutionResult InitResult = this->ElementInit->Apply(MemberValue.ToSharedRef(), Context);
-	if (InitResult.HasError())
+
+	for (const auto& Initializer : Initializers)
 	{
-		return InitResult;
+		FFormulaExecutionResult InitResult = Initializer->Apply(MemberValue.ToSharedRef(), Context);
+		if (InitResult.HasError())
+		{
+			return InitResult;
+		}
 	}
 	
-	// This will cause the Map/Set to be re-hashed after each element is added.
+	// This will cause the Map/Set to be re-hashed after some element is added.
 	// This isn't optimal, but trying to optimize this case would take
 	// more time than I'd like to devote to it.
 	FFormulaElementInitBinding::CompleteCollectionInitialization(MemberValue.ToSharedRef());
@@ -56,13 +65,23 @@ FFormulaExecutionResult FFormulaMemberListBinding::ApplyToMember(const TSharedRe
 		return FFormulaExecutionError::MemberAccessFailed(Target->GetCPPType(), this->MemberName);
 	}
 	
-	return InitResult;
+	return Target;
 }
 
 void FFormulaMemberListBinding::DebugPrintTo(FString& OutValue) const
 {
 	OutValue.Append(this->RawMemberName);
 	OutValue.Append(TEXT(": { "));
-	this->ElementInit->DebugPrintTo(OutValue);
-	OutValue.Append(TEXT("} "));
+	bool bFirstItem = true;
+	for (const auto& Initializer : Initializers)
+	{
+		if (!bFirstItem)
+		{
+			OutValue.Append(TEXT(", "));
+		}
+		bFirstItem = false;
+		
+		Initializer->DebugPrintTo(OutValue);
+	}
+	OutValue.Append(TEXT(" }"));
 }

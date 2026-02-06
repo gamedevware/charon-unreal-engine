@@ -11,10 +11,10 @@ class CHARON_API FNewArrayBoundExpression : public FFormulaExpression
 {
 public:
 	const TMap<FString, TSharedPtr<FFormulaExpression>> Arguments;
-	const TSharedPtr<FFormulaTypeReference> ArrayType;
+	const TSharedPtr<FFormulaTypeReference> ElementTypeRef;
 	
 	explicit FNewArrayBoundExpression(const TSharedRef<FJsonObject>& ExpressionObj);
-	explicit FNewArrayBoundExpression(const TSharedPtr<FFormulaTypeReference>& ArrayType, const TMap<FString, TSharedPtr<FFormulaExpression>>& Arguments);
+	explicit FNewArrayBoundExpression(const TSharedPtr<FFormulaTypeReference>& ElementType, const TMap<FString, TSharedPtr<FFormulaExpression>>& Arguments);
 	
 	virtual FFormulaExecutionResult Execute(const FFormulaExecutionContext& Context, FProperty* ExpectedType) const override;
 

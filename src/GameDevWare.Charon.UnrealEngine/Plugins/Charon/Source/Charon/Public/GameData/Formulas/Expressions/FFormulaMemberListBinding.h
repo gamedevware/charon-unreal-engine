@@ -3,16 +3,15 @@
 #pragma once
 #include "FFormulaMemberBinding.h"
 
-class FFormulaExpression;
 class FFormulaElementInitBinding;
 
 class CHARON_API FFormulaMemberListBinding : public FFormulaMemberBinding
 {
 public:
-	const TUniquePtr<FFormulaElementInitBinding> ElementInit;
+	const TArray<TSharedPtr<FFormulaElementInitBinding>> Initializers;
 	
 	explicit FFormulaMemberListBinding(const TSharedRef<FJsonObject>& ExpressionObj);
-	explicit FFormulaMemberListBinding(const FString& RawMemberName, const TArray<TSharedPtr<FFormulaExpression>>& Initializers);
+	explicit FFormulaMemberListBinding(const FString& RawMemberName, const TArray<TSharedPtr<FFormulaElementInitBinding>>& Initializers);
 
 	inline static EFormulaExpressionType Type = EFormulaExpressionType::MemberListBinding;
 	virtual EFormulaExpressionType GetType() const override  { return Type; }

@@ -391,7 +391,12 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 
 	SECTION("FNewArrayInitExpression")
 	{
-		TEST_EXPR_NEW_ARRAY_INIT(MAKE_ARRAY_TYPE_REF("int32"), IntArrayProperty, EXPR_CONST(-1), EXPR_CONST(-6), EXPR_CONST(-10764), EXPR_CONST(214132342));
+		TEST_EXPR_NEW_ARRAY_INIT
+		(
+			MakeShared<FFormulaTypeReference>(FString(TEXT("int32"))), // Element Type 
+			IntArrayProperty, 
+			EXPR_CONST(-1), EXPR_CONST(-6), EXPR_CONST(-10764), EXPR_CONST(214132342)
+		);
 		
 		TSharedPtr<FFormulaValue> ArrayResult = Result.GetValue();
 		void* ResultArrayPtr;
@@ -418,10 +423,10 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 			TArray<TSharedPtr<FFormulaMemberBinding>> {
 				MakeShared<FFormulaMemberAssignmentBinding>("StringProp", EXPR_CONST(FString(TEXT("NEW_STRING_VALUE")))),
 				MakeShared<FFormulaMemberAssignmentBinding>("Int32Prop", EXPR_CONST(-1000)),
-				MakeShared<FFormulaMemberListBinding>("Int32Array", TArray<TSharedPtr<FFormulaExpression>> { EXPR_CONST(123) }),
-				MakeShared<FFormulaMemberListBinding>("Int32Array", TArray<TSharedPtr<FFormulaExpression>> { EXPR_CONST(321) }),
-				MakeShared<FFormulaMemberListBinding>("Int32Set", TArray<TSharedPtr<FFormulaExpression>> { EXPR_CONST(321) }),
-				MakeShared<FFormulaMemberListBinding>("Int32Map", TArray<TSharedPtr<FFormulaExpression>> { EXPR_CONST(FString(TEXT("AMapKey"))), EXPR_CONST(321) }),
+				MakeShared<FFormulaMemberListBinding>("Int32Array", TArray<TSharedPtr<FFormulaElementInitBinding>> { EXPR_ELEM_INIT(EXPR_CONST(123)), EXPR_ELEM_INIT(EXPR_CONST(321)) }),
+				MakeShared<FFormulaMemberListBinding>("Int32Set", TArray<TSharedPtr<FFormulaElementInitBinding>> { EXPR_ELEM_INIT(EXPR_CONST(321)) }),
+				MakeShared<FFormulaMemberListBinding>("Int32Set", TArray<TSharedPtr<FFormulaElementInitBinding>> { EXPR_ELEM_INIT(EXPR_CONST(-1232315)) }),
+				MakeShared<FFormulaMemberListBinding>("Int32Map", TArray<TSharedPtr<FFormulaElementInitBinding>> { EXPR_ELEM_INIT(EXPR_CONST(FString(TEXT("AMapKey"))), EXPR_CONST(321)) }),
 				MakeShared<FFormulaMemberAssignmentBinding>("TestObjectProp", EXPR_CONST_OBJECT(TestObject, TestObjectProperty)),
 				MakeShared<FFormulaMemberMemberBinding>("TestObjectProp", TArray<TSharedPtr<FFormulaMemberBinding>> 
 				{ 
@@ -445,10 +450,11 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 			CHECK_EQUALS("Int32Array[0]", CreateInitializedObject->Int32Array[0], 123);
 			CHECK_EQUALS("Int32Array[1]", CreateInitializedObject->Int32Array[1], 321);
 		}
-		CHECK_EQUALS("Int32Set.Num()", CreateInitializedObject->Int32Set.Num(), 1);
-		if (CreateInitializedObject->Int32Set.Num() == 1)
+		CHECK_EQUALS("Int32Set.Num()", CreateInitializedObject->Int32Set.Num(), 2);
+		if (CreateInitializedObject->Int32Set.Num() == 2)
 		{
 			CHECK_MESSAGE("Int32Set[0]", CreateInitializedObject->Int32Set.Contains(321));
+			CHECK_MESSAGE("Int32Set[1]", CreateInitializedObject->Int32Set.Contains(-1232315));
 		}
 		CHECK_EQUALS("Int32Map.Num()", CreateInitializedObject->Int32Map.Num(), 1);
 		if (CreateInitializedObject->Int32Map.Num() == 1)
@@ -498,7 +504,7 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 	SECTION("FNewArrayBoundExpression")
 	{
 		Expression = MakeShared<FNewArrayBoundExpression>(
-			MAKE_ARRAY_TYPE_REF("int32"),
+			MakeShared<FFormulaTypeReference>(FString(TEXT("int32"))), // Element Type
 			TMap<FString, TSharedPtr<FFormulaExpression>> {
 				{ FString(TEXT("0")), EXPR_CONST(10) }
 			}

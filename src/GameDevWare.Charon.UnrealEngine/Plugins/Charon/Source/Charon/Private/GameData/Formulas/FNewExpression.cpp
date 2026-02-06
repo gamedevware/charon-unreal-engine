@@ -37,17 +37,18 @@ FFormulaExecutionResult FNewExpression::Execute(const FFormulaExecutionContext& 
 	}
 
 	FString NewObjectTypeFullName = this->NewObjectType->GetFullName(/*bWriteGenerics*/ false);
-	if ((NewObjectTypeFullName == "Array" || NewObjectTypeFullName == "System.Array") && 
+	if ((NewObjectTypeFullName == TEXT("Array") || NewObjectTypeFullName == TEXT("System.Array") || 
+		NewObjectTypeFullName == TEXT("List") || NewObjectTypeFullName == TEXT("System.Collections.Generic.List")) && 
 		this->NewObjectType->TypeArguments.Num() == 1)
 	{
 		return CreateNewArray(this->NewObjectType->TypeArguments[0], Context, ExpectedType);
 	}
-	else if ((NewObjectTypeFullName == "HashSet" || NewObjectTypeFullName == "System.HashSet" || NewObjectTypeFullName == "Set") && 
+	else if ((NewObjectTypeFullName == TEXT("HashSet") || NewObjectTypeFullName == TEXT("System.Collections.Generic.HashSet") || NewObjectTypeFullName == TEXT("Set")) && 
 		this->NewObjectType->TypeArguments.Num() == 1)
 	{
 		return CreateNewSet(this->NewObjectType->TypeArguments[0], Context, ExpectedType);
 	}
-	else if ((NewObjectTypeFullName == "Dictionary" || NewObjectTypeFullName == "System.Collections.Dictionary" || NewObjectTypeFullName == "Map") && 
+	else if ((NewObjectTypeFullName == TEXT("Dictionary") || NewObjectTypeFullName == TEXT("System.Collections.Generic.Dictionary") || NewObjectTypeFullName == TEXT("Map")) && 
 		this->NewObjectType->TypeArguments.Num() == 2)
 	{
 		return CreateNewMap(this->NewObjectType->TypeArguments[0], this->NewObjectType->TypeArguments[1], Context, ExpectedType);
@@ -133,7 +134,7 @@ bool FNewExpression::IsValid() const
 
 void FNewExpression::DebugPrintTo(FString& OutValue) const
 {
-	OutValue.Append("new ");
+	OutValue.Append(TEXT("new "));
 	if (this->NewObjectType.IsValid())
 	{
 		OutValue.Append(this->NewObjectType->GetFullName(true));
@@ -142,13 +143,13 @@ void FNewExpression::DebugPrintTo(FString& OutValue) const
 	{
 		OutValue.Append(TEXT("#INVALID#"));
 	}
-	OutValue.Append("(");
+	OutValue.Append(TEXT("("));
 	bool bFirstArgument = true;;
 	for (const auto& ArgumentPair : this->Arguments)
 	{
 		if (!bFirstArgument)
 		{
-			OutValue.Append(", ");
+			OutValue.Append(TEXT(", "));
 		}
 		bFirstArgument = false;
 
@@ -166,7 +167,7 @@ void FNewExpression::DebugPrintTo(FString& OutValue) const
 			OutValue.Append(TEXT("#INVALID#"));
 		}
 	}
-	OutValue.Append(")");
+	OutValue.Append(TEXT(")"));
 }
 
 bool FNewExpression::TryCreateArray(

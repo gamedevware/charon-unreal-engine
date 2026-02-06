@@ -9,12 +9,12 @@
 DEFINE_LOG_CATEGORY(FNLogNewArrayInitExpression);
 
 FNewArrayInitExpression::FNewArrayInitExpression(const TSharedRef<FJsonObject>& ExpressionObj):
-	ArrayType(FExpressionBuildHelper::GetTypeRef(ExpressionObj, FFormulaNotation::TYPE_ATTRIBUTE)),
+	ElementTypeRef(FExpressionBuildHelper::GetTypeRef(ExpressionObj, FFormulaNotation::TYPE_ATTRIBUTE)),
 	Initializers(FExpressionBuildHelper::GetArgumentsList(ExpressionObj, FFormulaNotation::INITIALIZERS_ATTRIBUTE))
 {}
 
-FNewArrayInitExpression::FNewArrayInitExpression(const TSharedPtr<FFormulaTypeReference>& ArrayType,
-	const TArray<TSharedPtr<FFormulaExpression>>& Initializers) : ArrayType(ArrayType), Initializers(Initializers) 
+FNewArrayInitExpression::FNewArrayInitExpression(const TSharedPtr<FFormulaTypeReference>& ElementTypeRef,
+	const TArray<TSharedPtr<FFormulaExpression>>& Initializers) : ElementTypeRef(ElementTypeRef), Initializers(Initializers) 
 {
 }
 
@@ -28,11 +28,10 @@ FFormulaExecutionResult FNewArrayInitExpression::Execute(const FFormulaExecution
 	FArrayProperty* ExpectedArrayProperty = CastField<FArrayProperty>(ExpectedType);
 	FProperty* ExpectedElementProperty = ExpectedArrayProperty ? ExpectedArrayProperty->Inner : nullptr;
 	
-	const auto ElementTypeReference = this->ArrayType->TypeArguments[0];
-	const auto ElementType = Context.TypeResolver->FindType(ElementTypeReference);
+	const auto ElementType = Context.TypeResolver->FindType(this->ElementTypeRef);
 	if (!ElementType.IsValid())
 	{
-		return FFormulaExecutionError::UnableToResolveType(ElementTypeReference->GetFullName(/* include generics */ true));
+		return FFormulaExecutionError::UnableToResolveType(this->ElementTypeRef->GetFullName(/* include generics */ true));
 	}
 
 	if (ExpectedArrayProperty && !ElementType->IsAssignableFrom(ExpectedArrayProperty->Inner, /*bWithoutConversion*/ true))
@@ -52,20 +51,12 @@ FFormulaExecutionResult FNewArrayInitExpression::Execute(const FFormulaExecution
 		AddValues.Add(ValueResult.GetValue());
 	}
 	
-
-	FString FullName = this->ArrayType->GetFullName(/*bWriteGenerics*/ false);
-	if ((FullName != TEXT("Array") && FullName != TEXT("System.Array")) ||
-		ArrayType->TypeArguments.Num() != 1)
-	{
-		return FFormulaExecutionError::InvalidArrayType(this->ArrayType->GetFullName(/*bWriteGenerics*/ false));
-	}
-
 	TSharedPtr<FFormulaValue> ArrayValue = FFormulaValue::Null();
 	void* ArrayValuePtr = nullptr;
 	if (!FNewExpression::TryCreateArray(ElementType, ExpectedArrayProperty, ArrayValue) ||
 		!ArrayValue->TryGetContainerAddress(ArrayValuePtr))
 	{
-		return FFormulaExecutionError::MissingContextForStruct(this->ArrayType->GetFullName(/*bWriteGenerics*/ true));
+		return FFormulaExecutionError::MissingContextForStruct(this->ElementTypeRef->GetFullName(/*bWriteGenerics*/ true));
 	}
 	check(ArrayValuePtr);
 
@@ -83,7 +74,7 @@ FFormulaExecutionResult FNewArrayInitExpression::Execute(const FFormulaExecution
 		{
 			ArrayWrap.RemoveValues(AddedIndex, 1);
 			
-			return FFormulaExecutionError::CollectionAddFailed(this->ArrayType->GetFullName(/*bWriteGenerics*/ true), ValueToAdd->GetCPPType());
+			return FFormulaExecutionError::CollectionAddFailed(TEXT("TArray<") + this->ElementTypeRef->GetFullName(/*bWriteGenerics*/ true) + TEXT(">"), ValueToAdd->GetCPPType());
 		}
 	}
 	
@@ -92,7 +83,7 @@ FFormulaExecutionResult FNewArrayInitExpression::Execute(const FFormulaExecution
 
 bool FNewArrayInitExpression::IsValid() const
 {
-	if (!this->ArrayType.IsValid())
+	if (!this->ElementTypeRef.IsValid())
 	{
 		return false;
 	}
@@ -109,9 +100,9 @@ bool FNewArrayInitExpression::IsValid() const
 void FNewArrayInitExpression::DebugPrintTo(FString& OutValue) const
 {
 	OutValue.Append("new ");
-	if (this->ArrayType.IsValid())
+	if (this->ElementTypeRef.IsValid())
 	{
-		OutValue.Append(this->ArrayType->GetFullName(true));
+		OutValue.Append(this->ElementTypeRef->GetFullName(true));
 	}
 	else
 	{

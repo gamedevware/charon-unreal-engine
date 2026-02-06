@@ -205,6 +205,10 @@ void FFormulaElementInitBinding::CompleteCollectionInitialization(const TSharedR
 
 void FFormulaElementInitBinding::DebugPrintTo(FString& OutValue) const
 {
+	if (this->Initializers.Num() > 1)
+	{
+		OutValue.Append(TEXT("{ "));
+	}
 	bool bFirstInitializer = true;
 	for (const auto& Initializer : this->Initializers)
 	{
@@ -222,5 +226,9 @@ void FFormulaElementInitBinding::DebugPrintTo(FString& OutValue) const
 		{
 			OutValue.Append(TEXT("#INVALID#"));
 		}
+	}
+	if (this->Initializers.Num() > 1)
+	{
+		OutValue.Append(TEXT(" }"));
 	}
 }
