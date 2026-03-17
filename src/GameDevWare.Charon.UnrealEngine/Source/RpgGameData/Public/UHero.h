@@ -41,11 +41,13 @@ public:
 	/**
 	  * De-referenced collection of documents for DislikeHeroes. Should not be directly used.
 	  */
-	mutable TMap<FString,UHero*> _dislikeHeroesDocuments;
+	UPROPERTY()
+	mutable TMap<FString,UHero*> _DislikeHeroesDocuments;
 	/**
 	  * De-referenced document of Provisions. Should not be directly used.
 	  */
-	mutable UProvision* _provisionsDocument;
+	UPROPERTY()
+	mutable UProvision* _ProvisionsDocument;
 public:
 	/**
 	  * Id property of Text type. Not Empty, Unique.

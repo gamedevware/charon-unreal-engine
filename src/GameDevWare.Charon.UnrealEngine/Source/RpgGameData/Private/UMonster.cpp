@@ -23,6 +23,6 @@ FText UMonster::GetName() const {
 	return NameRaw.GetCurrent();
 }
 TMap<FString,ULocation*> UMonster::GetLocations() const {
-	FGameDataDocumentReference::GetReferencedDocuments(LocationsRaw, _locationsDocuments);
-	return _locationsDocuments;
+	FGameDataDocumentReference::GetReferencedDocuments(LocationsRaw, _LocationsDocuments);
+	return _LocationsDocuments;
 }

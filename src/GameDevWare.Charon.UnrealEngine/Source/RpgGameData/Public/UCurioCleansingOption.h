@@ -41,7 +41,8 @@ public:
 	/**
 	  * De-referenced document of Item. Should not be directly used.
 	  */
-	mutable UItem* _itemDocument;
+	UPROPERTY()
+	mutable UItem* _ItemDocument;
 public:
 	/**
 	  * Id property of Integer type. Not Null, Unique.

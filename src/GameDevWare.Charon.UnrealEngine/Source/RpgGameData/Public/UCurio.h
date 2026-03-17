@@ -42,7 +42,8 @@ public:
 	/**
 	  * De-referenced collection of documents for Locations. Should not be directly used.
 	  */
-	mutable TMap<FString,ULocation*> _locationsDocuments;
+	UPROPERTY()
+	mutable TMap<FString,ULocation*> _LocationsDocuments;
 public:
 	/**
 	  * Id property of Text type. Not Empty, Unique.

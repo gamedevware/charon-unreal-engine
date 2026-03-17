@@ -41,11 +41,13 @@ public:
 	/**
 	  * De-referenced collection of documents for Heroes. Should not be directly used.
 	  */
-	mutable TMap<FString,UHero*> _heroesDocuments;
+	UPROPERTY()
+	mutable TMap<FString,UHero*> _HeroesDocuments;
 	/**
 	  * De-referenced document of Location. Should not be directly used.
 	  */
-	mutable ULocation* _locationDocument;
+	UPROPERTY()
+	mutable ULocation* _LocationDocument;
 public:
 	/**
 	  * Id property of Integer type. Not Null, Unique.

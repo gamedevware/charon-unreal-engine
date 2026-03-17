@@ -26,6 +26,6 @@ FText UCurio::GetDescription() const {
 	return DescriptionRaw.GetCurrent();
 }
 TMap<FString,ULocation*> UCurio::GetLocations() const {
-	FGameDataDocumentReference::GetReferencedDocuments(LocationsRaw, _locationsDocuments);
-	return _locationsDocuments;
+	FGameDataDocumentReference::GetReferencedDocuments(LocationsRaw, _LocationsDocuments);
+	return _LocationsDocuments;
 }

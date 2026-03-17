@@ -40,11 +40,13 @@ public:
 	/**
 	  * De-referenced document of MinValueParameter. Should not be directly used.
 	  */
-	mutable UParameter* _minValueParameterDocument;
+	UPROPERTY()
+	mutable UParameter* _MinValueParameterDocument;
 	/**
 	  * De-referenced document of MaxValueParameter. Should not be directly used.
 	  */
-	mutable UParameter* _maxValueParameterDocument;
+	UPROPERTY()
+	mutable UParameter* _MaxValueParameterDocument;
 public:
 	/**
 	  * Id property of Pick List type. Not Null, Unique.

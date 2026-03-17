@@ -21,10 +21,10 @@ const FString UStartingSet::SchemaId = TEXT("5a1d78de07ff9a7b889cba83");
 const FString UStartingSet::SchemaName = TEXT("StartingSet");
 
 TMap<FString,UHero*> UStartingSet::GetHeroes() const {
-	FGameDataDocumentReference::GetReferencedDocuments(HeroesRaw, _heroesDocuments);
-	return _heroesDocuments;
+	FGameDataDocumentReference::GetReferencedDocuments(HeroesRaw, _HeroesDocuments);
+	return _HeroesDocuments;
 }
 ULocation* UStartingSet::GetLocation() const {
-	FGameDataDocumentReference::GetReferencedDocument(LocationRaw, _locationDocument);
-	return _locationDocument;
+	FGameDataDocumentReference::GetReferencedDocument(LocationRaw, _LocationDocument);
+	return _LocationDocument;
 }

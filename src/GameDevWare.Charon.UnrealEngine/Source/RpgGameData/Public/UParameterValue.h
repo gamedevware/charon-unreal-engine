@@ -40,11 +40,13 @@ public:
 	/**
 	  * De-referenced document of Parameter. Should not be directly used.
 	  */
-	mutable UParameter* _parameterDocument;
+	UPROPERTY()
+	mutable UParameter* _ParameterDocument;
 	/**
 	  * De-referenced document of Condition. Should not be directly used.
 	  */
-	mutable UCondition* _conditionDocument;
+	UPROPERTY()
+	mutable UCondition* _ConditionDocument;
 public:
 	/**
 	  * Id property of Integer type. Not Null, Unique.

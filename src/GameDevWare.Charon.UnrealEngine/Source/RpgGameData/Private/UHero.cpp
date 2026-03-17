@@ -27,12 +27,12 @@ FText UHero::GetBio() const {
 	return BioRaw.GetCurrent();
 }
 TMap<FString,UHero*> UHero::GetDislikeHeroes() const {
-	FGameDataDocumentReference::GetReferencedDocuments(DislikeHeroesRaw, _dislikeHeroesDocuments);
-	return _dislikeHeroesDocuments;
+	FGameDataDocumentReference::GetReferencedDocuments(DislikeHeroesRaw, _DislikeHeroesDocuments);
+	return _DislikeHeroesDocuments;
 }
 UProvision* UHero::GetProvisions() const {
-	FGameDataDocumentReference::GetReferencedDocument(ProvisionsRaw, _provisionsDocument);
-	return _provisionsDocument;
+	FGameDataDocumentReference::GetReferencedDocument(ProvisionsRaw, _ProvisionsDocument);
+	return _ProvisionsDocument;
 }
 FVector4 UHero::GetParsedPictureBounds() const
 {

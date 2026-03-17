@@ -22,10 +22,10 @@ const FString UTrinket::SchemaId = TEXT("59f5b61630bb84165c06b57f");
 const FString UTrinket::SchemaName = TEXT("Trinket");
 
 ULocation* UTrinket::GetOriginDungeon() const {
-	FGameDataDocumentReference::GetReferencedDocument(OriginDungeonRaw, _originDungeonDocument);
-	return _originDungeonDocument;
+	FGameDataDocumentReference::GetReferencedDocument(OriginDungeonRaw, _OriginDungeonDocument);
+	return _OriginDungeonDocument;
 }
 UHero* UTrinket::GetHeroRestriction() const {
-	FGameDataDocumentReference::GetReferencedDocument(HeroRestrictionRaw, _heroRestrictionDocument);
-	return _heroRestrictionDocument;
+	FGameDataDocumentReference::GetReferencedDocument(HeroRestrictionRaw, _HeroRestrictionDocument);
+	return _HeroRestrictionDocument;
 }

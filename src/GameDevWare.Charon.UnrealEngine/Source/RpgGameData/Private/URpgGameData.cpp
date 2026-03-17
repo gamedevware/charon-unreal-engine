@@ -1111,6 +1111,20 @@ static FString URpgGameData_MakeUniqueDocumentName(DocumentType* Document)
 	return DocumentUniqueName;
 }
 
+static UObject* URpgGameData_ResetDocumentToDefaultState(UObject* Document)
+{
+	if (!Document)
+	{
+		return nullptr;
+	}
+
+	UObject* DefaultObj = Document->GetClass()->GetDefaultObject();
+	// Copy all UPROPERTY values from the default object to 'Document'
+    UEngine::CopyPropertiesForUnrelatedObjects(DefaultObj, Document);
+
+	return Document;
+}
+
 static void URpgGameData_TryRenameDocument(UObject* Document, const TCHAR* NewName)
 {
 	if (!Document) {
@@ -1642,6 +1656,7 @@ bool URpgGameData::ReadDocument
 			URpgGameDataProjectSettings* ExistingDocument = Cast<URpgGameDataProjectSettings>(ExistingObject);
 			if (ExistingDocument)
 			{
+				URpgGameData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->Name = Document->Name;
 				ExistingDocument->PrimaryLanguage = Document->PrimaryLanguage;
@@ -1815,6 +1830,7 @@ bool URpgGameData::ReadDocument
 			UParameter* ExistingDocument = Cast<UParameter>(ExistingObject);
 			if (ExistingDocument)
 			{
+				URpgGameData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->MinValue = Document->MinValue;
 				ExistingDocument->MaxValue = Document->MaxValue;
@@ -1973,6 +1989,7 @@ bool URpgGameData::ReadDocument
 			UParameterValue* ExistingDocument = Cast<UParameterValue>(ExistingObject);
 			if (ExistingDocument)
 			{
+				URpgGameData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->ParameterRaw = Document->ParameterRaw;
 				ExistingDocument->Value = Document->Value;
@@ -2116,6 +2133,7 @@ bool URpgGameData::ReadDocument
 			UProvision* ExistingDocument = Cast<UProvision>(ExistingObject);
 			if (ExistingDocument)
 			{
+				URpgGameData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->Cost = Document->Cost;
 				ExistingDocument->Item = Document->Item;
@@ -2229,6 +2247,7 @@ bool URpgGameData::ReadDocument
 			UHero* ExistingDocument = Cast<UHero>(ExistingObject);
 			if (ExistingDocument)
 			{
+				URpgGameData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->NameRaw = Document->NameRaw;
 				ExistingDocument->BioRaw = Document->BioRaw;
@@ -2642,6 +2661,7 @@ bool URpgGameData::ReadDocument
 			UItem* ExistingDocument = Cast<UItem>(ExistingObject);
 			if (ExistingDocument)
 			{
+				URpgGameData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->NameRaw = Document->NameRaw;
 				ExistingDocument->DescriptionRaw = Document->DescriptionRaw;
@@ -2800,6 +2820,7 @@ bool URpgGameData::ReadDocument
 			ULocation* ExistingDocument = Cast<ULocation>(ExistingObject);
 			if (ExistingDocument)
 			{
+				URpgGameData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->NameRaw = Document->NameRaw;
 				ExistingDocument->Flags = Document->Flags;
@@ -2913,6 +2934,7 @@ bool URpgGameData::ReadDocument
 			UTrinket* ExistingDocument = Cast<UTrinket>(ExistingObject);
 			if (ExistingDocument)
 			{
+				URpgGameData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->Rarity = Document->Rarity;
 				ExistingDocument->OriginDungeonRaw = Document->OriginDungeonRaw;
@@ -3071,6 +3093,7 @@ bool URpgGameData::ReadDocument
 			UMonster* ExistingDocument = Cast<UMonster>(ExistingObject);
 			if (ExistingDocument)
 			{
+				URpgGameData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->NameRaw = Document->NameRaw;
 				ExistingDocument->Type = Document->Type;
@@ -3229,6 +3252,7 @@ bool URpgGameData::ReadDocument
 			ULoot* ExistingDocument = Cast<ULoot>(ExistingObject);
 			if (ExistingDocument)
 			{
+				URpgGameData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->Type = Document->Type;
 				ExistingDocument->Amount = Document->Amount;
@@ -3342,6 +3366,7 @@ bool URpgGameData::ReadDocument
 			UCombatEffect* ExistingDocument = Cast<UCombatEffect>(ExistingObject);
 			if (ExistingDocument)
 			{
+				URpgGameData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->Changes = Document->Changes;
 				ExistingDocument->Duration = Document->Duration;
@@ -3470,6 +3495,7 @@ bool URpgGameData::ReadDocument
 			UCurioCleansingOption* ExistingDocument = Cast<UCurioCleansingOption>(ExistingObject);
 			if (ExistingDocument)
 			{
+				URpgGameData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->Chance = Document->Chance;
 				ExistingDocument->ItemRaw = Document->ItemRaw;
@@ -3658,6 +3684,7 @@ bool URpgGameData::ReadDocument
 			UCurio* ExistingDocument = Cast<UCurio>(ExistingObject);
 			if (ExistingDocument)
 			{
+				URpgGameData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->Type = Document->Type;
 				ExistingDocument->NameRaw = Document->NameRaw;
@@ -3831,6 +3858,7 @@ bool URpgGameData::ReadDocument
 			UDisease* ExistingDocument = Cast<UDisease>(ExistingObject);
 			if (ExistingDocument)
 			{
+				URpgGameData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->NameRaw = Document->NameRaw;
 				ExistingDocument->Effects = Document->Effects;
@@ -3944,6 +3972,7 @@ bool URpgGameData::ReadDocument
 			UQuirk* ExistingDocument = Cast<UQuirk>(ExistingObject);
 			if (ExistingDocument)
 			{
+				URpgGameData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->NameRaw = Document->NameRaw;
 				ExistingDocument->IsPositive = Document->IsPositive;
@@ -4072,6 +4101,7 @@ bool URpgGameData::ReadDocument
 			UCondition* ExistingDocument = Cast<UCondition>(ExistingObject);
 			if (ExistingDocument)
 			{
+				URpgGameData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->DescriptionRaw = Document->DescriptionRaw;
 				ExistingDocument->Check = Document->Check;
@@ -4202,6 +4232,7 @@ bool URpgGameData::ReadDocument
 			UWeapon* ExistingDocument = Cast<UWeapon>(ExistingObject);
 			if (ExistingDocument)
 			{
+				URpgGameData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->NameRaw = Document->NameRaw;
 				ExistingDocument->DamageFrom = Document->DamageFrom;
@@ -4360,6 +4391,7 @@ bool URpgGameData::ReadDocument
 			UArmor* ExistingDocument = Cast<UArmor>(ExistingObject);
 			if (ExistingDocument)
 			{
+				URpgGameData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->NameRaw = Document->NameRaw;
 				ExistingDocument->Dodge = Document->Dodge;
@@ -4488,6 +4520,7 @@ bool URpgGameData::ReadDocument
 			UItemWithCount* ExistingDocument = Cast<UItemWithCount>(ExistingObject);
 			if (ExistingDocument)
 			{
+				URpgGameData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->ItemRaw = Document->ItemRaw;
 				ExistingDocument->Count = Document->Count;
@@ -4601,6 +4634,7 @@ bool URpgGameData::ReadDocument
 			UStartingSet* ExistingDocument = Cast<UStartingSet>(ExistingObject);
 			if (ExistingDocument)
 			{
+				URpgGameData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->Items = Document->Items;
 				ExistingDocument->HeroesRaw = Document->HeroesRaw;

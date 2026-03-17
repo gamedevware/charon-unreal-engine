@@ -43,11 +43,13 @@ public:
 	/**
 	  * De-referenced document of OriginDungeon. Should not be directly used.
 	  */
-	mutable ULocation* _originDungeonDocument;
+	UPROPERTY()
+	mutable ULocation* _OriginDungeonDocument;
 	/**
 	  * De-referenced document of HeroRestriction. Should not be directly used.
 	  */
-	mutable UHero* _heroRestrictionDocument;
+	UPROPERTY()
+	mutable UHero* _HeroRestrictionDocument;
 public:
 	/**
 	  * Id property of Text type. Not Empty, Unique.
