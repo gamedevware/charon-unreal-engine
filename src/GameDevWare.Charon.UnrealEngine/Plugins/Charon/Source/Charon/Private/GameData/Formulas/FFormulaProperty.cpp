@@ -101,7 +101,7 @@ FFormulaPropertyGetterFunc FFormulaProperty::CreateDefaultPropertyGetter(TWeakFi
 			if (InTarget->TryGetObjectPtr(ContainerPtr) &&
 				!ContainerPtr->GetClass()->IsChildOf(DeclaringClass))
 			{
-				UE_LOG(LogFormulaProperty, Warning, TEXT("Property get access failed because the call target of the wrong type."));
+				UE_LOG(LogFormulaProperty, Warning, TEXT("Property get access failed because the call target is of the wrong type."));
 				
 				ContainerPtr = nullptr; // invalid target class
 			}
@@ -124,7 +124,7 @@ FFormulaPropertyGetterFunc FFormulaProperty::CreateDefaultPropertyGetter(TWeakFi
 				InTarget->TryGetContainerAddress(ContainerPtr) &&
 				GetScriptStruct(InTarget->GetType())->IsChildOf(DeclaringStruct))
 			{
-				UE_LOG(LogFormulaProperty, Warning, TEXT("Property get access failed because the call target of the wrong type."));
+				UE_LOG(LogFormulaProperty, Warning, TEXT("Property get access failed because the call target is of the wrong type."));
 				
 				ContainerPtr = nullptr; // invalid target class
 			}
@@ -166,7 +166,7 @@ FFormulaPropertySetterFunc FFormulaProperty::CreateDefaultPropertySetter(TWeakFi
 			if (InTarget->TryGetObjectPtr(ContainerPtr) &&
 				!ContainerPtr->GetClass()->IsChildOf(DeclaringClass))
 			{
-				UE_LOG(LogFormulaProperty, Warning, TEXT("Property set access failed because the call target of the wrong type."));
+				UE_LOG(LogFormulaProperty, Warning, TEXT("Property set access failed because the call target is of the wrong type."));
 				
 				ContainerPtr = nullptr; // invalid target class
 			}
@@ -186,7 +186,7 @@ FFormulaPropertySetterFunc FFormulaProperty::CreateDefaultPropertySetter(TWeakFi
 				InTarget->TryGetContainerAddress(ContainerPtr) &&
 				GetScriptStruct(InTarget->GetType())->IsChildOf(DeclaringStruct))
 			{
-				UE_LOG(LogFormulaProperty, Warning, TEXT("Property set access failed because the call target of the wrong type."));
+				UE_LOG(LogFormulaProperty, Warning, TEXT("Property set access failed because the call target is of the wrong type."));
 				
 				ContainerPtr = nullptr; // invalid target class
 			}
@@ -201,7 +201,7 @@ FFormulaPropertySetterFunc FFormulaProperty::CreateDefaultPropertySetter(TWeakFi
 			auto bSetSuccess = InValue->TrySetPropertyValue_InContainer(PropertyOrNull, ContainerPtr, 0);
 			if (!bSetSuccess)
 			{
-				UE_LOG(LogFormulaProperty, Warning, TEXT("Property set access failed because the '%s' value of the %s value could not be cast/coerced to the %s type."), *InValue->GetCPPType(), *PropertyOrNull->GetName(), *FFormulaValue::GetExtendedCppName(PropertyOrNull) );
+				UE_LOG(LogFormulaProperty, Warning, TEXT("Property set access failed because the '%s' value of the %s property could not be cast/coerced to the %s type."), *InValue->GetCPPType(), *PropertyOrNull->GetName(), *FFormulaValue::GetExtendedCppName(PropertyOrNull) );
 			}
 			return bSetSuccess;
 		}
