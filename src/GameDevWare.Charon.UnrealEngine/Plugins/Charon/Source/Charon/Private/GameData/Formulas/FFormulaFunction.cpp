@@ -106,6 +106,7 @@ FFormulaFunctionInvokeFunc FFormulaFunction::CreateDefaultFunctionInvoker(UFunct
 		
 		TArray<uint8> ArgumentsBuffer;
 		ArgumentsBuffer.AddZeroed(FunctionOrNull->ParmsSize);
+		FunctionOrNull->InitializeStruct(ArgumentsBuffer.GetData());
 		void* ArgumentBufferPtr = ArgumentsBuffer.GetData();
 
 		// bind input parameters
@@ -165,6 +166,7 @@ FFormulaFunctionInvokeFunc FFormulaFunction::CreateDefaultFunctionInvoker(UFunct
 				CallArguments.UpdateArgumentValue(ParameterName, MakeShared<FFormulaValue>(Parameter, ValuePtr));
 			}
 		}
+		FunctionOrNull->DestroyStruct(ArgumentsBuffer.GetData());
 		return true;
 	});
 }
