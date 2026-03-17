@@ -3,11 +3,14 @@
 #pragma once
 #include "FFormulaUnrealType.h"
 
+#define GET_LITERAL_MEMBER_CHECKED(ClassName) \
+*ClassName::StaticClass()->FindPropertyByName(GET_MEMBER_NAME_STRING_CHECKED(ClassName, __Literal))
+
 class FDotNetSurrogateType: public IFormulaType
 {
 private:
 	TStrongObjectPtr<UClass> const ClassPtr;
-	FProperty& LiteralField;
+	FProperty* LiteralField;
 	EFormulaValueType const TypeCode;
 		
 	TSharedPtr<TArray<FString>> PropertyNames;
@@ -20,7 +23,7 @@ private:
 	TSharedPtr<TMap<FString, FFormulaProperty>> StaticProperties;
 	TSharedPtr<TMap<FString, FFormulaFunction>> StaticFunctions;
 public:
-	explicit FDotNetSurrogateType(UClass* SurrogateClass);
+	explicit FDotNetSurrogateType(UClass* SurrogateClass, FProperty* LiteralProperty);
 	virtual ~FDotNetSurrogateType() override { }
 
 	virtual bool CanBeNull() const override;

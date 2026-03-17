@@ -17,6 +17,7 @@ private:
 	TStrongObjectPtr<UStruct> const StructOrClassPtr;
 	
 	TSharedPtr<TArray<FString>> PropertyNames;
+	TSharedPtr<TArray<FString>> StaticPropertyNames;
 	TSharedPtr<TArray<FString>> FunctionNames;
 	TSharedPtr<TArray<FString>> StaticFunctionNames;
 	
@@ -31,7 +32,7 @@ public:
 	explicit FFormulaUnrealType(UStruct* StructPtr);
 	virtual ~FFormulaUnrealType() override { }
 
-	virtual bool CanBeNull() const override { return true; }
+	virtual bool CanBeNull() const override { return this->IsClass(); }
 	virtual bool IsAssignableFrom(UField* Type) const override;
 	virtual UField* GetTypeClassOrStruct() const override { return StructOrClassPtr.Get(); }
 	virtual EFormulaValueType GetTypeCode() const override { return Cast<UClass>(StructOrClassPtr.Get()) ? EFormulaValueType::ObjectPtr : EFormulaValueType::Struct; }

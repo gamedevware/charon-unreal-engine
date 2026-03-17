@@ -133,6 +133,7 @@ FFormulaExecutionResult FIndexExpression::Execute(const FFormulaExecutionContext
 		TArray<uint8> ConvertedKeyValue;
 		FProperty* KeyProperty = MapWrap.GetKeyProperty();
 		ConvertedKeyValue.SetNumZeroed(KeyProperty->GetSize());
+		
 		if (!KeyArgument->TryCopyCompleteValue(KeyProperty, ConvertedKeyValue.GetData()))
 		{
 			return FFormulaExecutionError::InvalidDictionaryKeyType(KeyArgument->ToString(), KeyArgument->GetCPPType(), KeyProperty->GetCPPType());
@@ -154,9 +155,12 @@ FFormulaExecutionResult FIndexExpression::Execute(const FFormulaExecutionContext
 			
 			const void* ValuePtr = MapWrap.GetValuePtr(i);
 			FProperty* ValueProperty = MapWrap.GetValueProperty();
+			
+			KeyProperty->DestroyValue(ConvertedKeyValue.GetData());
 			return MakeShared<FFormulaValue>(ValueProperty, ValuePtr);
 		}
 		
+		KeyProperty->DestroyValue(ConvertedKeyValue.GetData());
 		return FFormulaExecutionError::DictionaryKeyNotFound(KeyArgument->ToString(), KeyArgument->GetCPPType());
 	}
 

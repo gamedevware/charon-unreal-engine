@@ -66,13 +66,18 @@ void FLambdaExpression::DebugPrintTo(FString& OutValue) const
 			OutValue.Append(ArgumentPair.Value->GetFullName(true));
 			OutValue.Append(" ");
 		}
-		if (ArgumentPair.Key.IsEmpty())
+		else
+		{
+			OutValue.Append(TEXT("#INVALID#"));
+		}
+		
+		if (!ArgumentPair.Key.IsEmpty())
 		{
 			OutValue.Append(ArgumentPair.Key);
 		}
 		else
 		{
-			OutValue.Append(TEXT("#INVALID"));
+			OutValue.Append(TEXT("#INVALID#"));
 		}
 	}
 	OutValue.Append(") => ");

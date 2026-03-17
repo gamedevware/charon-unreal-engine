@@ -14,5 +14,6 @@ UCLASS(Hidden, NotPlaceable, Abstract)
 class CHARON_API UDotNetArray : public UObject
 {
 	GENERATED_BODY()
-
+	
+	
 };

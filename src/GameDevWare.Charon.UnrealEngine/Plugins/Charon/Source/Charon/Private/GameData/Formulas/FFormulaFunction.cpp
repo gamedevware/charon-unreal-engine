@@ -38,14 +38,13 @@ bool FFormulaFunction::TryInvoke(
 	const TArray<UField*>* TypeArguments,
 	TSharedPtr<FFormulaValue>& Result) const
 {
-	const UClass* DeclaringClass = Cast<UClass>(this->DeclaringTypePtr.Get());
-	check(DeclaringClass);
-
+	
 	TSharedRef<FFormulaValue> TargetOrDefault = Target;
-	if (DeclaringClass && bUseClassDefaultObject)
+	if (const UClass* DeclaringClass = Cast<UClass>(this->DeclaringTypePtr.Get()); DeclaringClass && bUseClassDefaultObject)
 	{
 		TargetOrDefault = MakeShared<FFormulaValue>(DeclaringClass->GetDefaultObject(/*bCreateIfNeeded*/ true));
 	}
+	
 	return this->FunctionInvoker && this->FunctionInvoker(TargetOrDefault, CallArguments, ExpectedType,
 	                                                              TypeArguments, Result);
 }
@@ -139,6 +138,8 @@ FFormulaFunctionInvokeFunc FFormulaFunction::CreateDefaultFunctionInvoker(UFunct
 
 		if (!bIsMatching)
 		{
+			// release Arguments buffer
+			FunctionOrNull->DestroyStruct(ArgumentsBuffer.GetData());
 			return false;
 		}
 

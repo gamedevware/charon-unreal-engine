@@ -37,20 +37,35 @@ FFormulaExecutionResult FNewExpression::Execute(const FFormulaExecutionContext& 
 	}
 
 	FString NewObjectTypeFullName = this->NewObjectType->GetFullName(/*bWriteGenerics*/ false);
-	if ((NewObjectTypeFullName == TEXT("Array") || NewObjectTypeFullName == TEXT("System.Array") || 
-		NewObjectTypeFullName == TEXT("List") || NewObjectTypeFullName == TEXT("System.Collections.Generic.List")) && 
+	if ((NewObjectTypeFullName == TEXT("Array") || NewObjectTypeFullName == TEXT("System.Array") ||
+		NewObjectTypeFullName == TEXT("List") || NewObjectTypeFullName == TEXT("System.Collections.Generic.List")) &&
 		this->NewObjectType->TypeArguments.Num() == 1)
 	{
+		if (!this->NewObjectType->TypeArguments[0].IsValid())
+		{
+			UE_LOG(LogNewExpression, Error, TEXT("'%s': 'new' array expression has an invalid element type argument."), *this->NewObjectType->GetFullName(true));
+			return FFormulaExecutionError::InvalidArrayType(this->NewObjectType->GetFullName(true));
+		}
 		return CreateNewArray(this->NewObjectType->TypeArguments[0], Context, ExpectedType);
 	}
-	else if ((NewObjectTypeFullName == TEXT("HashSet") || NewObjectTypeFullName == TEXT("System.Collections.Generic.HashSet") || NewObjectTypeFullName == TEXT("Set")) && 
+	else if ((NewObjectTypeFullName == TEXT("HashSet") || NewObjectTypeFullName == TEXT("System.Collections.Generic.HashSet") || NewObjectTypeFullName == TEXT("Set")) &&
 		this->NewObjectType->TypeArguments.Num() == 1)
 	{
+		if (!this->NewObjectType->TypeArguments[0].IsValid())
+		{
+			UE_LOG(LogNewExpression, Error, TEXT("'%s': 'new' set expression has an invalid element type argument."), *this->NewObjectType->GetFullName(true));
+			return FFormulaExecutionError::InvalidSetType(this->NewObjectType->GetFullName(true));
+		}
 		return CreateNewSet(this->NewObjectType->TypeArguments[0], Context, ExpectedType);
 	}
-	else if ((NewObjectTypeFullName == TEXT("Dictionary") || NewObjectTypeFullName == TEXT("System.Collections.Generic.Dictionary") || NewObjectTypeFullName == TEXT("Map")) && 
+	else if ((NewObjectTypeFullName == TEXT("Dictionary") || NewObjectTypeFullName == TEXT("System.Collections.Generic.Dictionary") || NewObjectTypeFullName == TEXT("Map")) &&
 		this->NewObjectType->TypeArguments.Num() == 2)
 	{
+		if (!this->NewObjectType->TypeArguments[0].IsValid() || !this->NewObjectType->TypeArguments[1].IsValid())
+		{
+			UE_LOG(LogNewExpression, Error, TEXT("'%s': 'new' map expression has an invalid key or value type argument."), *this->NewObjectType->GetFullName(true));
+			return FFormulaExecutionError::InvalidMapType(this->NewObjectType->GetFullName(true));
+		}
 		return CreateNewMap(this->NewObjectType->TypeArguments[0], this->NewObjectType->TypeArguments[1], Context, ExpectedType);
 	}
 	
@@ -121,6 +136,13 @@ bool FNewExpression::IsValid() const
 	if (!this->NewObjectType.IsValid())
 	{
 		return false;
+	}
+	for (const auto& TypeArgument : this->NewObjectType->TypeArguments)
+	{
+		if (!TypeArgument.IsValid())
+		{
+			return false;
+		}
 	}
 	for (const auto& ArgumentPair : this->Arguments)
 	{
@@ -219,11 +241,9 @@ bool FNewExpression::TryCreateArray(
 
 FFormulaExecutionResult FNewExpression::CreateNewArray(
 	const TSharedPtr<FFormulaTypeReference>& ElementTypeRef,
-	const FFormulaExecutionContext& Context, 
+	const FFormulaExecutionContext& Context,
 	FProperty* ExpectedType) const
 {
-	check(ElementTypeRef.IsValid());
-	
 	const auto ElementType = Context.TypeResolver->FindType(ElementTypeRef);
 	if (!ElementType.IsValid())
 	{
@@ -240,12 +260,10 @@ FFormulaExecutionResult FNewExpression::CreateNewArray(
 }
 
 FFormulaExecutionResult FNewExpression::CreateNewSet(
-	const TSharedPtr<FFormulaTypeReference>& ElementTypeRef, 
-	const FFormulaExecutionContext& Context, 
+	const TSharedPtr<FFormulaTypeReference>& ElementTypeRef,
+	const FFormulaExecutionContext& Context,
 	FProperty* ExpectedType) const
 {
-	check(ElementTypeRef.IsValid());
-	
 	const auto ElementType = Context.TypeResolver->FindType(ElementTypeRef);
 	if (!ElementType.IsValid())
 	{
@@ -262,14 +280,11 @@ FFormulaExecutionResult FNewExpression::CreateNewSet(
 }
 
 FFormulaExecutionResult FNewExpression::CreateNewMap(
-	const TSharedPtr<FFormulaTypeReference>& KeyTypeRef, 
-	const TSharedPtr<FFormulaTypeReference>& ValueTypeRef, 
-	const FFormulaExecutionContext& Context, 
+	const TSharedPtr<FFormulaTypeReference>& KeyTypeRef,
+	const TSharedPtr<FFormulaTypeReference>& ValueTypeRef,
+	const FFormulaExecutionContext& Context,
 	FProperty* ExpectedType) const
 {
-	check(KeyTypeRef.IsValid());
-	check(ValueTypeRef.IsValid());
-	
 	const auto KeyType = Context.TypeResolver->FindType(KeyTypeRef);
 	if (!KeyType.IsValid())
 	{

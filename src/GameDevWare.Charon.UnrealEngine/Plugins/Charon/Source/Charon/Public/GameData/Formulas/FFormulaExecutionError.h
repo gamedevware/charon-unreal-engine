@@ -178,6 +178,22 @@ public:
 		);
 	}
 
+	static FFormulaExecutionError InvalidSetType(const FString& TypeName)
+	{
+		return FFormulaExecutionError(
+			FString::Format(TEXT("Invalid set declaration '{0}'. Sets must be 'Set' with exactly one element type argument."), {TypeName}),
+			EFormulaExecutionErrorCode::Type_InvalidArrayType
+		);
+	}
+
+	static FFormulaExecutionError InvalidMapType(const FString& TypeName)
+	{
+		return FFormulaExecutionError(
+			FString::Format(TEXT("Invalid map declaration '{0}'. Maps must be 'Map' with exactly two type arguments (key and value)."), {TypeName}),
+			EFormulaExecutionErrorCode::Type_InvalidArrayType
+		);
+	}
+
 	static FFormulaExecutionError UnsupportedCollectionType(const FString& TypeName)
 	{
 		return FFormulaExecutionError(

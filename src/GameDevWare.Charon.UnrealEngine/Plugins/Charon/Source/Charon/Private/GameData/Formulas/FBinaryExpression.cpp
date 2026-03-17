@@ -211,7 +211,7 @@ FFormulaExecutionResult FBinaryExpression::Execute(const FFormulaExecutionContex
 	}
 
 	if ((this->BinaryOperationType == EBinaryOperationType::Add || this->BinaryOperationType == EBinaryOperationType::AddChecked) &&
-		LeftOperand->GetTypeCode() == EFormulaValueType::String || RightOperand->GetTypeCode() == EFormulaValueType::String)
+		(LeftOperand->GetTypeCode() == EFormulaValueType::String || RightOperand->GetTypeCode() == EFormulaValueType::String))
 	{
 		return ExecuteStringConcatenation(LeftOperand, RightOperand);
 	} 
@@ -301,13 +301,13 @@ FFormulaExecutionResult FBinaryExpression::Execute(const FFormulaExecutionContex
 					}
 					break;
 				case EBinaryOperationType::GreaterThan:
-					if constexpr (has_gte_v<LeftT, RightT> && bNotMixedBool && bNotMixedSigned)
+					if constexpr (has_gt_v<LeftT, RightT> && bNotMixedBool && bNotMixedSigned)
 					{
 						return LeftValue > RightValue;
 					}
 					break;
 				case EBinaryOperationType::GreaterThanOrEqual:
-					if constexpr (has_gt_v<LeftT, RightT> && bNotMixedBool && bNotMixedSigned)
+					if constexpr (has_gte_v<LeftT, RightT> && bNotMixedBool && bNotMixedSigned)
 					{
 						return LeftValue >= RightValue;
 					}

@@ -29,6 +29,6 @@ private:
 	FFormulaExecutionResult FindAndInvokeFunction(const TSharedRef<FFormulaValue>& Target, const FString& FunctionName, const TArray<UField*>* TypeArguments, const FFormulaExecutionContext& Context) const;
 	FFormulaExecutionResult InvokeFunction(const TSharedRef<FFormulaValue>& Target, const FFormulaFunction* FormulaFunction, const FString& FunctionName, const TArray<UField*>* TypeArguments, const FFormulaExecutionContext& Context) const;
 	static FProperty* FindArgumentType(const FFormulaFunction* FormulaFunction, const FString& ArgumentIndexOrName);
-	static void GetGlobalFunctionNames(TSet<FString> FunctionNames, const FFormulaExecutionContext& Context);
+	static void GetGlobalFunctionNames(TSet<FString>& FunctionNames, const FFormulaExecutionContext& Context);
 	
 };

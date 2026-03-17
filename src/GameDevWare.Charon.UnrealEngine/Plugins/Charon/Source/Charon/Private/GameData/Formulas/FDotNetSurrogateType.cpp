@@ -4,10 +4,10 @@
 
 FName SelfParameterName = FName(TEXT("Self"));
 
-FDotNetSurrogateType::FDotNetSurrogateType(UClass* SurrogateClass):
+FDotNetSurrogateType::FDotNetSurrogateType(UClass* SurrogateClass, FProperty* LiteralProperty):
 	ClassPtr(SurrogateClass),
-	LiteralField(*SurrogateClass->FindPropertyByName(TEXT("__Literal"))),
-	TypeCode(GetPropertyTypeCode(SurrogateClass->FindPropertyByName(TEXT("__Literal"))))
+	LiteralField(LiteralProperty),
+	TypeCode(LiteralProperty ? GetPropertyTypeCode(LiteralProperty) : EFormulaValueType::Struct)
 {
 }
 
@@ -29,9 +29,16 @@ EFormulaValueType FDotNetSurrogateType::GetTypeCode() const
 
 FString FDotNetSurrogateType::GetCPPType() const
 {
-	FString* ExtendedTypeText = nullptr;
-	FString Name = this->LiteralField.GetCPPType(ExtendedTypeText);
-	return ExtendedTypeText ? Name + *ExtendedTypeText : Name;
+	if (this->LiteralField)
+	{
+		FString* ExtendedTypeText = nullptr;
+		FString Name = this->LiteralField->GetCPPType(ExtendedTypeText);
+		return ExtendedTypeText ? Name + *ExtendedTypeText : Name;		
+	}
+	else
+	{
+		return ClassPtr->GetName();
+	}
 }
 
 bool IsPublic(const UFunction* Function)
@@ -45,7 +52,6 @@ bool IsPublic(const FProperty* Property)
 bool IsExtensionMethod(const UFunction* Function, const FProperty* TargetType)
 {
 	check(Function);
-	check(TargetType);
 	
 	for (TFieldIterator<FProperty> It(Function); It; ++It)
 	{
@@ -55,7 +61,7 @@ bool IsExtensionMethod(const UFunction* Function, const FProperty* TargetType)
 			continue;
 		}
 		
-		if (Argument->GetFName() == SelfParameterName && Argument->SameType(TargetType))
+		if (Argument->GetFName() == SelfParameterName && (!TargetType || Argument->SameType(TargetType)))
 		{
 			return true;
 		}
@@ -76,7 +82,7 @@ bool FDotNetSurrogateType::TryGetFunction(const FString& MemberName, bool bStati
 
 			for (TFieldIterator<UFunction> It(DeclaringClass); It; ++It)
 			{
-				if (const auto Function = *It; IsPublic(Function) && !IsExtensionMethod(Function, &this->LiteralField))
+				if (const auto Function = *It; IsPublic(Function) && !IsExtensionMethod(Function, this->LiteralField))
 				{
 					this->StaticFunctions->Add(Function->GetName(), FFormulaFunction(Function, DeclaringClass, /*bUseClassDefaultObject*/ true));
 				}
@@ -93,7 +99,7 @@ bool FDotNetSurrogateType::TryGetFunction(const FString& MemberName, bool bStati
 
 			for (TFieldIterator<UFunction> It(DeclaringClass); It; ++It)
 			{
-				if (const auto Function = *It; IsPublic(Function) && IsExtensionMethod(Function, &this->LiteralField))
+				if (const auto Function = *It; IsPublic(Function) && IsExtensionMethod(Function, this->LiteralField))
 				{
 					const auto ExtensionFunctionInvoker = FFormulaFunction::CreateExtensionFunctionInvoker(Function, DeclaringClass);
 					auto ExtensionFunctionParameters = FFormulaFunction::GetFunctionParameters(Function);
@@ -117,7 +123,7 @@ const TArray<FString>& FDotNetSurrogateType::GetFunctionNames(bool bStatic)
 			this->StaticFunctionNames = MakeShared<TArray<FString>>();
 			for (TFieldIterator<UFunction> It(DeclaringClass); It; ++It)
 			{
-				if (const auto Function = *It; IsPublic(Function) && !IsExtensionMethod(Function, &this->LiteralField))
+				if (const auto Function = *It; IsPublic(Function) && !IsExtensionMethod(Function, this->LiteralField))
 				{
 					this->StaticFunctionNames->Add(Function->GetName());
 				}
@@ -132,7 +138,7 @@ const TArray<FString>& FDotNetSurrogateType::GetFunctionNames(bool bStatic)
 			this->FunctionNames = MakeShared<TArray<FString>>();
 			for (TFieldIterator<UFunction> It(DeclaringClass); It; ++It)
 			{
-				if (const auto Function = *It; IsPublic(Function) && IsExtensionMethod(Function, &this->LiteralField))
+				if (const auto Function = *It; IsPublic(Function) && IsExtensionMethod(Function, this->LiteralField))
 				{
 					FunctionNames->Add(Function->GetName());
 				}
@@ -145,7 +151,6 @@ const TArray<FString>& FDotNetSurrogateType::GetFunctionNames(bool bStatic)
 static bool IsExtensionProperty(const UFunction* Function, const FProperty* TargetType)
 {
 	check(Function);
-	check(TargetType);
 
 	if (!IsExtensionMethod(Function, TargetType))
 	{
@@ -163,7 +168,7 @@ static bool IsExtensionProperty(const UFunction* Function, const FProperty* Targ
 			continue;
 		}
 		
-		if (Argument->GetFName() == SelfParameterName && Argument->SameType(TargetType))
+		if (Argument->GetFName() == SelfParameterName && (!TargetType || Argument->SameType(TargetType)))
 		{
 			bHasSelfParameter = true;
 		}
@@ -203,10 +208,10 @@ bool FDotNetSurrogateType::TryGetProperty(const FString& MemberName, bool bStati
 			TMap<FString, TTuple<UFunction*, UFunction*>> ExtensionProperties;
 			for (TFieldIterator<UFunction> It(DeclaringClass); It; ++It)
 			{
-				if (const auto Function = *It; IsPublic(Function) && IsExtensionProperty(Function, &this->LiteralField))
+				if (const auto Function = *It; IsPublic(Function) && IsExtensionProperty(Function, this->LiteralField))
 				{
 					FString FunctionName = Function->GetName();
-					FString PropertyName = FunctionName.RightChop(FunctionName.Len() - 3);
+					FString PropertyName = FunctionName.RightChop(3);
 					TTuple<UFunction*, UFunction*> GetterAndSetter = ExtensionProperties.FindOrAdd(PropertyName);
 					if (FunctionName.StartsWith(TEXT("Get")))
 					{
@@ -226,21 +231,38 @@ bool FDotNetSurrogateType::TryGetProperty(const FString& MemberName, bool bStati
 				FString PropertyName = ExtensionProperty.Key;
 				UFunction* Getter = ExtensionProperty.Value.Key;
 				UFunction* Setter = ExtensionProperty.Value.Value;
-
+				
+				FProperty* PropertyType = nullptr;
 				FFormulaPropertyGetterFunc GetterFunc;
 				if (Getter)
 				{
 					const auto GetterInvoker = FFormulaFunction::CreateExtensionFunctionInvoker(Getter, DeclaringClass);
 					GetterFunc = FFormulaProperty::CreateGetterFromFunctionInvoker(GetterInvoker);
+					PropertyType = Getter->GetReturnProperty();
 				}
 				FFormulaPropertySetterFunc SetterFunc;
 				if (Setter)
 				{
 					const auto SetterInvoker = FFormulaFunction::CreateExtensionFunctionInvoker(Setter, DeclaringClass);
 					SetterFunc = FFormulaProperty::CreateSetterFromFunctionInvoker(SetterInvoker);
+					// Setter has 2 parameters -> (Self, Value), it is checked in IsExtensionProperty
+					int32 ParameterIndex = 0;
+					for( TFieldIterator<FProperty> It(Setter); It && (It->PropertyFlags & CPF_Parm); ++It )
+					{
+						if (ParameterIndex == 1)
+						{
+							PropertyType = *It;
+						}
+						ParameterIndex++;
+					}
 				}
-
-				this->Properties->Add(MemberName, FFormulaProperty(Getter->GetReturnProperty(), GetterFunc, SetterFunc, DeclaringClass, /*bUseClassDefaultObject*/ false));
+				
+				if (!PropertyType || !Getter || !Setter)
+				{
+					continue; // invalid extension property pair, should be `GetXXX(Self) -> T` and `SetXXX(Self, T) -> void`  
+				}
+				
+				this->Properties->Add(PropertyName, FFormulaProperty(PropertyType, GetterFunc, SetterFunc, DeclaringClass, /*bUseClassDefaultObject*/ false));
 			}
 
 
@@ -277,10 +299,10 @@ const TArray<FString>& FDotNetSurrogateType::GetPropertyNames(bool bStatic)
 			this->PropertyNames = MakeShared<TArray<FString>>();
 			for (TFieldIterator<UFunction> It(DeclaringClass); It; ++It)
 			{
-				if (const auto Function = *It; IsPublic(Function) && IsExtensionMethod(Function, &this->LiteralField))
+				if (const auto Function = *It; IsPublic(Function) && IsExtensionMethod(Function, this->LiteralField))
 				{
 					FString FunctionName = Function->GetName();
-					FString PropertyName = FunctionName.RightChop(FunctionName.Len() - 3);
+					FString PropertyName = FunctionName.RightChop(3);
 					this->PropertyNames->Add(PropertyName);
 				}
 			}

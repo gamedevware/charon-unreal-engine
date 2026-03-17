@@ -63,15 +63,23 @@ FFormulaExecutionResult FConvertExpression::Execute(const FFormulaExecutionConte
 	if (const FObjectPropertyBase* FromObjectProp = CastField<FObjectPropertyBase>(FromValue->GetType());
 		FromObjectProp && ToTypeCode == EFormulaValueType::ObjectPtr)
 	{
-		if (FromValue->IsNull() || ToType->IsAssignableFrom(FromObjectProp->PropertyClass))
+		UObject* FromObjectPtr = nullptr;
+		if (FromValue->IsNull() || (FromValue->TryGetObjectPtr(FromObjectPtr) && FromObjectPtr &&
+			ToType->IsAssignableFrom(FromObjectPtr->GetClass())))
 		{
-			return Result; // UClass cast success
+			return Result; // UClass downcast success
 		}
+		
 		if (ExpressionType == FFormulaNotation::EXPRESSION_TYPE_TYPE_AS)
 		{
 			// this is not an error in `x as ClassName` expression
-			return FFormulaValue::Null(); // UClass cast failure
+			return FFormulaValue::Null(); // UClass downcast soft failure
 		}
+		
+		if (FromObjectPtr)
+		{
+			return FFormulaExecutionError::InvalidCastError(FromObjectPtr->GetClass()->GetName(), ToType->GetCPPType());
+		} 
 		else
 		{
 			return FFormulaExecutionError::InvalidCastError(FromValue->GetCPPType(), ToType->GetCPPType());

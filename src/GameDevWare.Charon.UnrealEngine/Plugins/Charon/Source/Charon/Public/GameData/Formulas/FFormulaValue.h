@@ -20,7 +20,8 @@ DECLARE_LOG_CATEGORY_EXTERN(LogFormulaValue, Log, All);
  * A specialized variant type used for formula interpretation.
  * * This class acts as a container for various Unreal Engine types (primitives, structs, objects)
  * during expression evaluation. It handles internal memory management, tracks type metadata
- * via FProperty, and manages the lifetime of complex structures.
+ * via FProperty, and manages the lifetime of complex structures. 
+ * It's lifetime should be short, one expression execution round, less than a frame.  
  */
 class CHARON_API FFormulaValue : public TSharedFromThis<FFormulaValue>
 {

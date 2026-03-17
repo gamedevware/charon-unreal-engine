@@ -357,7 +357,7 @@ FString FFormulaValue::ToString() const
 
 	FString StructText;
 	const void* DataPtr = GetStructPtrChecked();
-	this->Type.ExportText_Direct(StructText, DataPtr, DataPtr, nullptr, 0);
+	this->Type.ExportText_Direct(StructText, DataPtr, nullptr, nullptr, 0);
 	return StructText;
 }
 

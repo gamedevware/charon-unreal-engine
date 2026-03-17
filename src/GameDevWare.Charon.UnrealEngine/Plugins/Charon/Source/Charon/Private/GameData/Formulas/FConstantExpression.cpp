@@ -84,7 +84,8 @@ FFormulaExecutionResult FConstantExpression::Execute(const FFormulaExecutionCont
 			default: break;
 		}
 		// @formatter:on
-
+		break;
+		
 	case EFormulaValueType::Double:
 		this->Value->TryCopyCompleteValue(this->Value->GetType(), &DoubleValue);
 
@@ -108,6 +109,7 @@ FFormulaExecutionResult FConstantExpression::Execute(const FFormulaExecutionCont
 			default: break;
 		}
 		// @formatter:on
+		break;
 		
 	case EFormulaValueType::String:
 		StringValue = this->Value->ToString();
@@ -132,6 +134,7 @@ FFormulaExecutionResult FConstantExpression::Execute(const FFormulaExecutionCont
 			default: break;
 		}
 		// @formatter:on
+		break;
 
 	default: break;
 	}

@@ -31,23 +31,41 @@ FString FFormulaUnrealType::GetCPPType() const
 
 const TArray<FString>& FFormulaUnrealType::GetPropertyNames(bool bStatic)
 {
-	if (bStatic && !this->IsClass())
+	if (bStatic)
 	{
-		return NoMembers;
-	}
-
-	const UStruct* Struct = this->StructOrClassPtr.Get();
-	if (!this->PropertyNames.IsValid())
-	{
-		this->PropertyNames = MakeShared<TArray<FString>>();
-
-		for (TFieldIterator<FProperty> It(Struct); It; ++It)
+		const UStruct* Struct = this->StructOrClassPtr.Get();
+		if (!this->StaticPropertyNames.IsValid())
 		{
-			const FProperty* Property = *It;
-			this->PropertyNames->Add(Property->GetName());
+			this->StaticPropertyNames = MakeShared<TArray<FString>>();
+
+			if (this->IsClass()) // static properties only exists on UCLASS and accessed via ClassDefaultObject
+			{
+				for (TFieldIterator<FProperty> It(Struct); It; ++It)
+				{
+					const FProperty* Property = *It;
+					this->StaticPropertyNames->Add(Property->GetName());
+				}
+			}
 		}
+		return *this->StaticPropertyNames;
 	}
-	return *this->PropertyNames;
+	else
+	{
+		const UStruct* Struct = this->StructOrClassPtr.Get();
+		if (!this->PropertyNames.IsValid())
+		{
+			this->PropertyNames = MakeShared<TArray<FString>>();
+
+			for (TFieldIterator<FProperty> It(Struct); It; ++It)
+			{
+				const FProperty* Property = *It;
+				this->PropertyNames->Add(Property->GetName());
+			}
+		}
+		return *this->PropertyNames;
+	}
+
+
 }
 
 const TArray<FString>& FFormulaUnrealType::GetFunctionNames(bool bStatic)
@@ -59,11 +77,14 @@ const TArray<FString>& FFormulaUnrealType::GetFunctionNames(bool bStatic)
 		{
 			this->StaticFunctionNames = MakeShared<TArray<FString>>();
 
-			for (TFieldIterator<UFunction> It(DeclaringClass); It; ++It)
+			if (DeclaringClass)
 			{
-				if (const UFunction* Function = *It; IsStatic(Function))
+				for (TFieldIterator<UFunction> It(DeclaringClass); It; ++It)
 				{
-					this->StaticFunctionNames->Add(Function->GetName());
+					if (const UFunction* Function = *It; IsStatic(Function))
+					{
+						this->StaticFunctionNames->Add(Function->GetName());
+					}
 				}
 			}
 		}
@@ -75,11 +96,14 @@ const TArray<FString>& FFormulaUnrealType::GetFunctionNames(bool bStatic)
 		{
 			this->FunctionNames = MakeShared<TArray<FString>>();
 
-			for (TFieldIterator<UFunction> It(DeclaringClass); It; ++It)
+			if (DeclaringClass)
 			{
-				if (const UFunction* Function = *It; !IsStatic(Function))
+				for (TFieldIterator<UFunction> It(DeclaringClass); It; ++It)
 				{
-					this->FunctionNames->Add(Function->GetName());
+					if (const UFunction* Function = *It; !IsStatic(Function))
+					{
+						this->FunctionNames->Add(Function->GetName());
+					}
 				}
 			}
 		}
@@ -130,7 +154,7 @@ bool FFormulaUnrealType::TryGetFunction(const FString& MemberName, bool bStatic,
 bool FFormulaUnrealType::TryGetProperty(const FString& MemberName, bool bStatic,
                                                const FFormulaProperty*& FoundProperty)
 {
-	if (!this->IsClass() && bStatic)
+	if (!this->IsClass() && bStatic) // no static members in USTRUCT because there is no ClassDefaultObject for them to store 'static' fields 
 	{
 		return false;
 	}

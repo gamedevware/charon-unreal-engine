@@ -75,7 +75,14 @@ void FFormulaTypeReference::BuildFullNameInternal(FStringBuilderBase& Builder, b
 		Builder.Append(TEXT("<"));
 		for (int32 i = 0; i < TypeArguments.Num(); ++i)
 		{
-			TypeArguments[i]->BuildFullNameInternal(Builder, bWriteGenerics);
+			if (TypeArguments[i].IsValid())
+			{
+				TypeArguments[i]->BuildFullNameInternal(Builder, bWriteGenerics);
+			}
+			else
+			{
+				Builder.Append("#INVALID#");
+			}
 			if (i < TypeArguments.Num() - 1)
 			{
 				Builder.Append(TEXT(", "));

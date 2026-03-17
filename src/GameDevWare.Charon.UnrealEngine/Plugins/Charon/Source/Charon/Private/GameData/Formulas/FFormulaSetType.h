@@ -10,9 +10,10 @@ private:
 	TSharedRef<IFormulaType> const ElementType;
 public:
 	explicit FFormulaSetType(const TSharedRef<IFormulaType>& ElementType)
-		: FDotNetSurrogateType(UDotNetHashSet::StaticClass()), ElementType(ElementType)
+		: FDotNetSurrogateType(UDotNetHashSet::StaticClass(), nullptr), ElementType(ElementType)
 	{
 	}
 
+	virtual FString GetCPPType() const override { return TEXT("TSet<") + this->ElementType->GetCPPType() + TEXT(">"); }
 	virtual TSharedPtr<IFormulaType> GetUnderlyingType() const override { return this->ElementType; }
 };

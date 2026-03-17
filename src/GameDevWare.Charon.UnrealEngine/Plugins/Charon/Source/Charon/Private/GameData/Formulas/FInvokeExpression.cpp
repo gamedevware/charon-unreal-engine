@@ -46,15 +46,18 @@ FFormulaExecutionResult FInvokeExpression::Execute(const FFormulaExecutionContex
 	const FMemberExpression* MemberExpression = CastExpression<FMemberExpression>(this->Expression.Get());
 
 	// resolve type arguments
-	for (const auto& TypeArgumentReference : MemberExpression->TypeArguments)
+	if (MemberExpression)
 	{
-		const auto TypeArgument = Context.TypeResolver->FindType(TypeArgumentReference);
-		if (!TypeArgument.IsValid() || !TypeArgument->GetTypeClassOrStruct())
+		for (const auto& TypeArgumentReference : MemberExpression->TypeArguments)
 		{
-			return FFormulaExecutionError::UnableToResolveType(TypeArgumentReference->GetFullName(/* include generics */ true));
-		}
+			const auto TypeArgument = Context.TypeResolver->FindType(TypeArgumentReference);
+			if (!TypeArgument.IsValid() || !TypeArgument->GetTypeClassOrStruct())
+			{
+				return FFormulaExecutionError::UnableToResolveType(TypeArgumentReference->GetFullName(/* include generics */ true));
+			}
 			
-		TypeArguments.Add(TypeArgument->GetTypeClassOrStruct());
+			TypeArguments.Add(TypeArgument->GetTypeClassOrStruct());
+		}
 	}
 	//
 	
@@ -100,7 +103,7 @@ FFormulaExecutionResult FInvokeExpression::Execute(const FFormulaExecutionContex
 	}
 	else
 	{
-		const TSet<FString> AllGlobalFunctionNames;
+		TSet<FString> AllGlobalFunctionNames;
 		GetGlobalFunctionNames(AllGlobalFunctionNames, Context);
 		return FFormulaExecutionError::UnableToResolveGlobalName(MemberName, FString::Join(AllGlobalFunctionNames, TEXT(", ")));
 	}
@@ -286,7 +289,7 @@ FProperty* FInvokeExpression::FindArgumentType(const FFormulaFunction* FormulaFu
 	return nullptr;
 }
 
-void FInvokeExpression::GetGlobalFunctionNames(TSet<FString> FunctionNames, const FFormulaExecutionContext& Context)
+void FInvokeExpression::GetGlobalFunctionNames(TSet<FString>& FunctionNames, const FFormulaExecutionContext& Context)
 {
 	if (!Context.Global->IsNull())
 	{

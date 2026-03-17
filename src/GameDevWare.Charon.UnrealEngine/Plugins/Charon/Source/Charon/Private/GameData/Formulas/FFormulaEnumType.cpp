@@ -26,13 +26,15 @@ FFormulaEnumType::FFormulaEnumType(UEnum* Enum, const TSharedRef<IFormulaType>& 
 		    /*bUseClassDefaultObject*/ false));
 	}
 
+	auto ThisAsWeak = this->AsWeak();
 	this->FunctionNames.Add(TEXT("ToString"));
 	this->Functions.Add(TEXT("ToString"), FFormulaFunction(
-		[this](const TSharedRef<FFormulaValue>& Target,
+		[ThisAsWeak](const TSharedRef<FFormulaValue>& Target,
 		FFormulaInvokeArguments&, const UField*, const TArray<UField*>*,
 		TSharedPtr<FFormulaValue>& Result)
 		{
-			return this->EnumToString(Target, Result);
+			const auto ThisPtr = ThisAsWeak.Pin();
+			return ThisPtr.IsValid() && StaticCastSharedPtr<FFormulaEnumType>(ThisPtr)->EnumToString(Target, Result);
 		},
 		TArray<const FProperty*>(),
 		Enum,

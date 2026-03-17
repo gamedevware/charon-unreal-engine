@@ -40,7 +40,7 @@ FFormulaProperty::FFormulaProperty(FProperty* Property, FFormulaPropertyGetterFu
 bool FFormulaProperty::TryGetValue(const TSharedRef<FFormulaValue>& InTarget, TSharedPtr<FFormulaValue>& OutValue) const
 {
 	TSharedRef<FFormulaValue> TargetOrDefault = InTarget;
-	if (UClass* DeclaringClass = Cast<UClass>(DeclaringTypePtr.Get()); bUseClassDefaultObject)
+	if (const UClass* DeclaringClass = Cast<UClass>(DeclaringTypePtr.Get()); DeclaringClass && bUseClassDefaultObject)
 	{
 		TargetOrDefault = MakeShared<FFormulaValue>(DeclaringClass->GetDefaultObject(/*bCreateIfNeeded*/ true));
 	}
@@ -122,7 +122,7 @@ FFormulaPropertyGetterFunc FFormulaProperty::CreateDefaultPropertyGetter(TWeakFi
 			void* ContainerPtr = nullptr;
 			if (InTarget->GetTypeCode() == EFormulaValueType::Struct &&
 				InTarget->TryGetContainerAddress(ContainerPtr) &&
-				GetScriptStruct(InTarget->GetType())->IsChildOf(DeclaringStruct))
+				!GetScriptStruct(InTarget->GetType())->IsChildOf(DeclaringStruct))
 			{
 				UE_LOG(LogFormulaProperty, Warning, TEXT("Property get access failed because the call target is of the wrong type."));
 				
@@ -184,7 +184,7 @@ FFormulaPropertySetterFunc FFormulaProperty::CreateDefaultPropertySetter(TWeakFi
 			void* ContainerPtr = nullptr;
 			if (InTarget->GetTypeCode() == EFormulaValueType::Struct &&
 				InTarget->TryGetContainerAddress(ContainerPtr) &&
-				GetScriptStruct(InTarget->GetType())->IsChildOf(DeclaringStruct))
+				!GetScriptStruct(InTarget->GetType())->IsChildOf(DeclaringStruct))
 			{
 				UE_LOG(LogFormulaProperty, Warning, TEXT("Property set access failed because the call target is of the wrong type."));
 				

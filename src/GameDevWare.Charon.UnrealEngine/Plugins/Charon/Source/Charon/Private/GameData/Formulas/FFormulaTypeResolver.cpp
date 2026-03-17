@@ -15,6 +15,14 @@
 static TMap<UPTRINT, TSharedRef<IFormulaType>> TypesByIdentity;
 static FCriticalSection TypesByIdentityLock;
 
+/** Non-commutative hash combination (64-bit boost::hash_combine).
+ *  Order matters: CombineIdentity(A,B) != CombineIdentity(B,A),
+ *  so TMap<int32,float> and TMap<float,int32> produce different keys. */
+static UPTRINT CombineIdentity(UPTRINT Seed, UPTRINT Value)
+{
+	return Seed ^ (Value + 0x9e3779b97f4a7c15ULL + (Seed << 6) + (Seed >> 2));
+}
+
 static UPTRINT GetTypeIdentity(const FProperty* InProperty)
 {
 	check(InProperty);
@@ -30,24 +38,29 @@ static UPTRINT GetTypeIdentity(const FProperty* InProperty)
 	}
 	else if (const FEnumProperty* EnumProp = CastField<FEnumProperty>(InProperty))
 	{
-		TypeIdentity = reinterpret_cast<UPTRINT>(EnumProp->GetEnum()) + 
-			GetTypeIdentity(EnumProp->GetUnderlyingProperty());
+		TypeIdentity = CombineIdentity(
+			reinterpret_cast<UPTRINT>(EnumProp->GetEnum()),
+			GetTypeIdentity(EnumProp->GetUnderlyingProperty()));
 	}
 	else if (const FArrayProperty* ArrayProp = CastField<FArrayProperty>(InProperty))
 	{
-		TypeIdentity = reinterpret_cast<UPTRINT>(ArrayProp->GetClass()) + 
-			GetTypeIdentity(ArrayProp->Inner);
+		TypeIdentity = CombineIdentity(
+			reinterpret_cast<UPTRINT>(ArrayProp->GetClass()),
+			GetTypeIdentity(ArrayProp->Inner));
 	}
 	else if (const FSetProperty* SetProp = CastField<FSetProperty>(InProperty))
 	{
-		TypeIdentity = reinterpret_cast<UPTRINT>(SetProp->GetClass()) + 
-			GetTypeIdentity(SetProp->ElementProp);
+		TypeIdentity = CombineIdentity(
+			reinterpret_cast<UPTRINT>(SetProp->GetClass()),
+			GetTypeIdentity(SetProp->ElementProp));
 	}
 	else if (const FMapProperty* MapProp = CastField<FMapProperty>(InProperty))
 	{
-		TypeIdentity = reinterpret_cast<UPTRINT>(MapProp->GetClass()) + 
-			GetTypeIdentity(MapProp->GetKeyProperty()) + 
-			GetTypeIdentity(MapProp->GetValueProperty());
+		TypeIdentity = CombineIdentity(
+			CombineIdentity(
+				reinterpret_cast<UPTRINT>(MapProp->GetClass()),
+				GetTypeIdentity(MapProp->GetKeyProperty())),
+			GetTypeIdentity(MapProp->GetValueProperty()));
 	}
 	else
 	{
@@ -140,7 +153,7 @@ static TSharedRef<IFormulaType> CreateFormulaType(const FProperty* InValueType)
 	}
 	else if (UClass* SurrogateClass = GetSurrogateType(GetPropertyTypeCode(InValueType)))
 	{
-		return MakeShared<FDotNetSurrogateType>(SurrogateClass);
+		return MakeShared<FDotNetSurrogateType>(SurrogateClass, SurrogateClass->FindPropertyByName(TEXT("__Literal")));
 	}
 	
 	return MakeShared<FFormulaUnknownType>(InValueType);
@@ -337,6 +350,7 @@ TSharedRef<IFormulaType> FFormulaTypeResolver::GetType(FProperty* InProperty)
 	const auto TypeKey = GetTypeIdentity(InProperty);
 	{
 		FScopeLock ReadLock(&TypesByIdentityLock);
+		
 		if (TSharedRef<IFormulaType>* CachedType = TypesByIdentity.Find(TypeKey))
 		{
 			return *CachedType;
@@ -344,6 +358,11 @@ TSharedRef<IFormulaType> FFormulaTypeResolver::GetType(FProperty* InProperty)
 	}
 	{
 		FScopeLock WriteLock(&TypesByIdentityLock);
+		
+		if (TSharedRef<IFormulaType>* CachedType = TypesByIdentity.Find(TypeKey))
+		{
+			return *CachedType;
+		}
 		return TypesByIdentity.Add(TypeKey, CreateFormulaType(InProperty));
 	}
 }
@@ -355,6 +374,7 @@ TSharedRef<IFormulaType> FFormulaTypeResolver::GetType(UClass* InClass)
 	const auto TypeKey = GetTypeIdentity(InClass);
 	{
 		FScopeLock ReadLock(&TypesByIdentityLock);
+		
 		if (TSharedRef<IFormulaType>* CachedType = TypesByIdentity.Find(TypeKey))
 		{
 			return *CachedType;
@@ -362,10 +382,16 @@ TSharedRef<IFormulaType> FFormulaTypeResolver::GetType(UClass* InClass)
 	}
 	{
 		FScopeLock WriteLock(&TypesByIdentityLock);
+		
+		if (TSharedRef<IFormulaType>* CachedType = TypesByIdentity.Find(TypeKey))
+		{
+			return *CachedType;
+		}
+		
 		if (InClass->HasAllClassFlags(EClassFlags::CLASS_Hidden | EClassFlags::CLASS_Abstract) &&
 			InClass->GetName().StartsWith("DotNet"))
 		{
-			return TypesByIdentity.Add(TypeKey, MakeShared<FDotNetSurrogateType>(InClass));
+			return TypesByIdentity.Add(TypeKey, MakeShared<FDotNetSurrogateType>(InClass, InClass->FindPropertyByName(TEXT("__Literal"))));
 		}
 		else
 		{
@@ -381,6 +407,7 @@ TSharedRef<IFormulaType> FFormulaTypeResolver::GetType(UScriptStruct* InStruct)
 	const auto TypeKey = GetTypeIdentity(InStruct);
 	{
 		FScopeLock ReadLock(&TypesByIdentityLock);
+		
 		if (TSharedRef<IFormulaType>* CachedType = TypesByIdentity.Find(TypeKey))
 		{
 			return *CachedType;
@@ -388,6 +415,11 @@ TSharedRef<IFormulaType> FFormulaTypeResolver::GetType(UScriptStruct* InStruct)
 	}
 	{
 		FScopeLock WriteLock(&TypesByIdentityLock);
+		
+		if (TSharedRef<IFormulaType>* CachedType = TypesByIdentity.Find(TypeKey))
+		{
+			return *CachedType;
+		}
 		return TypesByIdentity.Add(TypeKey, MakeShared<FFormulaUnrealType>(InStruct));
 	}
 }
@@ -399,6 +431,7 @@ TSharedRef<IFormulaType> FFormulaTypeResolver::GetType(UEnum* InEnum)
 	const auto TypeKey = GetTypeIdentity(InEnum);
 	{
 		FScopeLock ReadLock(&TypesByIdentityLock);
+		
 		if (TSharedRef<IFormulaType>* CachedType = TypesByIdentity.Find(TypeKey))
 		{
 			return *CachedType;
@@ -406,6 +439,11 @@ TSharedRef<IFormulaType> FFormulaTypeResolver::GetType(UEnum* InEnum)
 	}
 	{
 		FScopeLock WriteLock(&TypesByIdentityLock);
+		
+		if (TSharedRef<IFormulaType>* CachedType = TypesByIdentity.Find(TypeKey))
+		{
+			return *CachedType;
+		}
 		TSharedRef<IFormulaType> UnderlyingType = GetType(UDotNetInt64::StaticClass()); // not correct, because in 99% it is int8
 		return TypesByIdentity.Add(TypeKey, MakeShared<FFormulaEnumType>(InEnum, UnderlyingType));
 	}

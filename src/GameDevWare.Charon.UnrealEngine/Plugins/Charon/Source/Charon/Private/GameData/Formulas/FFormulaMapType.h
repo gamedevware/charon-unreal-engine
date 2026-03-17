@@ -11,9 +11,10 @@ private:
 	TSharedRef<IFormulaType> const ValueType;
 public:
 	explicit FFormulaMapType(const TSharedRef<IFormulaType>& KeyType, const TSharedRef<IFormulaType>& ValueType) : 
-		FDotNetSurrogateType(UDotNetDictionary::StaticClass()), 
+		FDotNetSurrogateType(UDotNetDictionary::StaticClass(), nullptr), 
 		KeyType(KeyType), 
 		ValueType(ValueType) { }
 
+	virtual FString GetCPPType() const override { return TEXT("TMap<") + this->KeyType->GetCPPType() + TEXT(",") + this->ValueType->GetCPPType() + TEXT(">"); }
 	virtual TSharedPtr<IFormulaType> GetUnderlyingType() const override { return this->ValueType; }
 };
