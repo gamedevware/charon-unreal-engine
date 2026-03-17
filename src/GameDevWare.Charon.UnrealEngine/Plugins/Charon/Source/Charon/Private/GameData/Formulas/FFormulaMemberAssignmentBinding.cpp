@@ -45,7 +45,7 @@ FFormulaExecutionResult FFormulaMemberAssignmentBinding::ApplyToMember(const TSh
 void FFormulaMemberAssignmentBinding::DebugPrintTo(FString& OutValue) const
 {
 	OutValue.Append(this->RawMemberName);
-	OutValue.Append(TEXT(": "));
+	OutValue.Append(TEXT(" = "));
 	
 	if (this->Expression.IsValid())
 	{

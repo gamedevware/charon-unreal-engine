@@ -48,7 +48,8 @@ namespace FFormulaNotation
     static const FString EXPRESSION_TYPE_LIST_BINDING = TEXT("ListBinding");
     static const FString EXPRESSION_TYPE_MEMBER_BINDING = TEXT("MemberBinding");
     static const FString EXPRESSION_TYPE_ELEMENT_INIT_BINDING = TEXT("ElementInitBinding");
-    static const FString EXPRESSION_TYPE_ASSIGNMENT_BINDING = TEXT("Assignment");
+    static const FString EXPRESSION_TYPE_ASSIGNMENT_BINDING = TEXT("AssignmentBinding");
+    static const FString EXPRESSION_TYPE_ASSIGNMENT_BINDING_ALT = TEXT("Assignment");
     static const FString EXPRESSION_TYPE_ADD = TEXT("Add");
     static const FString EXPRESSION_TYPE_ADD_CHECKED = TEXT("AddChecked");
     static const FString EXPRESSION_TYPE_SUBTRACT = TEXT("Subtract");

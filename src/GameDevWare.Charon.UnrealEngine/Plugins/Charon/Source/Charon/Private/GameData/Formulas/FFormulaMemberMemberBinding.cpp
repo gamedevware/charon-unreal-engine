@@ -60,7 +60,7 @@ FFormulaExecutionResult FFormulaMemberMemberBinding::ApplyToMember(const TShared
 void FFormulaMemberMemberBinding::DebugPrintTo(FString& OutValue) const
 {
 	OutValue.Append(this->RawMemberName);
-	OutValue.Append(TEXT(": { "));
+	OutValue.Append(TEXT(" = { "));
 	bool bFirstBindings = true;
 	for (const auto& Binding : this->Bindings)
 	{

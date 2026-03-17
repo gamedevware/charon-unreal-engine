@@ -143,7 +143,8 @@ TSharedPtr<FFormulaMemberBinding> FExpressionBuildHelper::CreateBinding(const TS
 	{
 		return MakeShared<FFormulaMemberListBinding>(BindingObj->ToSharedRef());
 	}
-	else if (ExpressionType == FFormulaNotation::EXPRESSION_TYPE_ASSIGNMENT_BINDING)
+	else if (ExpressionType == FFormulaNotation::EXPRESSION_TYPE_ASSIGNMENT_BINDING ||
+		ExpressionType == FFormulaNotation::EXPRESSION_TYPE_ASSIGNMENT_BINDING_ALT)
 	{
 		return MakeShared<FFormulaMemberAssignmentBinding>(BindingObj->ToSharedRef());
 	}

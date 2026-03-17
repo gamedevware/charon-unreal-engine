@@ -71,7 +71,7 @@ FFormulaExecutionResult FFormulaMemberListBinding::ApplyToMember(const TSharedRe
 void FFormulaMemberListBinding::DebugPrintTo(FString& OutValue) const
 {
 	OutValue.Append(this->RawMemberName);
-	OutValue.Append(TEXT(": { "));
+	OutValue.Append(TEXT(" = { "));
 	bool bFirstItem = true;
 	for (const auto& Initializer : Initializers)
 	{
