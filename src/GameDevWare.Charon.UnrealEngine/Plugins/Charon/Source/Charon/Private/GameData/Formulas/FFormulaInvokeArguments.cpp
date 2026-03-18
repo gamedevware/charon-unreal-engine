@@ -19,6 +19,8 @@ FFormulaInvokeArguments::FFormulaInvokeArguments(std::initializer_list<InvokeArg
 
 const FFormulaInvokeArguments::InvokeArgument* FFormulaInvokeArguments::FindArgument(const FProperty* InParameter, int32 InParameterIndex, FString& OutParameterName) const
 {
+	check(InParameter);
+	
 	OutParameterName.Reset();
 	InParameter->GetName(OutParameterName);
 	if (const InvokeArgument* FoundArgument = this->ArgumentsByName.Find(OutParameterName))
@@ -29,6 +31,21 @@ const FFormulaInvokeArguments::InvokeArgument* FFormulaInvokeArguments::FindArgu
 	OutParameterName.Reset();
 	OutParameterName.AppendInt(InParameterIndex);
 	return this->ArgumentsByName.Find(OutParameterName);
+}
+
+const FFormulaInvokeArguments::InvokeArgument* FFormulaInvokeArguments::FindArgument(const FString& InParameterName,
+	int32 InParameterIndex) const
+{
+	if (const InvokeArgument* FoundArgument = this->ArgumentsByName.Find(InParameterName))
+	{
+		return FoundArgument;
+	} 
+	FString ParameterIndexStr = FString::FromInt(InParameterIndex);
+	if (const InvokeArgument* FoundArgument = this->ArgumentsByName.Find(ParameterIndexStr))
+	{
+		return FoundArgument;
+	} 
+	return nullptr;
 }
 
 int FFormulaInvokeArguments::Num() const
@@ -50,14 +67,16 @@ void FFormulaInvokeArguments::InsertArgumentAt(const int32 Index, const int MaxP
 		ParameterIndexStr.Reset(); // Reset keeps the internal memory buffer allocated
 		ParameterIndexStr.AppendInt(i);
 
-		const InvokeArgument* FoundArgument = this->ArgumentsByName.Find(ParameterIndexStr);
-		if (FoundArgument && this->ArgumentsByName.Remove(ParameterIndexStr))
+		if (const InvokeArgument* FoundArgumentPtr = this->ArgumentsByName.Find(ParameterIndexStr))
 		{
+			InvokeArgument FoundArgument = *FoundArgumentPtr; // copy before Remove invalidates the pointer
+			this->ArgumentsByName.Remove(ParameterIndexStr);
+
 			NewIndexStr.Reset();
 			NewIndexStr.AppendInt(i + 1);
-    
+
 			// Insert the value back with the incremented key
-			this->ArgumentsByName.Add(NewIndexStr, InvokeArgument(NewIndexStr, FoundArgument->Value, nullptr, FoundArgument->Flags));
+			this->ArgumentsByName.Add(NewIndexStr, InvokeArgument(NewIndexStr, FoundArgument.Value, nullptr, FoundArgument.Flags));
 		}
 	}
 	NewIndexStr.Reset(); 

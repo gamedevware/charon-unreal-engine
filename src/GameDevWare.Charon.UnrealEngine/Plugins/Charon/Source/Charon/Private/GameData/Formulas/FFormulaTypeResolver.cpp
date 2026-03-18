@@ -28,7 +28,7 @@ static UPTRINT GetTypeIdentity(const FProperty* InProperty)
 	check(InProperty);
 
 	UPTRINT TypeIdentity;
-	if (const FObjectProperty* ObjProp = CastField<FObjectProperty>(InProperty))
+	if (const FObjectPropertyBase* ObjProp = CastField<FObjectPropertyBase>(InProperty))
 	{
 		TypeIdentity = reinterpret_cast<UPTRINT>(ObjProp->PropertyClass.Get());
 	}

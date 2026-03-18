@@ -27,7 +27,6 @@
 #include "Containers/Map.h"
 #include "Internationalization/Text.h"
 #include "Misc/DateTime.h"
-#include "Misc/EngineVersionComparison.h"
 #include "Misc/Timespan.h"
 #include "UObject/EnumProperty.h"
 #include "UObject/FieldPathProperty.h"
@@ -67,11 +66,6 @@ struct TIsFormulaTypeMapped<T, std::void_t<typename TFormulaTypeMap<T>::Type>> :
 
 inline EFormulaValueType GetPropertyTypeCode(const FProperty* FieldType)
 {
-#if UE_VERSION_NEWER_THAN(5, 5, -1)
-	const int32 ElementSize = FieldType->GetElementSize();
-#else
-	const int32 ElementSize = FieldType->ElementSize;
-#endif
 	if (CastField<FBoolProperty>(FieldType))
 	{
 		return EFormulaValueType::Boolean;

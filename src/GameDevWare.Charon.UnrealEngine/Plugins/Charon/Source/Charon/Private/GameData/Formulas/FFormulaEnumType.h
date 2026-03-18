@@ -40,5 +40,6 @@ public:
 	virtual bool TryGetProperty(const FString& MemberName, bool bStatic, const FFormulaProperty*& FoundMember) override;
 
 private:
-	bool EnumToString(const TSharedRef<FFormulaValue>& Target, TSharedPtr<FFormulaValue>& Result) const;
+	FFormulaFunction GetToStringFunction() const;
+	
 };

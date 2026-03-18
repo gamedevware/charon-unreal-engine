@@ -35,8 +35,22 @@ FFormulaExecutionResult FTypeIsExpression::Execute(const FFormulaExecutionContex
 	}
 
 	const auto& Target = Result.GetValue();
-	const bool bIsAssignable = ToType->IsAssignableFrom(Target->GetType(), /*bWithoutConversion*/ true);
-	return MakeShared<FFormulaValue>(bIsAssignable);
+	if (Target->IsNull())
+	{
+		return false; // null is X -> always false, except `null is null`, which is C# 8
+	}
+	
+	UObject* TargetObjPtr = nullptr;
+	if (Target->TryGetObjectPtr(TargetObjPtr) && TargetObjPtr)
+	{
+		const bool bIsAssignable = ToType->IsAssignableFrom(TargetObjPtr->GetClass());
+		return MakeShared<FFormulaValue>(bIsAssignable);
+	}
+	else
+	{
+		const bool bIsAssignable = ToType->IsAssignableFrom(Target->GetType(), /*bWithoutConversion*/ true);
+		return MakeShared<FFormulaValue>(bIsAssignable);
+	}
 }
 
 bool FTypeIsExpression::IsValid() const

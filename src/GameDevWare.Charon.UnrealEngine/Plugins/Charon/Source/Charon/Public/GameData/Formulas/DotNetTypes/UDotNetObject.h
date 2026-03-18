@@ -53,5 +53,4 @@ public:
 		}
 		return ArrayProperty = CastFieldChecked<FArrayProperty>(StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UDotNetObject, __ArrayLiteral)));
 	}
-	
 };

@@ -215,6 +215,28 @@
 		CHECK_VALUE(OP V1);
 // end of TEST_EXPR_UNARY
 
+#define TEST_EXPR_STATIC_MEMBER_CHECK_VALUE(CLASS_NAME, MEMBER_NAME, RESULT) \
+		Expression = MakeShared<FMemberExpression>( \
+			MakeShared<FMemberExpression>(nullptr, FString(TEXT(CLASS_NAME)), EmptyTypeArguments, false), \
+			FString(TEXT(MEMBER_NAME)), EmptyTypeArguments, false \
+		); \
+		INFO("Testing `" + Expression->ToString() + "` expression"); \
+		Result = Expression->Execute(Context, nullptr); \
+		REQUIRE_NO_ERROR(); \
+		CHECK_VALUE(RESULT);
+// end of TEST_EXPR_STATIC_MEMBER_CHECK_VALUE
+
+#define TEST_EXPR_NESTED_MEMBER_CHECK_VALUE(OBJ_EXPR, MEMBER1, MEMBER2, RESULT, NULL_PROP) \
+		Expression = MakeShared<FMemberExpression>( \
+			EXPR_MEMBER(OBJ_EXPR, MEMBER1, NULL_PROP), \
+			FString(TEXT(MEMBER2)), EmptyTypeArguments, NULL_PROP \
+		); \
+		INFO("Testing `" + Expression->ToString() + "` expression"); \
+		Result = Expression->Execute(Context, nullptr); \
+		REQUIRE_NO_ERROR(); \
+		CHECK_VALUE(RESULT);
+// end of TEST_EXPR_NESTED_MEMBER_CHECK_VALUE
+
 #define TEST_EXPR_OBJ_MEMBER_CHECK_VALUE(OBJ_VALUE, PATH, RESULT, NULL_PROP) \
 		Expression = EXPR_MEMBER(OBJ_VALUE, PATH, NULL_PROP); \
 		INFO("Testing `" + Expression->ToString() + "` expression"); \

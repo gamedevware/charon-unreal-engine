@@ -41,4 +41,11 @@ public:
 		}
 		return ArrayProperty = CastFieldChecked<FArrayProperty>(StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UDotNetInt64, __ArrayLiteral)));
 	}
+
+	//* static properties */
+
+	UPROPERTY()
+	int64 MaxValue = std::numeric_limits<int64>::max();
+	UPROPERTY()
+	int64 MinValue = std::numeric_limits<int64>::min();
 };

@@ -39,7 +39,25 @@ public:
 	virtual bool TryGetBinaryOperation(EBinaryOperationType Operation, const FFormulaFunction*& FoundOperation) override { FoundOperation = nullptr; return false; }
 	virtual bool TryGetUnaryOperation(EUnaryOperationType Operation, const FFormulaFunction*& FoundOperation) override { FoundOperation = nullptr; return false; }
 	virtual bool TryGetConversionOperation(const FFormulaFunction*& FoundOperation) override { FoundOperation = nullptr; return false; }
-	
+
 	virtual bool TryGetFunction(const FString& MemberName, bool bStatic, const FFormulaFunction*& FoundFunction) override;
+
 	virtual bool TryGetProperty(const FString& MemberName, bool bStatic, const FFormulaProperty*& FoundProperty) override;
+
+	static FFormulaFunction GetRefenceEqualsFunction(UField* DeclaringType);
+	static FFormulaFunction GetValueEqualsFunction(UField* DeclaringType);
+	static FFormulaFunction GetToStringFunction(UField* DeclaringType);
+	static FFormulaFunction GetGetTypeFunction(UField* DeclaringType);
+	static FFormulaFunction GetEqualsFunction(UField* DeclaringType);
+
+protected:
+	virtual void InitializeStaticFunctions(UClass* DeclaringClass, const TSharedRef<TMap<FString, FFormulaFunction>> FunctionList);
+	virtual void InitializeFunctions(UClass* DeclaringClass, const TSharedRef<TMap<FString, FFormulaFunction>> FunctionList);
+	virtual void InitializeStaticFunctionNames(UClass* DeclaringClass, const TSharedRef<TArray<FString>> NameList);
+	virtual void InitializeFunctionNames(UClass* DeclaringClass, const TSharedRef<TArray<FString>> NameList);
+	
+	virtual void InitializeStaticProperties(UClass* DeclaringClass, const TSharedRef<TMap<FString, FFormulaProperty>> PropertyList);
+	virtual void InitializeProperties(UClass* DeclaringClass, const TSharedRef<TMap<FString, FFormulaProperty>> PropertyList);
+	virtual void InitializeStaticPropertyNames(UClass* DeclaringClass, const TSharedRef<TArray<FString>> NameList);
+	virtual void InitializePropertyNames(UClass* DeclaringClass, const TSharedRef<TArray<FString>> NameList);
 };

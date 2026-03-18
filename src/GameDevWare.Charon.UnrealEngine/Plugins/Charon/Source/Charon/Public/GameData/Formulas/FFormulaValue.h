@@ -16,6 +16,16 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogFormulaValue, Log, All);
 
+/** Tag passed by VisitValue for Struct-typed values.
+ *  Pair with the FProperty& argument to know the actual struct type. */
+struct FFormulaStructRef
+{
+	void* Data;
+	
+	bool operator==(const FFormulaStructRef& Other) const { return Data == Other.Data; }
+	bool operator!=(const FFormulaStructRef& Other) const { return Data != Other.Data; }
+};
+
 /**
  * A specialized variant type used for formula interpretation.
  * * This class acts as a container for various Unreal Engine types (primitives, structs, objects)
@@ -79,6 +89,7 @@ public:
 	 * Note that unset Optionals or null Object pointers are normalized to EFormulaValueType::Null.
 	 */
 	bool IsNull() const { return  this->TypeCode == EFormulaValueType::Null; }
+	bool EqualsTo(const TSharedRef<FFormulaValue>& Other) const;
 
 	FFormulaValue(FProperty* ValueType);
 	explicit FFormulaValue(FProperty* ValueType, const void* ValuePtr);
@@ -155,7 +166,7 @@ public:
 		case EFormulaValueType::Name: return Invoke(Forward<VisitorFunc>(Visitor), this->Type, *static_cast<const FName*>(DataPtr));
 		case EFormulaValueType::Text: return Invoke(Forward<VisitorFunc>(Visitor), this->Type, *static_cast<const FText*>(DataPtr));
 		case EFormulaValueType::ObjectPtr: return Invoke(Forward<VisitorFunc>(Visitor), this->Type, *static_cast<UObject* const*>(DataPtr));
-		case EFormulaValueType::Struct: return Invoke(Forward<VisitorFunc>(Visitor), this->Type, *static_cast<UStruct*>(const_cast<void*>(DataPtr)));
+		case EFormulaValueType::Struct: return Invoke(Forward<VisitorFunc>(Visitor), this->Type, FFormulaStructRef{const_cast<void*>(DataPtr)});
 		default: return Invoke(Forward<VisitorFunc>(Visitor), this->Type, *this);
 		}
 	}

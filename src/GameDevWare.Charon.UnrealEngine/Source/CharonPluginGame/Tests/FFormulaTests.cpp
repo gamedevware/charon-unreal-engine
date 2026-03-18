@@ -162,6 +162,16 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 		TEST_EXPR_BINARY_CHECK_VALUE(FString(TEXT("MyStr")), FString(TEXT("OtherMyStr")), EBinaryOperationType::Add, FString(TEXT("MyStrOtherMyStr")));
 		TEST_EXPR_BINARY_CHECK_VALUE(FString(TEXT("MyStr")), static_cast<int32>(5), EBinaryOperationType::Add, FString(TEXT("MyStr5")));
 		TEST_EXPR_BINARY_CHECK_VALUE(static_cast<int32>(5), FString(TEXT("MyStr")), EBinaryOperationType::Add, FString(TEXT("5MyStr")));
+		TEST_EXPR_BINARY_CHECK_VALUE(FString(TEXT("MyStr")), FString(TEXT("MyStr")), EBinaryOperationType::Equal, true);
+		TEST_EXPR_BINARY_CHECK_VALUE(FString(TEXT("MyStr")), FString(TEXT("MyStr")), EBinaryOperationType::NotEqual, false);
+		
+		// text
+		TEST_EXPR_BINARY_CHECK_VALUE(FText::FromString(TEXT("MyStr")), FText::FromString(TEXT("MyStr")), EBinaryOperationType::Equal, true);
+		TEST_EXPR_BINARY_CHECK_VALUE(FText::FromString(TEXT("MyStr")), FText::FromString(TEXT("MyStr")), EBinaryOperationType::NotEqual, false);
+		
+		// name
+		TEST_EXPR_BINARY_CHECK_VALUE(FName(TEXT("MyStr")), FName(TEXT("MyStr")), EBinaryOperationType::Equal, true);
+		TEST_EXPR_BINARY_CHECK_VALUE(FName(TEXT("MyStr")), FName(TEXT("MyStr")), EBinaryOperationType::NotEqual, false);
 		
 		// null lifted
 		TEST_EXPR_BINARY_CHECK_VALUE(static_cast<int32>(123), nullptr, EBinaryOperationType::Add, nullptr);
@@ -206,6 +216,38 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 		
 		// power
 		TEST_EXPR_BINARY_CHECK_VALUE(2, 2, EBinaryOperationType::Power, 4.0);
+
+		// float/double comparisons (regression: bNotMixedSign fix)
+		TEST_EXPR_BINARY(static_cast<float>(5.0f), static_cast<float>(3.0f), EBinaryOperationType::GreaterThan, >);
+		TEST_EXPR_BINARY(static_cast<float>(3.0f), static_cast<float>(5.0f), EBinaryOperationType::LessThan, <);
+		TEST_EXPR_BINARY(static_cast<float>(5.0f), static_cast<float>(5.0f), EBinaryOperationType::GreaterThanOrEqual, >=);
+		TEST_EXPR_BINARY(static_cast<float>(5.0f), static_cast<float>(5.0f), EBinaryOperationType::LessThanOrEqual, <=);
+		TEST_EXPR_BINARY(static_cast<double>(5.0), static_cast<double>(3.0), EBinaryOperationType::GreaterThan, >);
+		TEST_EXPR_BINARY(static_cast<double>(3.0), static_cast<double>(5.0), EBinaryOperationType::LessThan, <);
+		TEST_EXPR_BINARY(static_cast<double>(5.0), static_cast<double>(5.0), EBinaryOperationType::GreaterThanOrEqual, >=);
+		TEST_EXPR_BINARY(static_cast<double>(5.0), static_cast<double>(5.0), EBinaryOperationType::LessThanOrEqual, <=);
+		TEST_EXPR_BINARY(static_cast<float>(2.5f), static_cast<double>(3.5), EBinaryOperationType::LessThan, <);
+		TEST_EXPR_BINARY(static_cast<double>(3.5), static_cast<float>(2.5f), EBinaryOperationType::GreaterThan, >);
+
+		// primitive equality via EqualsTo
+		TEST_EXPR_BINARY_CHECK_VALUE(static_cast<int32>(42), static_cast<int32>(42), EBinaryOperationType::Equal, true);
+		TEST_EXPR_BINARY_CHECK_VALUE(static_cast<int32>(42), static_cast<int32>(43), EBinaryOperationType::Equal, false);
+		TEST_EXPR_BINARY_CHECK_VALUE(static_cast<int32>(42), static_cast<int32>(43), EBinaryOperationType::NotEqual, true);
+		TEST_EXPR_BINARY_CHECK_VALUE(static_cast<double>(3.14), static_cast<double>(3.14), EBinaryOperationType::Equal, true);
+		TEST_EXPR_BINARY_CHECK_VALUE(static_cast<double>(3.14), static_cast<double>(2.71), EBinaryOperationType::NotEqual, true);
+		TEST_EXPR_BINARY_CHECK_VALUE(static_cast<float>(1.5f), static_cast<float>(1.5f), EBinaryOperationType::Equal, true);
+		TEST_EXPR_BINARY_CHECK_VALUE(true, true, EBinaryOperationType::Equal, true);
+		TEST_EXPR_BINARY_CHECK_VALUE(true, false, EBinaryOperationType::Equal, false);
+		TEST_EXPR_BINARY_CHECK_VALUE(true, false, EBinaryOperationType::NotEqual, true);
+
+		// null equality
+		TEST_EXPR_BINARY_CHECK_VALUE(nullptr, nullptr, EBinaryOperationType::Equal, true);
+		TEST_EXPR_BINARY_CHECK_VALUE(nullptr, nullptr, EBinaryOperationType::NotEqual, false);
+
+		// object pointer equality
+		TEST_EXPR_BINARY_CHECK_VALUE(static_cast<UObject*>(TestObject), static_cast<UObject*>(TestObject), EBinaryOperationType::Equal, true);
+		TEST_EXPR_BINARY_CHECK_VALUE(static_cast<UObject*>(TestObject), static_cast<UObject*>(TestActor), EBinaryOperationType::Equal, false);
+		TEST_EXPR_BINARY_CHECK_VALUE(static_cast<UObject*>(TestObject), static_cast<UObject*>(TestActor), EBinaryOperationType::NotEqual, true);
 	}
 
 	SECTION("FConditionExpression")
@@ -315,6 +357,30 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 		// global function call
 		TEST_EXPR_INVOKE_CHECK_VALUE(nullptr, "TestFunctionNoParam", 54321);
 		
+		// call Object method calls
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(1), "ToString", FString(TEXT("1")));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST_OBJECT(TestObject, TestObjectProperty), "GetType", static_cast<UObject*>(TestObjectProperty->PropertyClass.Get()));
+		
+		// Equals instance method
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(static_cast<int32>(42)), "Equals", true, EXPR_CONST(static_cast<int32>(42)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(static_cast<int32>(42)), "Equals", false, EXPR_CONST(static_cast<int32>(43)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello"))), "Equals", true, EXPR_CONST(FString(TEXT("hello"))));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello"))), "Equals", false, EXPR_CONST(FString(TEXT("world"))));
+
+		// ReferenceEquals static method
+		TEST_EXPR_INVOKE_CHECK_VALUE(TestObjectClassReference, "ReferenceEquals", true, EXPR_CONST_OBJECT(TestObject, TestObjectProperty), EXPR_CONST_OBJECT(TestObject, TestObjectProperty));
+		TEST_EXPR_INVOKE_CHECK_VALUE(TestObjectClassReference, "ReferenceEquals", false, EXPR_CONST_OBJECT(TestObject, TestObjectProperty), EXPR_CONST_OBJECT(TestActor, ActorProperty));
+		TEST_EXPR_INVOKE_CHECK_VALUE(TestObjectClassReference, "ReferenceEquals", true, EXPR_CONST_NULL(), EXPR_CONST_NULL());
+
+		// ToString for various types
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(static_cast<int32>(123)), "ToString", FString(TEXT("123")));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(true), "ToString", FString(TEXT("True")));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(false), "ToString", FString(TEXT("False")));
+
+		// GetType for various types
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(static_cast<int32>(0)), "GetType", static_cast<UObject*>(UDotNetInt32::StaticClass()));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString()), "GetType", static_cast<UObject*>(UDotNetString::StaticClass()));
+
 		// out parameters
 		TestObject->Int32Prop = -123123;
 		TEST_EXPR_INVOKE_CHECK_VALUE(nullptr, "TestFunctionOutParam", -123123, EXPR_ARG("OutParameter"));
@@ -499,6 +565,38 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 		TEST_EXPR_GLOBAL_MEMBER_CHECK_VALUE("null", nullptr, false);
 		TEST_EXPR_GLOBAL_MEMBER_CHECK_VALUE("true", true, false);
 		TEST_EXPR_GLOBAL_MEMBER_CHECK_VALUE("false", false, false);
+
+		// static MaxValue/MinValue access
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("int8", "MaxValue", static_cast<int8>(std::numeric_limits<int8>::max()));
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("int8", "MinValue", static_cast<int8>(std::numeric_limits<int8>::min()));
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("int16", "MaxValue", static_cast<int16>(std::numeric_limits<int16>::max()));
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("int16", "MinValue", static_cast<int16>(std::numeric_limits<int16>::min()));
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("int32", "MaxValue", static_cast<int32>(std::numeric_limits<int32>::max()));
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("int32", "MinValue", static_cast<int32>(std::numeric_limits<int32>::min()));
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("int64", "MaxValue", static_cast<int64>(std::numeric_limits<int64>::max()));
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("int64", "MinValue", static_cast<int64>(std::numeric_limits<int64>::min()));
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("uint8", "MaxValue", static_cast<uint8>(std::numeric_limits<uint8>::max()));
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("uint8", "MinValue", static_cast<uint8>(std::numeric_limits<uint8>::min()));
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("uint16", "MaxValue", static_cast<uint16>(std::numeric_limits<uint16>::max()));
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("uint16", "MinValue", static_cast<uint16>(std::numeric_limits<uint16>::min()));
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("uint32", "MaxValue", static_cast<uint32>(std::numeric_limits<uint32>::max()));
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("uint32", "MinValue", static_cast<uint32>(std::numeric_limits<uint32>::min()));
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("uint64", "MaxValue", static_cast<uint64>(std::numeric_limits<uint64>::max()));
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("uint64", "MinValue", static_cast<uint64>(std::numeric_limits<uint64>::min()));
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("float", "MaxValue", static_cast<float>(std::numeric_limits<float>::max()));
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("float", "MinValue", static_cast<float>(std::numeric_limits<float>::min()));
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("double", "MaxValue", static_cast<double>(std::numeric_limits<double>::max()));
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("double", "MinValue", static_cast<double>(std::numeric_limits<double>::min()));
+
+		// collection Count/Length property access
+		TestObject->Int32Array = TArray { 10, 20, 30 };
+		TestObject->Int32Set = TSet { 10, 20, 30 };
+		TestObject->Int32Map = TMap<FString, int32> { { TEXT("a"), 1 }, { TEXT("b"), 2 } };
+		auto MemberTestObjectExpr = EXPR_CONST_OBJECT(TestObject, TestObjectProperty);
+		TEST_EXPR_NESTED_MEMBER_CHECK_VALUE(MemberTestObjectExpr, "Int32Array", "Count", 3, false);
+		TEST_EXPR_NESTED_MEMBER_CHECK_VALUE(MemberTestObjectExpr, "Int32Array", "Length", 3, false);
+		TEST_EXPR_NESTED_MEMBER_CHECK_VALUE(MemberTestObjectExpr, "Int32Set", "Count", 3, false);
+		TEST_EXPR_NESTED_MEMBER_CHECK_VALUE(MemberTestObjectExpr, "Int32Map", "Count", 2, false);
 	}
 
 	SECTION("FNewArrayBoundExpression")
@@ -550,7 +648,6 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 		TEST_EXPR_TYPE_IS(FString());
 		TEST_EXPR_TYPE_IS(FText());
 		TEST_EXPR_TYPE_IS(FName());
-		TEST_EXPR_TYPE_IS(nullptr);
 		
 		TEST_EXPR_TYPE_IS_CLASS(EXPR_CONST_OBJECT(TestObject, TestObjectProperty), TestObject->StaticClass()->GetName());
 		TEST_EXPR_TYPE_IS_CLASS(EXPR_CONST_OBJECT(TestObject, TestObjectProperty), UObject::StaticClass()->GetName());

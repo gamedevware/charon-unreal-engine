@@ -1,6 +1,8 @@
 ﻿// Copyright GameDevWare, Denis Zykov 2025
 
 #include "FFormulaUnrealType.h"
+
+#include "FDotNetSurrogateType.h"
 #include "GameData/Formulas/FFormulaFunction.h"
 
 static TArray<FString> NoMembers;
@@ -86,6 +88,9 @@ const TArray<FString>& FFormulaUnrealType::GetFunctionNames(bool bStatic)
 						this->StaticFunctionNames->Add(Function->GetName());
 					}
 				}
+				
+				this->StaticFunctionNames->Add(TEXT("ReferenceEquals"));
+				this->StaticFunctionNames->Add(TEXT("Equals"));
 			}
 		}
 		return *this->StaticFunctionNames;
@@ -105,6 +110,10 @@ const TArray<FString>& FFormulaUnrealType::GetFunctionNames(bool bStatic)
 						this->FunctionNames->Add(Function->GetName());
 					}
 				}
+				
+				this->FunctionNames->Add(TEXT("ToString"));
+				this->FunctionNames->Add(TEXT("GetType"));
+				this->FunctionNames->Add(TEXT("Equals"));
 			}
 		}
 		return *this->FunctionNames;
@@ -121,12 +130,18 @@ bool FFormulaUnrealType::TryGetFunction(const FString& MemberName, bool bStatic,
 		{
 			this->StaticFunctions = MakeShared<TMap<FString, FFormulaFunction>>();
 
-			for (TFieldIterator<UFunction> It(DeclaringClass, EFieldIterationFlags::IncludeAll); It; ++It)
+			if (DeclaringClass)
 			{
-				if (const auto Function = *It; IsStatic(Function))
+				for (TFieldIterator<UFunction> It(DeclaringClass, EFieldIterationFlags::IncludeAll); It; ++It)
 				{
-					this->StaticFunctions->Add(Function->GetName(), FFormulaFunction(Function, DeclaringClass, /*bUseClassDefaultObject*/ true));
+					if (const auto Function = *It; IsStatic(Function))
+					{
+						this->StaticFunctions->Add(Function->GetName(), FFormulaFunction(Function, DeclaringClass, /*bUseClassDefaultObject*/ true));
+					}
 				}
+				
+				this->StaticFunctions->Add(TEXT("ReferenceEquals"), FDotNetSurrogateType::GetRefenceEqualsFunction(DeclaringClass));
+				this->StaticFunctions->Add(TEXT("Equals"), FDotNetSurrogateType::GetValueEqualsFunction(DeclaringClass));
 			}
 		}
 		FoundFunction = this->StaticFunctions->Find(MemberName);
@@ -137,13 +152,19 @@ bool FFormulaUnrealType::TryGetFunction(const FString& MemberName, bool bStatic,
 		if (!this->Functions.IsValid())
 		{
 			this->Functions = MakeShared<TMap<FString, FFormulaFunction>>();
-
-			for (TFieldIterator<UFunction> It(DeclaringClass); It; ++It)
+			if (DeclaringClass)
 			{
-				if (const auto Function = *It; !IsStatic(Function))
+				for (TFieldIterator<UFunction> It(DeclaringClass); It; ++It)
 				{
-					this->Functions->Add(Function->GetName(), FFormulaFunction(Function, DeclaringClass, /*bUseClassDefaultObject*/ false));
+					if (const auto Function = *It; !IsStatic(Function))
+					{
+						this->Functions->Add(Function->GetName(), FFormulaFunction(Function, DeclaringClass, /*bUseClassDefaultObject*/ false));
+					}
 				}
+				
+				this->Functions->Add(TEXT("ToString"), FDotNetSurrogateType::GetToStringFunction(DeclaringClass));
+				this->Functions->Add(TEXT("GetType"), FDotNetSurrogateType::GetGetTypeFunction(DeclaringClass));
+				this->Functions->Add(TEXT("Equals"), FDotNetSurrogateType::GetEqualsFunction(DeclaringClass));
 			}
 		}
 		FoundFunction = this->Functions->Find(MemberName);

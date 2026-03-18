@@ -79,7 +79,7 @@ FFormulaFunctionInvokeFunc FFormulaFunction::CreateDefaultFunctionInvoker(UFunct
 		}
 
 		UObject* TargetPtr = nullptr;
-		if (Target->TryGetObjectPtr(TargetPtr) &&
+		if (Target->TryGetObjectPtr(TargetPtr) && TargetPtr &&
 			!TargetPtr->GetClass()->IsChildOf(DeclaringClassOrNull))
 		{
 			TargetPtr = nullptr; // invalid target class

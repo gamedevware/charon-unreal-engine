@@ -1,5 +1,6 @@
 ﻿// Copyright GameDevWare, Denis Zykov 2025
 
+// ReSharper disable CppUseFamiliarTemplateSyntaxForGenericLambdas
 #include "GameData/Formulas/FFormulaValue.h"
 #include "utility"
 #include <limits>
@@ -10,13 +11,11 @@
 #include "UObject/FieldPathProperty.h"
 #include "UObject/TextProperty.h"
 #include "UObject/UnrealType.h"
+#include "GameData/Formulas/FormulaTypeTraits.h"
 #if __has_include("UObject/StrProperty.h")
 #include "UObject/StrProperty.h"
 #endif
-#include "DynamicMesh/DynamicMeshOverlay.h"
 #include "Templates/UnrealTemplate.h"
-
-#include "Misc/EngineVersionComparison.h"
 
 DEFINE_LOG_CATEGORY(LogFormulaValue);
 
@@ -42,8 +41,10 @@ FString FFormulaValue::GetCPPType() const
 	{
 		return TEXT("nullptr_t");
 	}
-	return GetExtendedCppName(this->GetType());
-	
+	else
+	{
+		return GetExtendedCppName(this->GetType());
+	}
 }
 
 FFormulaValue::FFormulaValue():
@@ -53,6 +54,51 @@ FFormulaValue::FFormulaValue():
 	checkSlow(this->Type.GetSize() > 0);
 	
 	this->StructBytes.SetNumZeroed(this->Type.GetSize());
+}
+
+bool FFormulaValue::EqualsTo(const TSharedRef<FFormulaValue>& Other) const
+{
+	// Object pointers compare by identity (reference equality), including null objects
+	if (this->TypeCode == EFormulaValueType::ObjectPtr && Other->TypeCode == EFormulaValueType::ObjectPtr)
+	{
+		UObject* LeftPtr = nullptr;
+		UObject* RightPtr = nullptr;
+		this->TryGetObjectPtr(LeftPtr);
+		Other->TryGetObjectPtr(RightPtr);
+		return LeftPtr == RightPtr;
+	}
+
+	// Struct values compare by member-wise equality via FProperty::Identical
+	bool bIsStructOrStructLike = (this->TypeCode == EFormulaValueType::Struct && Other->TypeCode == EFormulaValueType::Struct) ||
+		(this->TypeCode == EFormulaValueType::Text && Other->TypeCode == EFormulaValueType::Text) || 
+		(this->TypeCode == EFormulaValueType::Name && Other->TypeCode == EFormulaValueType::Name);
+	if (bIsStructOrStructLike)
+	{
+		if (!this->Type.SameType(&Other->Type))
+		{
+			return false;
+		}
+		return this->Type.Identical(this->StructBytes.GetData(), Other->StructBytes.GetData(), 0);
+	}
+
+	// Primitives, strings, and null: value comparison via typed dispatch
+	return this->VisitValue([&Other](const FProperty&, const auto& LeftValue) -> bool {
+		return Other->VisitValue([&LeftValue](const FProperty&, const auto& RightValue) -> bool {
+				using LeftT = std::decay_t<decltype(LeftValue)>;
+				using RightT = std::decay_t<decltype(RightValue)>;
+				constexpr bool bNotMixedBool = std::is_same_v<LeftT, bool> == std::is_same_v<RightT, bool>; // prevent compiler warning: `bool to not bool` comparison
+				constexpr bool bNotMixedPtr = std::is_pointer_v<LeftT> == std::is_pointer_v<RightT>; // prevent compiler warning: `ptr to not ptr` comparison
+
+				if constexpr (bNotMixedBool && bNotMixedPtr && has_eq_v<LeftT, RightT>)
+				{
+					return LeftValue == RightValue;
+				}
+				else
+				{
+					return false;
+				}
+			});
+		});
 }
 
 FFormulaValue::FFormulaValue(FProperty* ValueType):
@@ -276,9 +322,9 @@ bool FFormulaValue::TrySetPropertyValue_InContainer(const FProperty* Destination
 		}
 		else if (DestinationType->SameType(&ThisType))
 		{
-			if constexpr (std::is_same_v<InT, UStruct>)
+			if constexpr (std::is_same_v<InT, FFormulaStructRef>)
 			{
-				DestinationType->SetSingleValue_InContainer(ContainerPtr, static_cast<const void*>(&InValue), ArrayIndex);
+				DestinationType->SetSingleValue_InContainer(ContainerPtr, InValue.Data, ArrayIndex);
 				return true;
 			}
 		}
@@ -298,23 +344,11 @@ bool FFormulaValue::TryGetBoolean(bool& OutValue) const
 }
 bool FFormulaValue::TryGetInt32(int32& OutValue) const
 {
-	if (const FIntProperty* IntProperty = CastField<FIntProperty>(&this->Type))
-	{
-		OutValue = IntProperty->GetPropertyValue(GetStructPtrChecked());
-		return true;
-	}
-	OutValue = 0;
-	return false;
+	return TryCopyNumericValue(UDotNetInt32::GetLiteralProperty(), &OutValue);
 }
 bool FFormulaValue::TryGetInt64(int64& OutValue) const
 {
-	if (const FInt64Property* IntProperty = CastField<FInt64Property>(&this->Type))
-	{
-		OutValue = IntProperty->GetPropertyValue(GetStructPtrChecked());
-		return true;
-	}
-	OutValue = 0;
-	return false;
+	return TryCopyNumericValue(UDotNetInt64::GetLiteralProperty(), &OutValue);
 }
 
 bool FFormulaValue::TryGetObjectPtr(UObject*& OutValue) const
@@ -354,10 +388,9 @@ FString FFormulaValue::ToString() const
 	{
 		return TEXT("null");
 	}
-
 	FString StructText;
 	const void* DataPtr = GetStructPtrChecked();
-	this->Type.ExportText_Direct(StructText, DataPtr, nullptr, nullptr, 0);
+	this->Type.ExportText_Direct(StructText, DataPtr, DataPtr, nullptr, 0);
 	return StructText;
 }
 
@@ -365,11 +398,20 @@ FString FFormulaValue::GetExtendedCppName(const FProperty* Property)
 {
 	check(Property);
 
-	FString* ExtendedTypeText = nullptr;
-	FString Name = Property->GetCPPType(ExtendedTypeText, EPropertyExportCPPFlags::CPPF_None);
-	if (ExtendedTypeText)
+	if (const FObjectPropertyBase* ObjectProperty = CastField<FObjectPropertyBase>(Property))
 	{
-		Name.Append(*ExtendedTypeText);
+		return ObjectProperty->PropertyClass.GetName();
+	}
+	else if (const FStructProperty* StructProperty = CastField<FStructProperty>(Property))
+	{
+		return StructProperty->Struct.GetName();
+	}
+	
+	FString ExtendedTypeText;
+	FString Name = Property->GetCPPType(&ExtendedTypeText, EPropertyExportCPPFlags::CPPF_None);
+	if (ExtendedTypeText.Len() > 0)
+	{
+		Name.Append(ExtendedTypeText);
 	}
 	
 	if (const FMapProperty* MapProperty = CastField<FMapProperty>(Property))

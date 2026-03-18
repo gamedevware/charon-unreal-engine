@@ -34,6 +34,7 @@ public:
 	FFormulaInvokeArguments(std::initializer_list<InvokeArgument> InitList);
 
 	const InvokeArgument* FindArgument(const FProperty* InParameter, int32 InParameterIndex, FString& OutParameterName) const;
+	const InvokeArgument* FindArgument(const FString& InParameterName, int32 InParameterIndex) const;
 
 	int Num() const;
 	

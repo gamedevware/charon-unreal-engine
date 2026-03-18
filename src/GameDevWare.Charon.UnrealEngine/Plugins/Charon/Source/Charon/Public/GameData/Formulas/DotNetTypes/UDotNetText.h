@@ -1,5 +1,6 @@
 // Copyright GameDevWare, Denis Zykov 2025
 
+// ReSharper disable CppPassValueParameterByConstReference
 #pragma once
 
 #include "GameData/Formulas/EFormulaValueType.h"
@@ -40,5 +41,19 @@ public:
 			return ArrayProperty;
 		}
 		return ArrayProperty = CastFieldChecked<FArrayProperty>(StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UDotNetText, __ArrayLiteral)));
+	}
+	
+	//* instance properties */
+
+	UFUNCTION()
+	static int GetLength(FString Self)
+	{
+		return Self.Len();
+	}
+	
+	UFUNCTION()
+	static int GetCount(FString Self)
+	{
+		return Self.Len();
 	}
 };

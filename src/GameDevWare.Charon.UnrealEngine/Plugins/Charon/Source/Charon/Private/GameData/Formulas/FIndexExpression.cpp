@@ -110,15 +110,21 @@ FFormulaExecutionResult FIndexExpression::Execute(const FFormulaExecutionContext
 		check(Target->TryGetContainerAddress(SetAddress));
 		check(SetAddress != nullptr);
 
+		int32 LogicalIndex = 0;
 		FScriptSetHelper SetWrap(SetProp, SetAddress);
-		if (ArrayIndex < 0 || ArrayIndex >= SetWrap.Num())
+		for (int32 ElementIndex = 0; ElementIndex < SetWrap.GetMaxIndex(); ++ElementIndex)
 		{
-			return FFormulaExecutionError::IndexOutOfRange(ArrayIndex, SetWrap.Num());
+			if (!SetWrap.IsValidIndex(ElementIndex)) continue;
+			
+			if (LogicalIndex == ArrayIndex)
+			{
+				const void* ElementPtr = SetWrap.GetElementPtr(ElementIndex);
+				check(ElementPtr != nullptr);
+				return MakeShared<FFormulaValue>(SetProp->ElementProp, ElementPtr);
+			}
+			++LogicalIndex;
 		}
-		const void* ElementPtr = SetWrap.GetElementPtr(ArrayIndex);
-		check(ElementPtr != nullptr);
-
-		return MakeShared<FFormulaValue>(SetProp->ElementProp, ElementPtr);
+		return FFormulaExecutionError::IndexOutOfRange(ArrayIndex, SetWrap.Num());
 	}
 	else if (const FMapProperty* MapProp = CastField<FMapProperty>(TargetType);
 		MapProp && PreparedArguments.Num() == 1)

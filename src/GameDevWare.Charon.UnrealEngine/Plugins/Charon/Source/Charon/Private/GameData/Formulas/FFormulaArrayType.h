@@ -16,4 +16,8 @@ public:
 
 	virtual FString GetCPPType() const override { return TEXT("TArray<") + this->ElementType->GetCPPType() + TEXT(">"); }
 	virtual TSharedPtr<IFormulaType> GetUnderlyingType() const override { return this->ElementType; }
+
+protected:
+	virtual void InitializeProperties(UClass* DeclaringClass, const TSharedRef<TMap<FString, FFormulaProperty>> PropertyList) override;
+	virtual void InitializePropertyNames(UClass* DeclaringClass, const TSharedRef<TArray<FString>> NameList) override;
 };
