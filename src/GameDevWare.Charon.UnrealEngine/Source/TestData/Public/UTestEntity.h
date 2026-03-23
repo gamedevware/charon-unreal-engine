@@ -23,6 +23,7 @@
 #include "ETestEntityPickListField.h"
 #include "ETestEntityMultiPickListField.h"
 #include "UTestEntityFormulaFieldFormula.h"
+#include "UTestEntityIntFormulaFormula.h"
 #include "UTestEntity.generated.h"
 
 class UUnionType; // forward declaration
@@ -42,11 +43,13 @@ public:
 	/**
 	  * De-referenced document of ReferenceField. Should not be directly used.
 	  */
-	mutable UTestEntity* _referenceFieldDocument;
+	UPROPERTY()
+	mutable UTestEntity* _ReferenceFieldDocument;
 	/**
 	  * De-referenced collection of documents for ListOfReferencesField. Should not be directly used.
 	  */
-	mutable TMap<FString,UTestEntity*> _listOfReferencesFieldDocuments;
+	UPROPERTY()
+	mutable TMap<FString,UTestEntity*> _ListOfReferencesFieldDocuments;
 public:
 	/**
 	  * Id property of Text type. Not Empty, Unique.
@@ -158,4 +161,9 @@ public:
 	  */
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 	TMap<int32,UUnionType*> UnionField;
+	/**
+	  * Int Formula property of Formula type. Can Be Null.
+	  */
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	UTestEntityIntFormulaFormula* IntFormula;
 };

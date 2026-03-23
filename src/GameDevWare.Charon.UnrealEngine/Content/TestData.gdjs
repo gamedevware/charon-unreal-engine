@@ -1,7 +1,7 @@
 { 
 	"ToolsVersion": "2026.1.2.0", 
-	"RevisionHash": "697fa0d9ecd20b7208b73d2e", 
-	"ChangeNumber": 39, 
+	"RevisionHash": "69c0395e08530049b879947f", 
+	"ChangeNumber": 42, 
 	"Collections": { 
 		"ProjectSettings": [ 
 			{ 
@@ -539,6 +539,20 @@
 						}, 
 						"Size": 0, 
 						"Specification": "" 
+					}, 
+					{ 
+						"Id": "69c0394108530049b879947d", 
+						"SharedProperty": null, 
+						"Name": "IntFormula", 
+						"DisplayName": "Int Formula", 
+						"Description": "", 
+						"DataType": 35, 
+						"DefaultValue": null, 
+						"Uniqueness": 0, 
+						"Requirement": 0, 
+						"ReferenceType": null, 
+						"Size": 0, 
+						"Specification": "param.First=System.Int32&param.Second=int&resultType=int" 
 					} 
 				] 
 			}, 
@@ -1778,7 +1792,8 @@
 					"FormulaField": null, 
 					"IsPublished": true, 
 					"UnionField": [ 
-					] 
+					], 
+					"IntFormula": null 
 				}, 
 				"ListOfDocumentsField": [ 
 					{ 
@@ -1808,7 +1823,8 @@
 						"FormulaField": null, 
 						"IsPublished": true, 
 						"UnionField": [ 
-						] 
+						], 
+						"IntFormula": null 
 					} 
 				], 
 				"ReferenceField": { 
@@ -1982,7 +1998,30 @@
 							"_pos": "1:1+1" 
 						} 
 					} 
-				] 
+				], 
+				"IntFormula": { 
+					"expressionType": "AddChecked", 
+					"left": { 
+						"expressionType": "MemberResolve", 
+						"name": "First", 
+						"expression": null, 
+						"arguments": { 
+						}, 
+						"useNullPropagation": false, 
+						"_pos": "1:1+5" 
+					}, 
+					"right": { 
+						"expressionType": "MemberResolve", 
+						"name": "Second", 
+						"expression": null, 
+						"arguments": { 
+						}, 
+						"useNullPropagation": false, 
+						"_pos": "1:9+6" 
+					}, 
+					"_cs": "First + Second", 
+					"_pos": "1:7+1" 
+				} 
 			} 
 		], 
 		"UnionType": [ 

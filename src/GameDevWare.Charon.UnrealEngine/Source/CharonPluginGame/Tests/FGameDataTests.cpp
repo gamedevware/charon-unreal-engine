@@ -143,6 +143,8 @@ TEST_CASE_NAMED(FGameDataTests, "Charon::TestGameData", "[Core]")
 		FTimespan::Parse(TEXT("00:00:01"), ExpectedTime);
 		CHECK(TestEntity->TimeField == ExpectedTime);
 		CHECK(TestEntity->DocumentField == nullptr);
+		REQUIRE(TestEntity->IntFormula != nullptr);
+		CHECK(300, TestEntity->IntFormula->Invoke(100, 200));
 	}
 }
 

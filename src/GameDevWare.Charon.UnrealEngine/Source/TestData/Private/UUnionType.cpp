@@ -22,12 +22,12 @@ FText UUnionType::GetTextLocalizable2() const {
 	return TextLocalizable2Raw.GetCurrent();
 }
 UNumberTestEntity* UUnionType::GetReference12() const {
-	FGameDataDocumentReference::GetReferencedDocument(Reference12Raw, _reference12Document);
-	return _reference12Document;
+	FGameDataDocumentReference::GetReferencedDocument(Reference12Raw, _Reference12Document);
+	return _Reference12Document;
 }
 TMap<int32,UNumberTestEntity*> UUnionType::GetCollectionofReferences13() const {
-	FGameDataDocumentReference::GetReferencedDocuments(CollectionofReferences13Raw, _collectionofReferences13Documents);
-	return _collectionofReferences13Documents;
+	FGameDataDocumentReference::GetReferencedDocuments(CollectionofReferences13Raw, _CollectionofReferences13Documents);
+	return _CollectionofReferences13Documents;
 }
 void UUnionType::Apply(FUnionVisitor& visitor)
 {

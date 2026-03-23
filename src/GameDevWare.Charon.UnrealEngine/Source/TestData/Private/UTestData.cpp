@@ -22,6 +22,7 @@
 #include "UUnionType.h"
 #include "UAllTypesTest.h"
 #include "UTestEntityFormulaFieldFormula.h"
+#include "UTestEntityIntFormulaFormula.h"
 #include "UAllTypesTestVoidFormulaFormula.h"
 #include "UAllTypesTestNoParamsFormulaFormula.h"
 #include "UAllTypesTestParamsFormulaFormula.h"
@@ -649,6 +650,20 @@ static FString UTestData_MakeUniqueDocumentName(DocumentType* Document)
 	return DocumentUniqueName;
 }
 
+static UObject* UTestData_ResetDocumentToDefaultState(UObject* Document)
+{
+	if (!Document)
+	{
+		return nullptr;
+	}
+
+	UObject* DefaultObj = Document->GetClass()->GetDefaultObject();
+	// Copy all UPROPERTY values from the default object to 'Document'
+    UEngine::CopyPropertiesForUnrelatedObjects(DefaultObj, Document);
+
+	return Document;
+}
+
 static void UTestData_TryRenameDocument(UObject* Document, const TCHAR* NewName)
 {
 	if (!Document) {
@@ -980,6 +995,7 @@ bool UTestData::ReadDocument
 			UTestDataProjectSettings* ExistingDocument = Cast<UTestDataProjectSettings>(ExistingObject);
 			if (ExistingDocument)
 			{
+				UTestData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->Name = Document->Name;
 				ExistingDocument->PrimaryLanguage = Document->PrimaryLanguage;
@@ -1153,6 +1169,7 @@ bool UTestData::ReadDocument
 			UTestEntity* ExistingDocument = Cast<UTestEntity>(ExistingObject);
 			if (ExistingDocument)
 			{
+				UTestData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->TextField = Document->TextField;
 				ExistingDocument->LocalizedTextFieldRaw = Document->LocalizedTextFieldRaw;
@@ -1172,6 +1189,7 @@ bool UTestData::ReadDocument
 				ExistingDocument->FormulaField = Document->FormulaField;
 				ExistingDocument->IsPublished = Document->IsPublished;
 				ExistingDocument->UnionField = Document->UnionField;
+				ExistingDocument->IntFormula = Document->IntFormula;
 
 				UTestData_TryDeleteDocument(Document);
 				Document->MarkAsGarbage();
@@ -1441,6 +1459,20 @@ bool UTestData::ReadDocument
 				return false;
 			}
 		}
+		else if (PropertyName == TEXT("IntFormula"))
+		{
+			if (Reader->IsNull())
+			{
+				Reader->ReadNext();
+				continue;
+			}
+			bReadSuccess = ReadFormula(Reader, Document->IntFormula, Outer, GameDataPath);
+			if (!bReadSuccess)
+			{
+				UE_LOG(LogUTestData, Error, TEXT("Failed to read value for property '%s' of document. Path: %s."), TEXT("TestEntity.IntFormula"), *CombineGameDataPath(GameDataPath));
+				return false;
+			}
+		}
 		else
 		{
 			Reader->SkipAny();
@@ -1506,6 +1538,7 @@ bool UTestData::ReadDocument
 			URecursiveEntity* ExistingDocument = Cast<URecursiveEntity>(ExistingObject);
 			if (ExistingDocument)
 			{
+				UTestData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->Title = Document->Title;
 				ExistingDocument->Children = Document->Children;
@@ -1619,6 +1652,7 @@ bool UTestData::ReadDocument
 			UNumberTestEntity* ExistingDocument = Cast<UNumberTestEntity>(ExistingObject);
 			if (ExistingDocument)
 			{
+				UTestData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->Number32Bit = Document->Number32Bit;
 				ExistingDocument->Number64Bit = Document->Number64Bit;
@@ -1912,6 +1946,7 @@ bool UTestData::ReadDocument
 			UUniqueAttributeEntity* ExistingDocument = Cast<UUniqueAttributeEntity>(ExistingObject);
 			if (ExistingDocument)
 			{
+				UTestData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->SnakeCaseKey = Document->SnakeCaseKey;
 				ExistingDocument->CamelCaseKey = Document->CamelCaseKey;
@@ -2168,6 +2203,7 @@ bool UTestData::ReadDocument
 			UUnionType* ExistingDocument = Cast<UUnionType>(ExistingObject);
 			if (ExistingDocument)
 			{
+				UTestData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->Text1 = Document->Text1;
 				ExistingDocument->TextLocalizable2Raw = Document->TextLocalizable2Raw;
@@ -2467,6 +2503,7 @@ bool UTestData::ReadDocument
 			UAllTypesTest* ExistingDocument = Cast<UAllTypesTest>(ExistingObject);
 			if (ExistingDocument)
 			{
+				UTestData_ResetDocumentToDefaultState(ExistingDocument);
 				ExistingDocument->Id = Document->Id;
 				ExistingDocument->AssetPath = Document->AssetPath;
 				ExistingDocument->AssetPathCollection = Document->AssetPathCollection;
@@ -3475,6 +3512,7 @@ TSharedPtr<FJsonValue> UTestData::MergeDocument(TSharedRef<FJsonValue> OriginalD
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("FormulaField"));
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("IsPublished"));
 		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("UnionField"), OptionalMergeValueFunc([this](TSharedRef<FJsonValue> OriginalValue, TSharedRef<FJsonValue> ModifiedValue) { return MergeDocumentCollection<UUnionType>(OriginalValue, ModifiedValue, true); }));
+		MergePropertyValue(MergedDocument, OriginalDocumentObjectRef, ModifiedDocumentObjectRef, TEXT("IntFormula"));
 	}
 	else
 	if constexpr (std::is_same_v<DocumentType, URecursiveEntity>)

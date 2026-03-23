@@ -15,6 +15,7 @@
 #include "UTestEntity.h"
 #include "UTestEntityFormulaFieldFormula.h"
 #include "UUnionType.h"
+#include "UTestEntityIntFormulaFormula.h"
 
 const FString UTestEntity::SchemaId = TEXT("592fc86c983a36266c0912a0");
 const FString UTestEntity::SchemaName = TEXT("TestEntity");
@@ -23,10 +24,10 @@ FText UTestEntity::GetLocalizedTextField() const {
 	return LocalizedTextFieldRaw.GetCurrent();
 }
 UTestEntity* UTestEntity::GetReferenceField() const {
-	FGameDataDocumentReference::GetReferencedDocument(ReferenceFieldRaw, _referenceFieldDocument);
-	return _referenceFieldDocument;
+	FGameDataDocumentReference::GetReferencedDocument(ReferenceFieldRaw, _ReferenceFieldDocument);
+	return _ReferenceFieldDocument;
 }
 TMap<FString,UTestEntity*> UTestEntity::GetListOfReferencesField() const {
-	FGameDataDocumentReference::GetReferencedDocuments(ListOfReferencesFieldRaw, _listOfReferencesFieldDocuments);
-	return _listOfReferencesFieldDocuments;
+	FGameDataDocumentReference::GetReferencedDocuments(ListOfReferencesFieldRaw, _ListOfReferencesFieldDocuments);
+	return _ListOfReferencesFieldDocuments;
 }

@@ -41,11 +41,13 @@ public:
 	/**
 	  * De-referenced document of Reference12. Should not be directly used.
 	  */
-	mutable UNumberTestEntity* _reference12Document;
+	UPROPERTY()
+	mutable UNumberTestEntity* _Reference12Document;
 	/**
 	  * De-referenced collection of documents for CollectionofReferences13. Should not be directly used.
 	  */
-	mutable TMap<int32,UNumberTestEntity*> _collectionofReferences13Documents;
+	UPROPERTY()
+	mutable TMap<int32,UNumberTestEntity*> _CollectionofReferences13Documents;
 public:
 	/**
 	  * Id property of Integer type. Not Null, Unique.

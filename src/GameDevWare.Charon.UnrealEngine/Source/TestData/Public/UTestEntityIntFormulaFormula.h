@@ -34,15 +34,15 @@
 	To use your custom structs/classes in formula parameters, create a file "UTestDataFormulaTypes.h" in this folder, in which you can declare your classes or structs.
 */
 
-DECLARE_LOG_CATEGORY_EXTERN(LogUTestEntityFormulaFieldFormula, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogUTestEntityIntFormulaFormula, Log, All);
 
-#include "UTestEntityFormulaFieldFormula.generated.h"
+#include "UTestEntityIntFormulaFormula.generated.h"
 
 /**
-  * Formula Signature: (System.Int32 arg1, System.Int32 arg2, System.Int32 arg3, System.Int32 arg4) -> System.Int32
+  * Formula Signature: (System.Int32 First, int Second) -> int
   */
 UCLASS(BlueprintType)
-class TESTDATA_API UTestEntityFormulaFieldFormula : public UObject
+class TESTDATA_API UTestEntityIntFormulaFormula : public UObject
 {
 	GENERATED_BODY()
 
@@ -73,7 +73,7 @@ public:
 	  * Evaluates the formula and returns the resulting value.
 	  */
 	UFUNCTION(BlueprintCallable)
-	int32 Invoke(int32 Arg1, int32 Arg2, int32 Arg3, int32 Arg4) const;
+	int32 Invoke(int32 First, int32 Second) const;
 
 #if defined(CHARON_FEATURE_FORMULAS_V2) && CHARON_FEATURE_FORMULAS_V2
 	/**

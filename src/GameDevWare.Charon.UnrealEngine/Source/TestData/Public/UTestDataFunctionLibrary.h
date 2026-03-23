@@ -50,6 +50,7 @@
 #include "EUniqueAttributeEntityTimeSpanKey.h"
 #include "EUniqueAttributeEntityDateTimeKey.h"
 #include "UTestEntityFormulaFieldFormula.h"
+#include "UTestEntityIntFormulaFormula.h"
 #include "UAllTypesTestVoidFormulaFormula.h"
 #include "UAllTypesTestNoParamsFormulaFormula.h"
 #include "UAllTypesTestParamsFormulaFormula.h"

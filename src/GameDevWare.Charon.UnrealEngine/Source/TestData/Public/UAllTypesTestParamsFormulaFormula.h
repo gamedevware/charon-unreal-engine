@@ -30,6 +30,9 @@
 #if __has_include("UTestDataFormulaTypes.h")
     #include "UTestDataFormulaTypes.h"
 #endif
+/*
+	To use your custom structs/classes in formula parameters, create a file "UTestDataFormulaTypes.h" in this folder, in which you can declare your classes or structs.
+*/
 
 DECLARE_LOG_CATEGORY_EXTERN(LogUAllTypesTestParamsFormulaFormula, Log, All);
 
