@@ -2,6 +2,7 @@
 
 #include "GameData/UGameDataBase.h"
 
+#include "EditorFramework/AssetImportData.h"
 #include "GameData/UGameDataImportData.h"
 
 void UGameDataBase::PostInitProperties()
@@ -24,6 +25,18 @@ void UGameDataBase::PostLoad()
 	if (Cast<UGameDataImportData>(AssetImportData) == nullptr)
 	{
 		AssetImportData = NewObject<UGameDataImportData>(this, TEXT("GameDataImportData"));
+	}
+#endif
+}
+
+void UGameDataBase::GetAssetRegistryTags(FAssetRegistryTagsContext Context) const
+{
+	Super::GetAssetRegistryTags(Context);
+
+#if WITH_EDITORONLY_DATA
+	if (AssetImportData)
+	{
+		Context.AddTag(FAssetRegistryTag(SourceFileTagName(), AssetImportData->GetSourceData().ToJson(), FAssetRegistryTag::TT_Hidden));
 	}
 #endif
 }

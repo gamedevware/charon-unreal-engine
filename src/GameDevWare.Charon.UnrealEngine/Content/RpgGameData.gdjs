@@ -24,7 +24,7 @@
 				"IdGenerator": 1, 
 				"Specification": "icon=svg%2Fschema&group=Metadata&menuVisibility=hidden", 
 				"Properties": [ 
-					{ 
+					{   
 						"Id": "53bd34a376a21229219cb156", 
 						"SharedProperty": null, 
 						"Name": "Id", 

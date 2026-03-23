@@ -74,4 +74,5 @@ public:
 	
 	virtual void PostInitProperties() override;
 	virtual void PostLoad() override;
+	virtual void GetAssetRegistryTags(FAssetRegistryTagsContext Context) const override;
 };
