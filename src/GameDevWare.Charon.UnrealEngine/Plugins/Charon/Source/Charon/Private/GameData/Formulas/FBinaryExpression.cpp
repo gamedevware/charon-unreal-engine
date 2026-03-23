@@ -244,70 +244,71 @@ FFormulaExecutionResult FBinaryExpression::Execute(const FFormulaExecutionContex
 			constexpr bool bNotMixedTypes = bNotMixedBool && bNotMixedPtr && bNotMixedString && bNotMixedText && bNotMixedName;
 			constexpr bool bBothDates = std::is_same_v<LeftT, FDateTime> && std::is_same_v<RightT, FDateTime>;
 			constexpr bool bNotMixedSign = !(std::is_integral_v<LeftT> && std::is_integral_v<RightT>) || (std::is_signed_v<LeftT> == std::is_signed_v<RightT>);
+			constexpr bool bNotPtr = !std::is_pointer_v<LeftT> && !std::is_pointer_v<RightT>;
 			
 			// ReSharper disable once CppIncompleteSwitchStatement, CppDefaultCaseNotHandledInSwitchStatement
 			switch (this->BinaryOperationType)
 			{
 			case EBinaryOperationType::And:
-				if constexpr (has_bit_and_v<LeftT, RightT> && bNotMixedTypes)
+				if constexpr (has_bit_and_v<LeftT, RightT> && bNotMixedTypes && bNotPtr)
 				{
 					return LeftValue & RightValue;
 				}
 				break;
 			case EBinaryOperationType::Or:
-				if constexpr (has_bit_or_v<LeftT, RightT> && bNotMixedTypes)
+				if constexpr (has_bit_or_v<LeftT, RightT> && bNotMixedTypes && bNotPtr)
 				{
 					return LeftValue | RightValue;
 				}
 				break;
 			case EBinaryOperationType::ExclusiveOr:
-				if constexpr (has_bit_xor_v<LeftT, RightT> && bNotMixedTypes)
+				if constexpr (has_bit_xor_v<LeftT, RightT> && bNotMixedTypes && bNotPtr)
 				{
 					return LeftValue ^ RightValue;
 				}
 				break;
 			case EBinaryOperationType::Multiply:
 			case EBinaryOperationType::MultiplyChecked:
-				if constexpr (has_mul_v<LeftT, RightT> && bNotMixedTypes)
+				if constexpr (has_mul_v<LeftT, RightT> && bNotMixedTypes && bNotPtr)
 				{
 					return LeftValue * RightValue;
 				}
 				break;
 			case EBinaryOperationType::Divide:
 			case EBinaryOperationType::DivideChecked:
-				if constexpr (has_div_v<LeftT, RightT> && bNotMixedTypes && bNotBool)
+				if constexpr (has_div_v<LeftT, RightT> && bNotMixedTypes && bNotBool && bNotPtr)
 				{
 					return LeftValue / RightValue;
 				}
 				break;
 			case EBinaryOperationType::Modulo:
-				if constexpr (has_mod_v<LeftT, RightT> && bNotMixedTypes && bNotBool)
+				if constexpr (has_mod_v<LeftT, RightT> && bNotMixedTypes && bNotBool && bNotPtr)
 				{
 					return LeftValue % RightValue;
 				}
 				break;
 			case EBinaryOperationType::Add:
 			case EBinaryOperationType::AddChecked:
-				if constexpr (has_add_v<LeftT, RightT> && bNotMixedTypes && !bBothDates)
+				if constexpr (has_add_v<LeftT, RightT> && bNotMixedTypes && !bBothDates && bNotPtr)
 				{
 					return LeftValue + RightValue;
 				}
 				break;
 			case EBinaryOperationType::Subtract:
 			case EBinaryOperationType::SubtractChecked:
-				if constexpr (has_sub_v<LeftT, RightT> && bNotMixedTypes)
+				if constexpr (has_sub_v<LeftT, RightT> && bNotMixedTypes && bNotPtr)
 				{
 					return LeftValue - RightValue;
 				}
 				break;
 			case EBinaryOperationType::LeftShift:
-				if constexpr (has_shl_v<LeftT, RightT> && bNotMixedTypes && bNotBool)
+				if constexpr (has_shl_v<LeftT, RightT> && bNotMixedTypes && bNotBool && bNotPtr)
 				{
 					return LeftValue << RightValue;
 				}
 				break;
 			case EBinaryOperationType::RightShift:
-				if constexpr (has_shr_v<LeftT, RightT> && bNotMixedTypes && bNotBool)
+				if constexpr (has_shr_v<LeftT, RightT> && bNotMixedTypes && bNotBool && bNotPtr)
 				{
 					return LeftValue >> RightValue;
 				}
