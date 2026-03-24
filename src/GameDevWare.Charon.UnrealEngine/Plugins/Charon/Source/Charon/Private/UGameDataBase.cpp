@@ -29,6 +29,7 @@ void UGameDataBase::PostLoad()
 #endif
 }
 
+#if UE_VERSION_NEWER_THAN(5, 4, -1)
 void UGameDataBase::GetAssetRegistryTags(FAssetRegistryTagsContext Context) const
 {
 	Super::GetAssetRegistryTags(Context);
@@ -40,3 +41,4 @@ void UGameDataBase::GetAssetRegistryTags(FAssetRegistryTagsContext Context) cons
 	}
 #endif
 }
+#endif

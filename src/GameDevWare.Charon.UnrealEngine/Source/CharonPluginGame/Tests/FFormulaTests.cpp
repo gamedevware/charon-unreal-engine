@@ -276,8 +276,8 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 		// number conversion
 		TEST_EXPR_CONVERT_CHECK_VALUE(static_cast<int32>(65535), static_cast<uint16>(65535), FFormulaNotation::EXPRESSION_TYPE_CONVERT);
 		TEST_EXPR_CONVERT_CHECK_VALUE(static_cast<uint8>(110), static_cast<int32>(110), FFormulaNotation::EXPRESSION_TYPE_CONVERT);
-		TEST_EXPR_CONVERT_CHECK_VALUE(static_cast<int32>(-2147483648), static_cast<int64>(-2147483648), FFormulaNotation::EXPRESSION_TYPE_CONVERT);
-		TEST_EXPR_CONVERT_CHECK_VALUE(static_cast<int64>(-2147483648), static_cast<int32>(-2147483648), FFormulaNotation::EXPRESSION_TYPE_CONVERT);
+		TEST_EXPR_CONVERT_CHECK_VALUE(static_cast<int32>(-2147483648LL), static_cast<int64>(-2147483648LL), FFormulaNotation::EXPRESSION_TYPE_CONVERT);
+		TEST_EXPR_CONVERT_CHECK_VALUE(static_cast<int64>(-2147483648LL), static_cast<int32>(-2147483648LL), FFormulaNotation::EXPRESSION_TYPE_CONVERT);
 		TEST_EXPR_CONVERT_CHECK_VALUE(static_cast<int64>(2147483647), static_cast<int32>(2147483647), FFormulaNotation::EXPRESSION_TYPE_CONVERT);
 		TEST_EXPR_CONVERT_CHECK_VALUE(static_cast<int64>(2147483648ll), static_cast<uint32>(2147483648ll), FFormulaNotation::EXPRESSION_TYPE_CONVERT);
 		TEST_EXPR_CONVERT_CHECK_VALUE(static_cast<int32>(-120), static_cast<float>(-120), FFormulaNotation::EXPRESSION_TYPE_CONVERT);

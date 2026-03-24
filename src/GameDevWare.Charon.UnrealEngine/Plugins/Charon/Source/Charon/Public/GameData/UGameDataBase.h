@@ -8,6 +8,7 @@
 #include "UObject/Class.h"
 #include "Engine/DataAsset.h"
 #include "GameData/UGameDataImportData.h"
+#include "Misc/EngineVersionComparison.h"
 
 #include "UGameDataBase.generated.h"
 
@@ -74,5 +75,7 @@ public:
 	
 	virtual void PostInitProperties() override;
 	virtual void PostLoad() override;
+#if UE_VERSION_NEWER_THAN(5, 4, -1)
 	virtual void GetAssetRegistryTags(FAssetRegistryTagsContext Context) const override;
+#endif
 };

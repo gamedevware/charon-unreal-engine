@@ -144,7 +144,7 @@ TEST_CASE_NAMED(FGameDataTests, "Charon::TestGameData", "[Core]")
 		CHECK(TestEntity->TimeField == ExpectedTime);
 		CHECK(TestEntity->DocumentField == nullptr);
 		REQUIRE(TestEntity->IntFormula != nullptr);
-		CHECK(300, TestEntity->IntFormula->Invoke(100, 200));
+		CHECK_EQUALS("Result", 300, TestEntity->IntFormula->Invoke(100, 200));
 	}
 }
 
