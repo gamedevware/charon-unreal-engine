@@ -26,7 +26,7 @@ Installation from Fab
 5. Open Unreal Engine and follow the [instruction](https://dev.epicgames.com/documentation/en-us/unreal-engine/working-with-plugins-in-unreal-engine) for plugin installation.
 
 #### Unreal Engine | Installation
-[![Installation Video Tutorial](https://img.youtube.com/vi/aeQHWdbiodE/0.jpg)](https://www.youtube.com/watch?v=aeQHWdbiodE)
+[![Installation Video Tutorial](https://img.youtube.com/vi/QL6KYQRj_j8/0.jpg)](https://www.youtube.com/watch?v=QL6KYQRj_j8)
 
 # How to Use
 
@@ -34,7 +34,7 @@ Installation from Fab
 - [How to Create Game Data File](https://gamedevware.github.io/charon/unreal_engine/creating_game_data.html)
 
 #### Unreal Engine | First Steps
-[![First Steps](https://img.youtube.com/vi/Ofp5c3FSS6k/0.jpg)](https://www.youtube.com/watch?v=Ofp5c3FSS6k)
+[![First Steps](https://img.youtube.com/vi/ZqLPxXE7vhA/0.jpg)](https://www.youtube.com/watch?v=ZqLPxXE7vhA)
 
 
 # Documentation
