@@ -48,4 +48,11 @@ public:
 	int32 MaxValue = std::numeric_limits<int32>::max();
 	UPROPERTY()
 	int32 MinValue = std::numeric_limits<int32>::min();
+	
+	/* static methods */
+	
+	UFUNCTION()
+	static int32 Parse(FString S) {
+		return TCString<FString::ElementType>::Atoi(*S);
+	}
 };

@@ -4,6 +4,7 @@
 
 #include "GameData/Formulas/EFormulaValueType.h"
 #include "UDotNetDouble.generated.h"
+#include "Misc/CString.h"
 
 /*
  * Internal struct used for reflection in formulas 
@@ -92,6 +93,11 @@ public:
 	UFUNCTION()
 	static bool IsPositiveInfinity(const double Value) {
 		return !FMath::IsFinite(Value) && FMath::Sign(Value) > 0;
+	}
+	
+	UFUNCTION()
+	static double Parse(FString S) {
+		return TCString<FString::ElementType>::Atod(*S);
 	}
 
 	/* instance methods */

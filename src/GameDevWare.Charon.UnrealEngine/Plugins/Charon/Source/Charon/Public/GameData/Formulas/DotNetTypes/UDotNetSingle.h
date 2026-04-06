@@ -78,6 +78,11 @@ public:
 	/* static methods */
 	
 	UFUNCTION()
+	static float Parse(FString S) {
+		return TCString<FString::ElementType>::Atof(*S);
+	}
+	
+	UFUNCTION()
 	static bool IsNaN(float Value) {
 		return FMath::IsNaN(Value);
 	}

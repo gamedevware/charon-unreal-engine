@@ -41,4 +41,11 @@ public:
 		}
 		return ArrayProperty = CastFieldChecked<FArrayProperty>(StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UDotNetBoolean, __ArrayLiteral)));
 	}
+			
+	/* static methods */
+	
+	UFUNCTION()
+	static bool Parse(FString S) {
+		return TCString<FString::ElementType>::ToBool(*S);
+	}
 };
