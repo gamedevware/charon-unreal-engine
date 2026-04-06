@@ -8,8 +8,9 @@
 
 class FDotNetSurrogateType: public IFormulaType
 {
-private:
+protected:
 	TStrongObjectPtr<UClass> const ClassPtr;
+private:
 	FProperty* LiteralField;
 	EFormulaValueType const TypeCode;
 		

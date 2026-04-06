@@ -1,6 +1,8 @@
 // Copyright GameDevWare, Denis Zykov 2025
 
 #include "GameData/Formulas/FFormulaTypeResolver.h"
+
+#include "FDotNetMathType.h"
 #include "FFormulaEnumType.h"
 #include "FFormulaUnrealType.h"
 #include "FDotNetSurrogateType.h"
@@ -11,6 +13,7 @@
 #include "GameData/Formulas/FFormulaTypeReference.h"
 #include "GameData/Formulas/IFormulaType.h"
 #include "GameData/Formulas/EFormulaValueType.h"
+#include "GameData/Formulas/DotNetTypes/UDotNetMath.h"
 
 static TMap<UPTRINT, TSharedRef<IFormulaType>> TypesByIdentity;
 static FCriticalSection TypesByIdentityLock;
@@ -283,8 +286,8 @@ static TMap<FString, UClass*>& GetOrCreateBuildInTypes()
 		{  TEXT("System.TimeSpan"), UDotNetTimeSpan::StaticClass() },
 
 		// helper types
-		// {  TEXT("Math"), UDotNetObject::StaticClass() },
-		// {  TEXT("System.Math"), UDotNetObject::StaticClass() },
+		{  TEXT("Math"), UDotNetMath::StaticClass() },
+		{  TEXT("System.Math"), UDotNetMath::StaticClass() },
 		// {  TEXT("Enum"), UDotNetObject::StaticClass() },
 		// {  TEXT("System.Enum"), UDotNetObject::StaticClass() },
 		// {  TEXT("DayOfWeek"), UDotNetObject::StaticClass() },
@@ -388,8 +391,11 @@ TSharedRef<IFormulaType> FFormulaTypeResolver::GetType(UClass* InClass)
 			return *CachedType;
 		}
 		
-		if (InClass->HasAllClassFlags(EClassFlags::CLASS_Hidden | EClassFlags::CLASS_Abstract) &&
-			InClass->GetName().StartsWith("DotNet"))
+		if (InClass->HasAllClassFlags(EClassFlags::CLASS_Hidden | EClassFlags::CLASS_Abstract) && InClass->GetName().Equals(TEXT("DotNetMath")))
+		{
+			return TypesByIdentity.Add(TypeKey, MakeShared<FDotNetMathType>(InClass));
+		}
+		else if (InClass->HasAllClassFlags(EClassFlags::CLASS_Hidden | EClassFlags::CLASS_Abstract) && InClass->GetName().StartsWith(TEXT("DotNet")))
 		{
 			return TypesByIdentity.Add(TypeKey, MakeShared<FDotNetSurrogateType>(InClass, InClass->FindPropertyByName(TEXT("__Literal"))));
 		}

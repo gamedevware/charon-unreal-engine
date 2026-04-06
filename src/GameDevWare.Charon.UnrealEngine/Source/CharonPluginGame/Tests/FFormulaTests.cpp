@@ -64,6 +64,7 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 	auto TestActor = NewObject<AActor>();
 	auto TestObject = NewObject<UFormulaTestObject>();
 	auto TestObjectClassReference = MakeShared<FMemberExpression>(nullptr, UFormulaTestObject::StaticClass()->GetName(), EmptyTypeArguments, false);
+	auto MathClassReference = MakeShared<FMemberExpression>(nullptr, FString(TEXT("Math")), EmptyTypeArguments, false);
 	auto GlobalValue = MakeShared<FFormulaValue>(TestObjectProperty, &TestObject);
 	TSharedPtr<FFormulaExpression> Expression;
 	FFormulaExecutionResult Result = FFormulaExecutionResult(FFormulaExecutionError::UnsupportedExpression("#UNKNOWN"));
@@ -381,6 +382,98 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(static_cast<int32>(0)), "GetType", static_cast<UObject*>(UDotNetInt32::StaticClass()));
 		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString()), "GetType", static_cast<UObject*>(UDotNetString::StaticClass()));
 
+		// Math static properties
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("Math", "E",  2.718281828459045);
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("Math", "PI", 3.141592653589793);
+
+		// Math.Floor / Ceiling / Truncate
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Floor",     2.0, EXPR_CONST( 2.3));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Floor",    -3.0, EXPR_CONST(-2.3));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Ceiling",   3.0, EXPR_CONST( 2.3));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Ceiling",  -2.0, EXPR_CONST(-2.3));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Truncate",  2.0, EXPR_CONST( 2.9));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Truncate", -2.0, EXPR_CONST(-2.9));
+
+		// Math.IEEERemainder  (uses std::remainder: x - y*round(x/y))
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "IEEERemainder",  1.0, EXPR_CONST(5.0), EXPR_CONST(2.0));   // 5 - 2*round(2.5) = 5 - 4 = 1
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "IEEERemainder", -1.0, EXPR_CONST(3.0), EXPR_CONST(4.0));   // 3 - 4*round(0.75) = 3 - 4 = -1
+
+		// Math.Sqrt / Pow / Exp
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Sqrt",  2.0, EXPR_CONST(4.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Sqrt",  3.0, EXPR_CONST(9.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Pow",   8.0, EXPR_CONST(2.0), EXPR_CONST(3.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Pow",   9.0, EXPR_CONST(3.0), EXPR_CONST(2.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Exp",   1.0, EXPR_CONST(0.0));
+
+		// Math.Log (2-arg, log with base) / Log10
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Log",    2.0, EXPR_CONST(100.0), EXPR_CONST(10.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Log",    3.0, EXPR_CONST(8.0),   EXPR_CONST(2.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Log10",  2.0, EXPR_CONST(100.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Log10",  0.0, EXPR_CONST(1.0));
+
+		// Math.Cbrt
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Cbrt", 2.0, EXPR_CONST(8.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Cbrt", 3.0, EXPR_CONST(27.0));
+
+		// Math trigonometry
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Sin",   0.0, EXPR_CONST(0.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Cos",   1.0, EXPR_CONST(0.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Tan",   0.0, EXPR_CONST(0.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Asin",  0.0, EXPR_CONST(0.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Acos",  0.0, EXPR_CONST(1.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Atan2", 0.0, EXPR_CONST(0.0), EXPR_CONST(1.0));
+
+		// Math hyperbolic
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Sinh",  0.0, EXPR_CONST(0.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Cosh",  1.0, EXPR_CONST(0.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Tanh",  0.0, EXPR_CONST(0.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Asinh", 0.0, EXPR_CONST(0.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Acosh", 0.0, EXPR_CONST(1.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Atanh", 0.0, EXPR_CONST(0.0));
+
+		// Math.Abs — preserves input type
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Abs",  5.0,                    EXPR_CONST(-5.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Abs",  5.0f,                   EXPR_CONST(-5.0f));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Abs",  static_cast<int32>( 7), EXPR_CONST(static_cast<int32>(-7)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Abs",  static_cast<int64>( 8), EXPR_CONST(static_cast<int64>(-8)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Abs",  static_cast<uint32>(3), EXPR_CONST(static_cast<uint32>(3)));  // unsigned: pass-through
+
+		// Math.Clamp — preserves input type
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Clamp",  5.0, EXPR_CONST( 5.0), EXPR_CONST(0.0), EXPR_CONST(10.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Clamp",  0.0, EXPR_CONST(-5.0), EXPR_CONST(0.0), EXPR_CONST(10.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Clamp", 10.0, EXPR_CONST(15.0), EXPR_CONST(0.0), EXPR_CONST(10.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Clamp", static_cast<int32>( 5), EXPR_CONST(static_cast<int32>( 5)), EXPR_CONST(static_cast<int32>(0)), EXPR_CONST(static_cast<int32>(10)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Clamp", static_cast<int32>( 0), EXPR_CONST(static_cast<int32>(-5)), EXPR_CONST(static_cast<int32>(0)), EXPR_CONST(static_cast<int32>(10)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Clamp", static_cast<int32>(10), EXPR_CONST(static_cast<int32>(15)), EXPR_CONST(static_cast<int32>(0)), EXPR_CONST(static_cast<int32>(10)));
+
+		// Math.Max / Math.Min — preserves input type
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Max",  5.0,                    EXPR_CONST( 3.0),                   EXPR_CONST( 5.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Max", -1.0,                    EXPR_CONST(-1.0),                   EXPR_CONST(-3.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Max", static_cast<int32>(5),   EXPR_CONST(static_cast<int32>(3)),  EXPR_CONST(static_cast<int32>(5)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Min",  3.0,                    EXPR_CONST( 3.0),                   EXPR_CONST( 5.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Min", -3.0,                    EXPR_CONST(-1.0),                   EXPR_CONST(-3.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Min", static_cast<int32>(3),   EXPR_CONST(static_cast<int32>(3)),  EXPR_CONST(static_cast<int32>(5)));
+
+		// Math.Round (uses std::round, rounds half away from zero)
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Round",  2.0, EXPR_CONST(2.3));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Round",  3.0, EXPR_CONST(2.7));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Round",  3.0, EXPR_CONST(2.5));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Round", -3.0, EXPR_CONST(-2.5));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Round", static_cast<int32>(5), EXPR_CONST(static_cast<int32>(5)));  // integer: pass-through
+
+		// Math.Sign — always returns int32
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Sign", static_cast<int32>(-1), EXPR_CONST(static_cast<int32>(-5)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Sign", static_cast<int32>( 0), EXPR_CONST(static_cast<int32>( 0)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Sign", static_cast<int32>( 1), EXPR_CONST(static_cast<int32>( 5)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Sign", static_cast<int32>(-1), EXPR_CONST(-3.14));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Sign", static_cast<int32>( 0), EXPR_CONST( 0.0));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "Sign", static_cast<int32>( 1), EXPR_CONST( 3.14));
+
+		// Math.DivRem — integer types only, returns quotient
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "DivRem", static_cast<int32>(2), EXPR_CONST(static_cast<int32>(7)),  EXPR_CONST(static_cast<int32>(3)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "DivRem", static_cast<int32>(2), EXPR_CONST(static_cast<int32>(10)), EXPR_CONST(static_cast<int32>(5)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "DivRem", static_cast<int64>(3), EXPR_CONST(static_cast<int64>(15)), EXPR_CONST(static_cast<int64>(4)));
+		
 		// out parameters
 		TestObject->Int32Prop = -123123;
 		TEST_EXPR_INVOKE_CHECK_VALUE(nullptr, "TestFunctionOutParam", -123123, EXPR_ARG("OutParameter"));
