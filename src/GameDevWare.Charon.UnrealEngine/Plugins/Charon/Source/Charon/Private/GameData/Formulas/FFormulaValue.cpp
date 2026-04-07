@@ -384,14 +384,53 @@ bool FFormulaValue::TryGetContainerAddress(void*& OutValue)
 
 FString FFormulaValue::ToString() const
 {
+	FString StructText;
+	WriteText(StructText);
+	return StructText;
+}
+
+bool FFormulaValue::WriteText(FString& OutString) const
+{
 	if (this->TypeCode == EFormulaValueType::Null)
 	{
-		return TEXT("null");
+		return true;
 	}
-	FString StructText;
 	const void* DataPtr = GetStructPtrChecked();
-	this->Type.ExportText_Direct(StructText, DataPtr, DataPtr, nullptr, 0);
-	return StructText;
+	return this->Type.ExportText_Direct(OutString, DataPtr, DataPtr, nullptr, 0);
+}
+
+FString FFormulaValue::ToDebugString() const
+{
+	if (this->TypeCode == EFormulaValueType::Null)
+	{
+		return TEXT("<null>");
+	}
+	else if (this->TypeCode == EFormulaValueType::String || this->TypeCode == EFormulaValueType::Text || this->TypeCode == EFormulaValueType::Name)
+	{
+		FString QuotedString;
+		QuotedString.Append("\"");
+		WriteText(QuotedString);
+		QuotedString.Append("\"");
+		return QuotedString;
+	}
+	else if (this->TypeCode == EFormulaValueType::Double)
+	{
+		FString Float64String;
+		WriteText(Float64String);
+		Float64String.Append("D");
+		return Float64String;
+	}
+	else if (this->TypeCode == EFormulaValueType::Float)
+	{
+		FString Float32String;
+		WriteText(Float32String);
+		Float32String.Append("F");
+		return Float32String;
+	}
+	else 
+	{
+		return ToString();
+	}
 }
 
 FString FFormulaValue::GetExtendedCppName(const FProperty* Property)

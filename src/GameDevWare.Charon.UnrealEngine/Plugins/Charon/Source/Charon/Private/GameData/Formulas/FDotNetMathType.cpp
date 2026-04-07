@@ -2,10 +2,9 @@
 
 // ReSharper disable CppUseFamiliarTemplateSyntaxForGenericLambdas
 #include "FDotNetMathType.h"
-
-#include <cmath>
 #include "GameData/Formulas/FFormulaProperty.h"
 #include "UObject/UnrealType.h"
+#include <cmath>
 
 static bool IsNumeric(const EFormulaValueType TypeCode)
 {

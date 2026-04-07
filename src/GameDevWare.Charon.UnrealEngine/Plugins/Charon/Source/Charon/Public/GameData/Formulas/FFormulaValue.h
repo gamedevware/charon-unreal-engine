@@ -188,9 +188,13 @@ public:
 	 */
 	bool TryGetContainerAddress(void*& OutValue);
 
-	/** Returns a string representation of the stored value for debugging or logging. */
+	/** Returns a string representation of the stored value. */
 	FString ToString() const;
-
+	/** Write a string representation of the stored value for debugging or logging. */
+	bool WriteText(FString& OutString) const;
+	/** Returns a string representation of the stored value for debugging or logging. */
+	FString ToDebugString() const;
+	
 	/** Returns a string representation of the full C++ name of the property's value. */
 	static FString GetExtendedCppName(const FProperty* Property);
 private:

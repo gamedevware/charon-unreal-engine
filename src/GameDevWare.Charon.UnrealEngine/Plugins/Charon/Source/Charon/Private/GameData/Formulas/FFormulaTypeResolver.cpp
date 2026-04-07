@@ -3,6 +3,7 @@
 #include "GameData/Formulas/FFormulaTypeResolver.h"
 
 #include "FDotNetMathType.h"
+#include "FDotNetStringType.h"
 #include "FFormulaEnumType.h"
 #include "FFormulaUnrealType.h"
 #include "FDotNetSurrogateType.h"
@@ -169,15 +170,17 @@ FFormulaTypeResolver::FFormulaTypeResolver(const TSharedPtr<FFormulaTypeResolver
 
 	FString FullName;
 	FString Prefix;
-	TSet<UObject*> ProcessedTypes;
-	for (UObject* KnownType : KnownTypes)
+	TSet<UObject*> KnownTypeSet = TSet(KnownTypes);
+	
+	// make sure build-in enums are defined in TypeResolver
+	if (!Parent)
 	{
-		if (ProcessedTypes.Contains(KnownType))
-		{
-			continue;; // already added
-		}
-		ProcessedTypes.Add(KnownType);
-
+		KnownTypeSet.Add(StaticEnum<EStringComparison>());
+		KnownTypeSet.Add(StaticEnum<EStringSplitOptions>());
+	}
+	
+	for (UObject* KnownType : KnownTypeSet)
+	{
 		Prefix.Reset();
 		FullName.Reset();
 		
@@ -394,6 +397,10 @@ TSharedRef<IFormulaType> FFormulaTypeResolver::GetType(UClass* InClass)
 		if (InClass->HasAllClassFlags(EClassFlags::CLASS_Hidden | EClassFlags::CLASS_Abstract) && InClass->GetName().Equals(TEXT("DotNetMath")))
 		{
 			return TypesByIdentity.Add(TypeKey, MakeShared<FDotNetMathType>(InClass));
+		}
+		else if (InClass->HasAllClassFlags(EClassFlags::CLASS_Hidden | EClassFlags::CLASS_Abstract) && InClass->GetName().Equals(TEXT("DotNetString")))
+		{
+			return TypesByIdentity.Add(TypeKey, MakeShared<FDotNetStringType>(InClass, InClass->FindPropertyByName(TEXT("__Literal"))));
 		}
 		else if (InClass->HasAllClassFlags(EClassFlags::CLASS_Hidden | EClassFlags::CLASS_Abstract) && InClass->GetName().StartsWith(TEXT("DotNet")))
 		{

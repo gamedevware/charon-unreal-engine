@@ -142,7 +142,7 @@ FFormulaExecutionResult FIndexExpression::Execute(const FFormulaExecutionContext
 		
 		if (!KeyArgument->TryCopyCompleteValue(KeyProperty, ConvertedKeyValue.GetData()))
 		{
-			return FFormulaExecutionError::InvalidDictionaryKeyType(KeyArgument->ToString(), KeyArgument->GetCPPType(), KeyProperty->GetCPPType());
+			return FFormulaExecutionError::InvalidDictionaryKeyType(KeyArgument->ToDebugString(), KeyArgument->GetCPPType(), KeyProperty->GetCPPType());
 		}
 
 		const int32 MaxIndex = MapWrap.GetMaxIndex();
@@ -167,7 +167,7 @@ FFormulaExecutionResult FIndexExpression::Execute(const FFormulaExecutionContext
 		}
 		
 		KeyProperty->DestroyValue(ConvertedKeyValue.GetData());
-		return FFormulaExecutionError::DictionaryKeyNotFound(KeyArgument->ToString(), KeyArgument->GetCPPType());
+		return FFormulaExecutionError::DictionaryKeyNotFound(KeyArgument->ToDebugString(), KeyArgument->GetCPPType());
 	}
 
 	TArray<FString> ArgumentValueTypes;

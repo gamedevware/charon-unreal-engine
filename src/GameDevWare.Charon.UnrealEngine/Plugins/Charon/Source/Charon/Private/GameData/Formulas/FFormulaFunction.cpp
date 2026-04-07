@@ -120,18 +120,29 @@ FFormulaFunctionInvokeFunc FFormulaFunction::CreateDefaultFunctionInvoker(UFunct
 			}
 
 			const auto InvokeArgumentPtr = CallArguments.FindArgument(Parameter, ParameterIndex, ParameterName);
-			if (!InvokeArgumentPtr)
+			void* ArgumentDataPtr = Parameter->ContainerPtrToValuePtr<void>(ArgumentBufferPtr);
+			if (InvokeArgumentPtr)
 			{
-				UE_LOG(LogFormulaFunction, Warning, TEXT("Method binding failed because the required parameter %s[#%d] was not found in the argument list."), *Parameter->GetName(), ParameterIndex);
-				bIsMatching = false;
+				// bind argument
+				if (!InvokeArgumentPtr->Value->TryCopyCompleteValue(Parameter, ArgumentDataPtr))
+				{
+					UE_LOG(LogFormulaFunction, Warning, TEXT("Method binding failed because the '%s' value of the %s parameter could not be cast/coerced to the %s type."), *InvokeArgumentPtr->Value->GetCPPType(), *Parameter->GetName(), *FFormulaValue::GetExtendedCppName(Parameter) );
+					bIsMatching = false; // argument bind failed
+					break;
+				}
+			} 
+			else if (FName MetadataKey(FString(TEXT("CPP_Default_")) + Parameter->GetName()); FunctionOrNull->HasMetaData(MetadataKey))
+			{
+				// bind default value
+				FString DefaultValue = FunctionOrNull->GetMetaData(MetadataKey);
+				Parameter->ImportText_Direct(*DefaultValue, ArgumentDataPtr, nullptr, PPF_None);
 				break;
 			}
-			
-			void* ArgumentDataPtr = Parameter->ContainerPtrToValuePtr<void>(ArgumentBufferPtr);
-			if (!InvokeArgumentPtr->Value->TryCopyCompleteValue(Parameter, ArgumentDataPtr))
+			else
 			{
-				UE_LOG(LogFormulaFunction, Warning, TEXT("Method binding failed because the '%s' value of the %s parameter could not be cast/coerced to the %s type."), *InvokeArgumentPtr->Value->GetCPPType(), *Parameter->GetName(), *FFormulaValue::GetExtendedCppName(Parameter) );
-				bIsMatching = false; // argument bind failed
+				// failed to bind required parameter
+				UE_LOG(LogFormulaFunction, Warning, TEXT("Method binding failed because the required parameter %s[#%d] was not found in the argument list."), *Parameter->GetName(), ParameterIndex);
+				bIsMatching = false;
 				break;
 			}
 		}

@@ -3,8 +3,9 @@
 #pragma once
 
 #include "GameData/Formulas/EFormulaValueType.h"
-#include "UDotNetDouble.generated.h"
 #include "Misc/CString.h"
+
+#include "UDotNetDouble.generated.h"
 
 /*
  * Internal struct used for reflection in formulas 

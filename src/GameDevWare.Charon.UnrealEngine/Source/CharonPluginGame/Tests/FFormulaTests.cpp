@@ -64,7 +64,8 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 	auto TestActor = NewObject<AActor>();
 	auto TestObject = NewObject<UFormulaTestObject>();
 	auto TestObjectClassReference = MakeShared<FMemberExpression>(nullptr, UFormulaTestObject::StaticClass()->GetName(), EmptyTypeArguments, false);
-	auto MathClassReference = MakeShared<FMemberExpression>(nullptr, FString(TEXT("Math")), EmptyTypeArguments, false);
+	auto MathClassReference   = MakeShared<FMemberExpression>(nullptr, FString(TEXT("Math")),   EmptyTypeArguments, false);
+	auto StringClassReference = MakeShared<FMemberExpression>(nullptr, FString(TEXT("String")), EmptyTypeArguments, false);
 	auto GlobalValue = MakeShared<FFormulaValue>(TestObjectProperty, &TestObject);
 	TSharedPtr<FFormulaExpression> Expression;
 	FFormulaExecutionResult Result = FFormulaExecutionResult(FFormulaExecutionError::UnsupportedExpression("#UNKNOWN"));
@@ -473,7 +474,93 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "DivRem", static_cast<int32>(2), EXPR_CONST(static_cast<int32>(7)),  EXPR_CONST(static_cast<int32>(3)));
 		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "DivRem", static_cast<int32>(2), EXPR_CONST(static_cast<int32>(10)), EXPR_CONST(static_cast<int32>(5)));
 		TEST_EXPR_INVOKE_CHECK_VALUE(MathClassReference, "DivRem", static_cast<int64>(3), EXPR_CONST(static_cast<int64>(15)), EXPR_CONST(static_cast<int64>(4)));
-		
+
+		// String static properties
+		TEST_EXPR_STATIC_MEMBER_CHECK_VALUE("String", "Empty", FString(TEXT("")));
+
+		// String instance methods — comparison
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello"))), "CompareTo", static_cast<int32>(0),  EXPR_CONST(FString(TEXT("hello"))), EXPR_CONST(static_cast<int32>(EStringComparison::Ordinal)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello"))), "Contains",  static_cast<int32>(1),  EXPR_CONST(FString(TEXT("ell"))), EXPR_CONST(static_cast<int32>(EStringComparison::Ordinal)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello"))), "Contains",  static_cast<int32>(0),  EXPR_CONST(FString(TEXT("xyz"))), EXPR_CONST(static_cast<int32>(EStringComparison::Ordinal)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello"))), "EndsWith",  true,  EXPR_CONST(FString(TEXT("llo"))), EXPR_CONST(static_cast<int32>(EStringComparison::Ordinal)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello"))), "EndsWith",  false, EXPR_CONST(FString(TEXT("hel"))), EXPR_CONST(static_cast<int32>(EStringComparison::Ordinal)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello"))), "StartsWith", true,  EXPR_CONST(FString(TEXT("hel"))), EXPR_CONST(static_cast<int32>(EStringComparison::Ordinal)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello"))), "StartsWith", false, EXPR_CONST(FString(TEXT("llo"))), EXPR_CONST(static_cast<int32>(EStringComparison::Ordinal)));
+
+		// String instance methods — search
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello"))), "IndexOf",     static_cast<int32>( 2), EXPR_CONST(FString(TEXT("ll"))), EXPR_CONST(static_cast<int32>(EStringComparison::Ordinal)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello"))), "IndexOf",     static_cast<int32>(-1), EXPR_CONST(FString(TEXT("xyz"))), EXPR_CONST(static_cast<int32>(EStringComparison::Ordinal)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello"))), "LastIndexOf", static_cast<int32>( 3), EXPR_CONST(FString(TEXT("l"))), EXPR_CONST(static_cast<int32>(EStringComparison::Ordinal)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello"))), "LastIndexOf", static_cast<int32>(-1), EXPR_CONST(FString(TEXT("xyz"))), EXPR_CONST(static_cast<int32>(EStringComparison::Ordinal)));
+
+		// String instance methods — mutation
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello"))),       "Insert",    FString(TEXT("heXYllo")),   EXPR_CONST(static_cast<int32>(2)), EXPR_CONST(FString(TEXT("XY"))));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hi"))),          "PadLeft",   FString(TEXT("   hi")),     EXPR_CONST(static_cast<int32>(5)), EXPR_CONST(FString(TEXT(" "))));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hi"))),          "PadRight",  FString(TEXT("hi   ")),     EXPR_CONST(static_cast<int32>(5)), EXPR_CONST(FString(TEXT(" "))));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello"))),       "Remove",    FString(TEXT("he")),        EXPR_CONST(static_cast<int32>(2)), EXPR_CONST(static_cast<int32>(3)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello"))),       "Remove",    FString(TEXT("ho")),        EXPR_CONST(static_cast<int32>(1)), EXPR_CONST(static_cast<int32>(3)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello world"))), "Replace",   FString(TEXT("hello earth")), EXPR_CONST(FString(TEXT("world"))), EXPR_CONST(FString(TEXT("earth"))), EXPR_CONST(static_cast<int32>(EStringComparison::Ordinal)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("line1\r\nline2\nline3"))), "ReplaceLineEndings", FString(TEXT("line1\r\nline2\r\nline3")), EXPR_CONST(FString(TEXT("\r\n"))));
+
+		// String instance methods — sub-string
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello world"))), "Substring", FString(TEXT("world")), EXPR_CONST(static_cast<int32>(6)), EXPR_CONST(static_cast<int32>(5)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello world"))), "Substring", FString(TEXT("wor")),   EXPR_CONST(static_cast<int32>(6)), EXPR_CONST(static_cast<int32>(3)));
+
+		// String instance methods — case
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("Hello World"))), "ToLower",          FString(TEXT("hello world")));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("Hello World"))), "ToLowerInvariant",  FString(TEXT("hello world")));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("Hello World"))), "ToUpper",          FString(TEXT("HELLO WORLD")));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("Hello World"))), "ToUpperInvariant",  FString(TEXT("HELLO WORLD")));
+
+		// String instance methods — trim
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("  hello  "))), "Trim",      FString(TEXT("hello")),      EXPR_CONST(FString(TEXT(""))));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("  hello  "))), "TrimStart", FString(TEXT("hello  ")),    EXPR_CONST(FString(TEXT(""))));
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("  hello  "))), "TrimEnd",   FString(TEXT("  hello")),    EXPR_CONST(FString(TEXT(""))));
+
+		// String static methods
+		TEST_EXPR_INVOKE_CHECK_VALUE(StringClassReference, "Equals",          true,                  EXPR_CONST(FString(TEXT("hello"))), EXPR_CONST(FString(TEXT("hello"))), EXPR_CONST(static_cast<int32>(EStringComparison::Ordinal)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(StringClassReference, "Equals",          false,                 EXPR_CONST(FString(TEXT("hello"))), EXPR_CONST(FString(TEXT("world"))), EXPR_CONST(static_cast<int32>(EStringComparison::Ordinal)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(StringClassReference, "Compare",         static_cast<int32>(0), EXPR_CONST(FString(TEXT("abc"))),   EXPR_CONST(FString(TEXT("abc"))), EXPR_CONST(static_cast<int32>(EStringComparison::Ordinal)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(StringClassReference, "CompareOrdinal",  static_cast<int32>(0), EXPR_CONST(FString(TEXT("abc"))),   EXPR_CONST(FString(TEXT("abc"))));
+		TEST_EXPR_INVOKE_CHECK_VALUE(StringClassReference, "IsNullOrEmpty",      true,  EXPR_CONST(FString(TEXT(""))));
+		TEST_EXPR_INVOKE_CHECK_VALUE(StringClassReference, "IsNullOrEmpty",      false, EXPR_CONST(FString(TEXT("x"))));
+		TEST_EXPR_INVOKE_CHECK_VALUE(StringClassReference, "IsNullOrWhiteSpace", true,  EXPR_CONST(FString(TEXT("   "))));
+		TEST_EXPR_INVOKE_CHECK_VALUE(StringClassReference, "IsNullOrWhiteSpace", false, EXPR_CONST(FString(TEXT("x"))));
+
+		// String.Concat — variadic
+		TEST_EXPR_INVOKE_CHECK_VALUE(StringClassReference, "Concat", FString(TEXT("abc")),         EXPR_CONST(FString(TEXT("a"))), EXPR_CONST(FString(TEXT("b"))), EXPR_CONST(FString(TEXT("c"))));
+		TEST_EXPR_INVOKE_CHECK_VALUE(StringClassReference, "Concat", FString(TEXT("hello world")), EXPR_CONST(FString(TEXT("hello"))), EXPR_CONST(FString(TEXT(" "))), EXPR_CONST(FString(TEXT("world"))));
+
+		// String.Format — basic {N} substitution and {{ }} escaping
+		TEST_EXPR_INVOKE_CHECK_VALUE(StringClassReference, "Format", FString(TEXT("Hello, World!")), EXPR_CONST(FString(TEXT("Hello, {0}!"))),   EXPR_CONST(FString(TEXT("World"))));
+		TEST_EXPR_INVOKE_CHECK_VALUE(StringClassReference, "Format", FString(TEXT("x=1, y=2")),      EXPR_CONST(FString(TEXT("x={0}, y={1}"))),  EXPR_CONST(static_cast<int32>(1)), EXPR_CONST(static_cast<int32>(2)));
+		TEST_EXPR_INVOKE_CHECK_VALUE(StringClassReference, "Format", FString(TEXT("{brace}")),        EXPR_CONST(FString(TEXT("{{brace}}"))));   // escaped braces, no args
+
+		// String.Join — variadic
+		TEST_EXPR_INVOKE_CHECK_VALUE(StringClassReference, "Join", FString(TEXT("a, b, c")), EXPR_CONST(FString(TEXT(", "))), EXPR_CONST(FString(TEXT("a"))), EXPR_CONST(FString(TEXT("b"))), EXPR_CONST(FString(TEXT("c"))));
+		TEST_EXPR_INVOKE_CHECK_VALUE(StringClassReference, "Join", FString(TEXT("1-2-3")),   EXPR_CONST(FString(TEXT("-"))),  EXPR_CONST(FString(TEXT("1"))), EXPR_CONST(FString(TEXT("2"))), EXPR_CONST(FString(TEXT("3"))));
+
+		// String.Split — manual check (returns TArray<FString>, not compatible with CHECK_VALUE)
+		Expression = MakeShared<FInvokeExpression>(
+			EXPR_MEMBER(EXPR_CONST(FString(TEXT("a,b,c"))), "Split", false),
+			TMap {
+				PrepareArguments(TArray<TSharedPtr<FFormulaExpression>> { EXPR_CONST(FString(TEXT(","))), EXPR_CONST(static_cast<int32>(EStringSplitOptions::None)) })
+			}
+		);
+		INFO(TEXT("Testing \"a,b,c\".Split(\",\")"));
+		Result = Expression->Execute(Context, nullptr);
+		REQUIRE_NO_ERROR();
+		{
+			void* SplitArrayPtr = nullptr;
+			CHECK(Result.GetValue()->TryGetContainerAddress(SplitArrayPtr));
+			REQUIRE(SplitArrayPtr != nullptr);
+			const TArray<FString>& SplitResult = *static_cast<TArray<FString>*>(SplitArrayPtr);
+			REQUIRE(SplitResult.Num() == 3);
+			CHECK_EQUALS("Split[0]", SplitResult[0], FString(TEXT("a")));
+			CHECK_EQUALS("Split[1]", SplitResult[1], FString(TEXT("b")));
+			CHECK_EQUALS("Split[2]", SplitResult[2], FString(TEXT("c")));
+		}
+
 		// out parameters
 		TestObject->Int32Prop = -123123;
 		TEST_EXPR_INVOKE_CHECK_VALUE(nullptr, "TestFunctionOutParam", -123123, EXPR_ARG("OutParameter"));
