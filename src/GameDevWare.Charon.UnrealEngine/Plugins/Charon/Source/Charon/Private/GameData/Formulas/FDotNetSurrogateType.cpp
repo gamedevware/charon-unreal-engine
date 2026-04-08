@@ -69,7 +69,7 @@ static bool IsExtensionProperty(const UFunction* Function, const FProperty* Targ
 FDotNetSurrogateType::FDotNetSurrogateType(UClass* SurrogateClass, FProperty* LiteralProperty) :
 	ClassPtr(SurrogateClass),
 	LiteralField(LiteralProperty),
-	TypeCode(LiteralProperty ? GetPropertyTypeCode(LiteralProperty) : EFormulaValueType::Struct)
+	TypeCode(LiteralProperty ? GetFormulaValueTypeCode(LiteralProperty) : EFormulaValueType::Struct)
 {
 }
 

@@ -155,7 +155,7 @@ static TSharedRef<IFormulaType> CreateFormulaType(const FProperty* InValueType)
 		const auto ValueType = CreateFormulaType(MapProperty->GetValueProperty());
 		return MakeShared<FFormulaMapType>(KeyType, ValueType);
 	}
-	else if (UClass* SurrogateClass = GetSurrogateType(GetPropertyTypeCode(InValueType)))
+	else if (UClass* SurrogateClass = GetSurrogateType(GetFormulaValueTypeCode(InValueType)))
 	{
 		return MakeShared<FDotNetSurrogateType>(SurrogateClass, SurrogateClass->FindPropertyByName(TEXT("__Literal")));
 	}

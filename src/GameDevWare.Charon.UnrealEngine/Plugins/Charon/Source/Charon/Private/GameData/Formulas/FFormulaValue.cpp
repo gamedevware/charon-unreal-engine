@@ -2,6 +2,7 @@
 
 // ReSharper disable CppUseFamiliarTemplateSyntaxForGenericLambdas
 #include "GameData/Formulas/FFormulaValue.h"
+#include "GameData/Formulas/FormulaTypeTraits.h"
 #include "utility"
 #include <limits>
 #include <type_traits>
@@ -11,11 +12,9 @@
 #include "UObject/FieldPathProperty.h"
 #include "UObject/TextProperty.h"
 #include "UObject/UnrealType.h"
-#include "GameData/Formulas/FormulaTypeTraits.h"
 #if __has_include("UObject/StrProperty.h")
 #include "UObject/StrProperty.h"
 #endif
-#include "Templates/UnrealTemplate.h"
 
 DEFINE_LOG_CATEGORY(LogFormulaValue);
 
@@ -101,29 +100,6 @@ bool FFormulaValue::EqualsTo(const TSharedRef<FFormulaValue>& Other) const
 		});
 }
 
-FFormulaValue::FFormulaValue(FProperty* ValueType):
-	Type(CastField<FObjectPropertyBase>(ValueType) ? *UDotNetObject::GetNullLiteralProperty() : *ValueType),
-	TypeCode(CastField<FObjectPropertyBase>(ValueType) ? EFormulaValueType::Null : GetPropertyTypeCode(&this->Type))
-{
-	check(ValueType);
-	checkSlow(this->Type.GetSize() > 0);
-	
-	this->StructBytes.SetNumZeroed(this->Type.GetSize());
-	this->Type.InitializeValue(GetStructPtrChecked());
-}
-
-FFormulaValue::FFormulaValue(FProperty* ValueType, const void* ValuePtr):
-	Type(IsNullValue(ValueType, ValuePtr) ? *UDotNetObject::GetNullLiteralProperty() : *ValueType),
-	TypeCode(IsNullValue(ValueType, ValuePtr) ? EFormulaValueType::Null : GetPropertyTypeCode(&this->Type))
-{
-	check(ValueType);
-	check(ValuePtr);
-	checkSlow(this->Type.GetSize() > 0);
-	
-	this->StructBytes.SetNumZeroed(this->Type.GetSize());
-	this->Type.CopyCompleteValue(GetStructPtrChecked(), ValuePtr);
-}
-
 FFormulaValue::~FFormulaValue()
 {
 	// UStruct/FString/FArrays etc stored in StructBytes are always in valid state and properly initialized
@@ -136,11 +112,56 @@ FFormulaValue::~FFormulaValue()
 	}
 }
 
+FFormulaValue::FFormulaValue(FormulaValueWithTypeTuple ValueWithType)
+	: Type(*ValueWithType.Get<FProperty*>()), TypeCode(ValueWithType.Get<EFormulaValueType>())
+{
+	checkSlow(this->Type.GetSize() > 0);
+	const void* ValuePtr = ValueWithType.Get<const void*>();
+	
+	this->StructBytes.SetNumZeroed(this->Type.GetSize());
+	if (ValuePtr == nullptr)
+	{
+		this->Type.InitializeValue(GetStructPtrChecked());
+	}
+	else
+	{
+		this->Type.CopyCompleteValue(GetStructPtrChecked(), ValuePtr);
+	}
+}
+
 bool FFormulaValue::TryCopyCompleteValue(const FProperty* DestinationType, void* DestinationPtr) const
 {
 	check(DestinationType);
 	check(DestinationPtr);
 
+	// try to copy into optional value
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+	if (const FOptionalProperty* DestinationOptionalProperty = CastField<FOptionalProperty>(DestinationType))
+	{
+		if (this->IsNull())
+		{
+			DestinationOptionalProperty->MarkUnset(DestinationPtr);
+			return true;
+		}
+		
+		FProperty* InnerValueProperty = DestinationOptionalProperty->GetValueProperty();
+		bool const bWasUnset = !DestinationOptionalProperty->IsSet(DestinationPtr);
+		void* const InnerValuePtr = bWasUnset ? DestinationOptionalProperty->MarkSetAndGetInitializedValuePointerToReplace(DestinationPtr) : 
+			DestinationOptionalProperty->GetValuePointerForReplace(DestinationPtr);
+
+		if (TryCopyCompleteValue(InnerValueProperty, InnerValuePtr))
+		{
+			return true;
+		}
+		
+		if (bWasUnset)
+		{
+			DestinationOptionalProperty->MarkUnset(DestinationPtr);
+		}
+		return false;
+	}
+#endif
+	
 	if (this->Type.ArrayDim != DestinationType->ArrayDim)
 	{
 		return false; // type's arity is not same
@@ -176,13 +197,46 @@ bool FFormulaValue::TryCopyCompleteValue(const FProperty* DestinationType, void*
 	{
 		return TryCopyObjectValue(DestinationObjectProperty, DestinationPtr);
 	}
-	
+
 	// try coerce numeric value
 	return TryCopyNumericValue(DestinationType, DestinationPtr);
 }
 
 bool FFormulaValue::TrySetPropertyValue_InContainer(const FProperty* DestinationType, void* ContainerPtr, int32 ArrayIndex) const
 {
+	// try to set optional value
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+	if (const FOptionalProperty* DestinationOptionalProperty = CastField<FOptionalProperty>(DestinationType))
+	{
+		if (ArrayIndex != 0)
+		{
+			return false; // optional doesn't support arity
+		}
+		
+		if (this->IsNull())
+		{
+			DestinationOptionalProperty->MarkUnset(ContainerPtr);
+			return true;
+		}
+		
+		FProperty* InnerValueProperty = DestinationOptionalProperty->GetValueProperty();
+		bool const bWasUnset = !DestinationOptionalProperty->IsSet(ContainerPtr);
+		void* const InnerValuePtr = bWasUnset ? DestinationOptionalProperty->MarkSetAndGetInitializedValuePointerToReplace(ContainerPtr) : 
+			DestinationOptionalProperty->GetValuePointerForReplace(ContainerPtr);
+
+		if (TrySetPropertyValue_InContainer(InnerValueProperty, InnerValuePtr, ArrayIndex))
+		{
+			return true;
+		}
+		
+		if (bWasUnset)
+		{
+			DestinationOptionalProperty->MarkUnset(ContainerPtr);
+		}
+		return false;
+	}
+#endif
+	
 	if (this->Type.ArrayDim != DestinationType->ArrayDim)
 	{
 		return false; // type's arity is not same
@@ -533,12 +587,12 @@ bool FFormulaValue::TryCopyObjectValue(const FObjectPropertyBase* DestinationObj
 
 bool FFormulaValue::TryCopyNumericValue(const FProperty* DestinationType, void* DestinationPtr) const
 {
-	EFormulaValueType ToTypeCode = GetPropertyTypeCode(DestinationType);
+	EFormulaValueType ToTypeCode = GetFormulaValueTypeCode(DestinationType);
 	
 	// unwrap types to primitive values
 	if (const FEnumProperty* EnumProperty = CastField<FEnumProperty>(DestinationType))
 	{
-		ToTypeCode = GetPropertyTypeCode(EnumProperty->GetUnderlyingProperty());
+		ToTypeCode = GetFormulaValueTypeCode(EnumProperty->GetUnderlyingProperty());
 	}
 	
 	return this->VisitValue([ToTypeCode, DestinationPtr](FProperty&, const auto& InValue) -> bool

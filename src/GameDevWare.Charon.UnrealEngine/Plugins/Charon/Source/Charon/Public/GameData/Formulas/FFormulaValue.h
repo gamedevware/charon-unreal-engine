@@ -5,8 +5,11 @@
 #include "CoreMinimal.h"
 #include "CoreTypes.h"
 #include "Templates/SharedPointer.h"
+#include "Templates/Tuple.h"
+#include "Templates/UnrealTemplate.h"
 #include "Misc/Timespan.h"
 #include "Misc/DateTime.h"
+#include "Misc/Optional.h"
 #include "Internationalization/Text.h"
 #include "UObject/NameTypes.h"
 #include "UObject/Object.h"
@@ -40,26 +43,25 @@ private:
 	FProperty& Type;
 	EFormulaValueType const TypeCode;
 
-	template<typename T>
-	static bool IsNullValue(T Value)
-	{
-		if constexpr (std::is_same_v<T, UObject*>)
-			return Value == nullptr;
-		else if constexpr (std::is_same_v<T, nullptr_t>)
-			return true;
-		else
-			return false;
-	}
-	static bool IsNullValue(FProperty* ValueType, const void* ValuePtr)
-	{
-		check(ValueType);
-		check(ValuePtr);
-		
-		const FObjectPropertyBase* ObjectProperty = CastField<FObjectPropertyBase>(ValueType);
-		return ObjectProperty && ObjectProperty->GetObjectPropertyValue(ValuePtr) == nullptr;
-	}
+public:
+	explicit FFormulaValue(FProperty* ValueType) : FFormulaValue(FormulaValueWithTypeTuple(
+		UnwrapFormulaValueType(ValueType), 
+		GetFormulaValueTypeCode(ValueType), 
+		nullptr /* initialize as default value */))	{}
 	
+	explicit FFormulaValue(FProperty* ValueType, const void* ValuePtr) : 
+		FFormulaValue(UnwrapNullOrOptionalFormulaValue(ValueType, ValuePtr)) {}
+	
+	template<typename T>
+	explicit FFormulaValue(T Value) : FFormulaValue(UnwrapNullOrOptionalFormulaValue(Value))
+	{
+	}
+	explicit FFormulaValue(const TObjectPtr<UObject> Value) : FFormulaValue(Value.Get()) { }
+	// ReSharper restore CppNonExplicitConvertingConstructor
+	~FFormulaValue();
+private:
 	FFormulaValue();
+	FFormulaValue(FormulaValueWithTypeTuple ValueWithType);
 public:
 	/** Creates a formula value representing a null/undefined state. */
 	static TSharedRef<FFormulaValue> Null();
@@ -90,26 +92,7 @@ public:
 	 */
 	bool IsNull() const { return  this->TypeCode == EFormulaValueType::Null; }
 	bool EqualsTo(const TSharedRef<FFormulaValue>& Other) const;
-
-	FFormulaValue(FProperty* ValueType);
-	explicit FFormulaValue(FProperty* ValueType, const void* ValuePtr);
 	
-	template<typename T>
-	FFormulaValue(T Value):
-		Type(IsNullValue<T>(Value) ? *UDotNetObject::GetNullLiteralProperty() : *TFormulaTypeMap<T>::Type::GetLiteralProperty()),
-		TypeCode(IsNullValue<T>(Value) ? EFormulaValueType::Null : TFormulaTypeMap<T>::Type::TypeCode)
-	{
-		static_assert(TIsFormulaTypeMapped<T>::value, "Type is not mapped in TFormulaTypeMap. Please add a specialization: template<> struct TFormulaTypeMap<YourType> { using Type = ...; };");
-		
-		checkSlow(this->Type.GetSize() > 0);
-		
-		this->StructBytes.SetNumZeroed(this->Type.GetSize());
-		this->Type.CopyCompleteValue(this->StructBytes.GetData(), &Value);
-	}
-	FFormulaValue(const TObjectPtr<UObject> Value) : FFormulaValue(Value.Get()) { }
-	// ReSharper restore CppNonExplicitConvertingConstructor
-	~FFormulaValue();
-
 	/**
 	 * Validates and copies the internal value to a destination memory address.
 	 * * @param DestinationType The target FProperty type to copy to.
@@ -144,7 +127,7 @@ public:
 		// unwrap types to primitive value
 		if (const FEnumProperty* EnumProperty = CastField<FEnumProperty>(&this->Type))
 		{
-			FromTypeCode = GetPropertyTypeCode(EnumProperty->GetUnderlyingProperty());
+			FromTypeCode = GetFormulaValueTypeCode(EnumProperty->GetUnderlyingProperty());
 		}
 		
 		switch (FromTypeCode) {

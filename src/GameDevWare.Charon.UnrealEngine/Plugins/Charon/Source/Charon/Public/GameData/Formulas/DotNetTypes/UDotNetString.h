@@ -11,6 +11,7 @@
 #if __has_include("UObject/StrProperty.h")
 #include "UObject/StrProperty.h"
 #endif
+#include "Misc/EngineVersionComparison.h"
 
 #include "UDotNetString.generated.h"
 
@@ -28,6 +29,12 @@ private:
 	UPROPERTY()
 	TArray<FString> __ArrayLiteral;
 
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+	static ESearchCase::Type ToSearchCase(TOptional<EStringComparison> ComparisonType)
+	{
+		return ToSearchCase(ComparisonType.IsSet() ? ComparisonType.GetValue() : EStringComparison::Ordinal); 
+	}
+#endif
 	static ESearchCase::Type ToSearchCase(EStringComparison ComparisonType)
 	{
 		return (ComparisonType == EStringComparison::OrdinalIgnoreCase
@@ -35,7 +42,7 @@ private:
 			 || ComparisonType == EStringComparison::InvariantCultureIgnoreCase)
 			? ESearchCase::IgnoreCase : ESearchCase::CaseSensitive;
 	}
-
+	
 public:
 	inline static EFormulaValueType TypeCode = EFormulaValueType::String;
 
@@ -82,7 +89,13 @@ public:
 	//* instance methods */
 
 	UFUNCTION()
-	static int CompareTo(FString Self, FString StrB, EStringComparison ComparisonType = EStringComparison::Ordinal)
+	static int CompareTo(FString Self, FString StrB,
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+		TOptional<EStringComparison> ComparisonType
+#else
+		EStringComparison ComparisonType = EStringComparison::Ordinal
+#endif
+	)
 	{
 		if (ToSearchCase(ComparisonType) == ESearchCase::IgnoreCase)
 			return FCString::Stricmp(*Self, *StrB);
@@ -90,31 +103,61 @@ public:
 	}
 
 	UFUNCTION()
-	static int Contains(FString Self, FString StrB, EStringComparison ComparisonType = EStringComparison::Ordinal)
+	static int Contains(FString Self, FString StrB, 
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+		TOptional<EStringComparison> ComparisonType
+#else
+		EStringComparison ComparisonType = EStringComparison::Ordinal
+#endif
+	)
 	{
 		return Self.Contains(*StrB, ToSearchCase(ComparisonType)) ? 1 : 0;
 	}
 
 	UFUNCTION()
-	static bool EndsWith(FString Self, FString Value, EStringComparison ComparisonType = EStringComparison::Ordinal)
+	static bool EndsWith(FString Self, FString Value, 
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+		TOptional<EStringComparison> ComparisonType
+#else
+		EStringComparison ComparisonType = EStringComparison::Ordinal
+#endif
+	)
 	{
 		return Self.EndsWith(Value, ToSearchCase(ComparisonType));
 	}
 
 	UFUNCTION()
-	static bool StartsWith(FString Self, FString Value, EStringComparison ComparisonType = EStringComparison::Ordinal)
+	static bool StartsWith(FString Self, FString Value,
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+		TOptional<EStringComparison> ComparisonType
+#else
+		EStringComparison ComparisonType = EStringComparison::Ordinal
+#endif
+	)
 	{
 		return Self.StartsWith(Value, ToSearchCase(ComparisonType));
 	}
 
 	UFUNCTION()
-	static int IndexOf(FString Self, FString Value, EStringComparison ComparisonType = EStringComparison::Ordinal)
+	static int IndexOf(FString Self, FString Value, 
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+		TOptional<EStringComparison> ComparisonType
+#else
+		EStringComparison ComparisonType = EStringComparison::Ordinal
+#endif
+	)
 	{
 		return Self.Find(*Value, ToSearchCase(ComparisonType), ESearchDir::FromStart);
 	}
 
 	UFUNCTION()
-	static int LastIndexOf(FString Self, FString Value, EStringComparison ComparisonType = EStringComparison::Ordinal)
+	static int LastIndexOf(FString Self, FString Value, 
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+		TOptional<EStringComparison> ComparisonType
+#else
+		EStringComparison ComparisonType = EStringComparison::Ordinal
+#endif
+	)
 	{
 		return Self.Find(*Value, ToSearchCase(ComparisonType), ESearchDir::FromEnd);
 	}
@@ -126,32 +169,68 @@ public:
 	}
 
 	UFUNCTION()
-	static FString PadLeft(FString Self, int32 TotalWidth, FString PaddingChar)
+	static FString PadLeft(FString Self, int32 TotalWidth,
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+		TOptional<FString> PaddingChar
+#else
+		FString PaddingChar = TEXT(" ")
+#endif
+	)
 	{
 		const int32 PadCount = TotalWidth - Self.Len();
 		if (PadCount <= 0) return Self;
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+		const TCHAR Ch = PaddingChar.IsSet() || PaddingChar.GetValue().IsEmpty() ? TEXT(' ') : PaddingChar.GetValue()[0];
+#else
 		const TCHAR Ch = PaddingChar.IsEmpty() ? TEXT(' ') : PaddingChar[0];
+#endif
+		
 		return FString::ChrN(PadCount, Ch) + Self;
 	}
 
 	UFUNCTION()
-	static FString PadRight(FString Self, int32 TotalWidth, FString PaddingChar)
+	static FString PadRight(FString Self, int32 TotalWidth,
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+		TOptional<FString> PaddingChar
+#else
+		FString PaddingChar = TEXT(" ")
+#endif
+	)
 	{
 		const int32 PadCount = TotalWidth - Self.Len();
 		if (PadCount <= 0) return Self;
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+		const TCHAR Ch = PaddingChar.IsSet() || PaddingChar.GetValue().IsEmpty() ? TEXT(' ') : PaddingChar.GetValue()[0];
+#else
 		const TCHAR Ch = PaddingChar.IsEmpty() ? TEXT(' ') : PaddingChar[0];
+#endif
 		return Self + FString::ChrN(PadCount, Ch);
 	}
 
+
 	UFUNCTION()
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+	static FString Remove(FString Self, int32 StartIndex, TOptional<int32> Count)
+	{
+		if (!Count.IsSet() || Count.GetValue() < 0) return Self.Left(StartIndex);
+		return Self.Left(StartIndex) + Self.RightChop(StartIndex + Count.GetValue());
+	}
+#else
 	static FString Remove(FString Self, int32 StartIndex, int32 Count = -1)
 	{
 		if (Count < 0) return Self.Left(StartIndex);
 		return Self.Left(StartIndex) + Self.RightChop(StartIndex + Count);
 	}
+#endif
 
 	UFUNCTION()
-	static FString Replace(FString Self, FString OldValue, FString NewValue, EStringComparison ComparisonType = EStringComparison::Ordinal)
+	static FString Replace(FString Self, FString OldValue, FString NewValue, 
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+		TOptional<EStringComparison> ComparisonType
+#else
+		EStringComparison ComparisonType = EStringComparison::Ordinal
+#endif
+	)
 	{
 		return Self.Replace(*OldValue, *NewValue, ToSearchCase(ComparisonType));
 	}
@@ -167,12 +246,25 @@ public:
 	}
 
 	UFUNCTION()
-	static TArray<FString> Split(FString Self, FString Separator, EStringSplitOptions Options = EStringSplitOptions::None)
+	static TArray<FString> Split(FString Self, FString Separator, 
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+		TOptional<EStringSplitOptions> Options
+#else
+		EStringSplitOptions Options = EStringSplitOptions::None
+#endif
+	)
 	{
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+		uint8 OptionFlags = static_cast<uint8>(Options.IsSet() ? Options.GetValue() : EStringSplitOptions::None);
+#else
+		uint8 OptionFlags = static_cast<uint8>(Options);
+#endif
+		
+		
 		TArray<FString> Result;
-		const bool bCullEmpty = (static_cast<uint8>(Options) & static_cast<uint8>(EStringSplitOptions::RemoveEmptyEntries)) != 0;
+		const bool bCullEmpty = (OptionFlags & static_cast<uint8>(EStringSplitOptions::RemoveEmptyEntries)) != 0;
 		Self.ParseIntoArray(Result, *Separator, bCullEmpty);
-		if ((static_cast<uint8>(Options) & static_cast<uint8>(EStringSplitOptions::TrimEntries)) != 0)
+		if ((OptionFlags & static_cast<uint8>(EStringSplitOptions::TrimEntries)) != 0)
 		{
 			for (FString& Entry : Result)
 			{
@@ -183,11 +275,19 @@ public:
 	}
 
 	UFUNCTION()
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+	static FString Substring(FString Self, int32 StartIndex, TOptional<int32> Length)
+	{
+		if (!Length.IsSet() || Length.GetValue() < 0) return Self.Mid(StartIndex);
+		return Self.Mid(StartIndex, Length.GetValue());
+	}
+#else
 	static FString Substring(FString Self, int32 StartIndex, int32 Length = -1)
 	{
 		if (Length < 0) return Self.Mid(StartIndex);
 		return Self.Mid(StartIndex, Length);
 	}
+#endif
 
 	UFUNCTION()
 	static FString ToLower(FString Self)
@@ -214,44 +314,89 @@ public:
 	}
 
 	UFUNCTION()
-	static FString Trim(FString Self, FString Chars = TEXT(""))
+	static FString Trim(FString Self, 
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+	TOptional<FString> Chars
+#else
+	FString Chars = TEXT("")
+#endif	
+	)
 	{
-		if (Chars.IsEmpty()) return Self.TrimStartAndEnd();
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+		FString CharsToTrim = Chars.IsSet() ? Chars.GetValue() : TEXT("");
+#else
+		FString CharsToTrim = Chars;
+#endif
+		if (CharsToTrim.IsEmpty()) return Self.TrimStartAndEnd();
 		int32 Start = 0;
-		while (Start < Self.Len() && Chars.GetCharArray().Contains(Self[Start])) Start++;
+		while (Start < Self.Len() && CharsToTrim.GetCharArray().Contains(Self[Start])) Start++;
 		int32 End = Self.Len() - 1;
-		while (End >= Start && Chars.GetCharArray().Contains(Self[End])) End--;
+		while (End >= Start && CharsToTrim.GetCharArray().Contains(Self[End])) End--;
 		return Self.Mid(Start, End - Start + 1);
 	}
 
 	UFUNCTION()
-	static FString TrimEnd(FString Self, FString Chars = TEXT(""))
+	static FString TrimEnd(FString Self,
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+	TOptional<FString> Chars
+#else
+	FString Chars = TEXT("")
+#endif	
+	)
 	{
-		if (Chars.IsEmpty()) return Self.TrimEnd();
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+		FString CharsToTrim = Chars.IsSet() ? Chars.GetValue() : TEXT("");
+#else
+		FString CharsToTrim = Chars;
+#endif
+		if (CharsToTrim.IsEmpty()) return Self.TrimEnd();
 		int32 End = Self.Len() - 1;
-		while (End >= 0 && Chars.GetCharArray().Contains(Self[End])) End--;
+		while (End >= 0 && CharsToTrim.GetCharArray().Contains(Self[End])) End--;
 		return Self.Left(End + 1);
 	}
 
 	UFUNCTION()
-	static FString TrimStart(FString Self, FString Chars = TEXT(""))
+	static FString TrimStart(FString Self,
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+	TOptional<FString> Chars
+#else
+	FString Chars = TEXT("")
+#endif	
+	)
 	{
-		if (Chars.IsEmpty()) return Self.TrimStart();
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+		FString CharsToTrim = Chars.IsSet() ? Chars.GetValue() : TEXT("");
+#else
+		FString CharsToTrim = Chars;
+#endif
+		if (CharsToTrim.IsEmpty()) return Self.TrimStart();
 		int32 Start = 0;
-		while (Start < Self.Len() && Chars.GetCharArray().Contains(Self[Start])) Start++;
+		while (Start < Self.Len() && CharsToTrim.GetCharArray().Contains(Self[Start])) Start++;
 		return Self.RightChop(Start);
 	}
 
 	/* static methods */
 
 	UFUNCTION()
-	static bool Equals(FString A, FString B, EStringComparison ComparisonType = EStringComparison::Ordinal)
+	static bool Equals(FString A, FString B, 
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+		TOptional<EStringComparison> ComparisonType
+#else
+		EStringComparison ComparisonType = EStringComparison::Ordinal
+#endif
+	)
 	{
 		return A.Equals(B, ToSearchCase(ComparisonType));
 	}
 
 	UFUNCTION()
-	static int Compare(FString StrA, FString StrB, EStringComparison ComparisonType = EStringComparison::Ordinal)
+	static int Compare(FString StrA, FString StrB, 
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+		TOptional<EStringComparison> ComparisonType
+#else
+		EStringComparison ComparisonType = EStringComparison::Ordinal
+#endif
+	)
 	{
 		if (ToSearchCase(ComparisonType) == ESearchCase::IgnoreCase)
 			return FCString::Stricmp(*StrA, *StrB);

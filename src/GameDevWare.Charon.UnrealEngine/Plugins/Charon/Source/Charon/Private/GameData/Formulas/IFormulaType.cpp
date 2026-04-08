@@ -27,7 +27,7 @@ static TMap<EFormulaValueType, TSet<EFormulaValueType>> ConversionMaps = {
 
 bool IFormulaType::IsAssignableFrom(const FProperty* ToType, const bool bWithoutConversion)
 {
-	const EFormulaValueType RequestedTypeCode = GetPropertyTypeCode(ToType);
+	const EFormulaValueType RequestedTypeCode = GetFormulaValueTypeCode(ToType);
 	
 	if (const FStructProperty* StructProp = CastField<FStructProperty>(ToType))
 	{

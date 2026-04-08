@@ -28,6 +28,7 @@
 #include "Internationalization/Text.h"
 #include "Misc/DateTime.h"
 #include "Misc/Timespan.h"
+#include "Misc/EngineVersionComparison.h"
 #include "UObject/EnumProperty.h"
 #include "UObject/FieldPathProperty.h"
 #include "UObject/NameTypes.h"
@@ -37,6 +38,8 @@
 #if __has_include("UObject/StrProperty.h")
 #include "UObject/StrProperty.h"
 #endif
+
+typedef TTuple<FProperty*, EFormulaValueType, const void*> FormulaValueWithTypeTuple;
 
 template<typename T> struct TFormulaTypeMap;
 template<> struct TFormulaTypeMap<bool>			{ using Type = UDotNetBoolean; };
@@ -64,8 +67,15 @@ struct TIsFormulaTypeMapped : std::false_type {};
 template<typename T>
 struct TIsFormulaTypeMapped<T, std::void_t<typename TFormulaTypeMap<T>::Type>> : std::true_type {};
 
-inline EFormulaValueType GetPropertyTypeCode(const FProperty* FieldType)
+inline EFormulaValueType GetFormulaValueTypeCode(const FProperty* FieldType)
 {
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+	if (const FOptionalProperty* OptionalProperty = CastField<FOptionalProperty>(FieldType))
+	{
+		return GetFormulaValueTypeCode(OptionalProperty->GetValueProperty());
+	}
+#endif
+	
 	if (CastField<FBoolProperty>(FieldType))
 	{
 		return EFormulaValueType::Boolean;
@@ -132,5 +142,79 @@ inline EFormulaValueType GetPropertyTypeCode(const FProperty* FieldType)
 	else
 	{
 		return EFormulaValueType::Struct;
+	}
+}
+
+inline FProperty* UnwrapFormulaValueType(FProperty* FieldType)
+{
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+	if (const FOptionalProperty* OptionalProperty = CastField<FOptionalProperty>(FieldType))
+	{
+		return OptionalProperty->GetValueProperty();
+	}
+#endif
+	return FieldType;
+}
+
+inline FormulaValueWithTypeTuple UnwrapNullOrOptionalFormulaValue(FProperty* ValueType, const void* ValuePtr)
+{
+	check(ValueType);
+	check(ValuePtr);
+		
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+	if (const FOptionalProperty* OptionalProperty = CastField<FOptionalProperty>(ValueType))
+	{
+		if (OptionalProperty->IsSet(ValuePtr))
+		{
+			// unwrap optional
+			ValueType = OptionalProperty->GetValueProperty();
+			ValuePtr = OptionalProperty->GetValuePointerForRead(ValuePtr);
+		}
+		else
+		{
+			// unset optional value
+			return FormulaValueWithTypeTuple(UDotNetObject::GetNullLiteralProperty(), EFormulaValueType::Null, nullptr);
+		}
+	}
+#endif
+	if (const FObjectPropertyBase* ObjectProperty = CastField<FObjectPropertyBase>(ValueType); 
+		ObjectProperty && ObjectProperty->GetObjectPropertyValue(ValuePtr) == nullptr)
+	{
+		// null object value
+		return FormulaValueWithTypeTuple(UDotNetObject::GetNullLiteralProperty(), EFormulaValueType::Null, nullptr);
+	}
+	
+	return FormulaValueWithTypeTuple(ValueType, GetFormulaValueTypeCode(ValueType), ValuePtr);
+}
+template<typename T>
+static FormulaValueWithTypeTuple UnwrapNullOrOptionalFormulaValue(T& Value)
+{
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+	if constexpr (TIsTOptional_V<T>)
+	{
+		if (!Value.IsSet())
+		{
+			// unset optional value
+			return FormulaValueWithTypeTuple(UDotNetObject::GetNullLiteralProperty(), EFormulaValueType::Null, nullptr);
+		}
+        
+		// Recursively check the inner value 
+		// This handles TOptional<UObject*> where IsSet is true but the pointer is null
+		return UnwrapNullOrOptionalFormulaValue(Value.GetValue());
+	}
+	else
+#endif
+	{
+		if constexpr (std::is_pointer_v<T> || std::is_same_v<T, std::nullptr_t>)
+		{
+			if (Value == nullptr || std::is_same_v<T, std::nullptr_t>)
+			{
+				// null object value
+				return FormulaValueWithTypeTuple(UDotNetObject::GetNullLiteralProperty(), EFormulaValueType::Null, nullptr);
+			}
+		}
+	
+		static_assert(TIsFormulaTypeMapped<T>::value, "Type is not mapped in TFormulaTypeMap. Please add a specialization: template<> struct TFormulaTypeMap<YourType> { using Type = ...; };");
+		return FormulaValueWithTypeTuple(TFormulaTypeMap<T>::Type::GetLiteralProperty(), TFormulaTypeMap<T>::Type::TypeCode, &Value);
 	}
 }

@@ -34,6 +34,7 @@
 #include "FFormulaTestStruct.h"
 #include "Tests/TestHarnessAdapter.h"
 #include "FFormulaTestMacros.h"
+#include "Misc/EngineVersionComparison.h"
 
 // TODO test Null prop
 // TODO Test Struct access
@@ -497,8 +498,13 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello"))),       "Insert",    FString(TEXT("heXYllo")),   EXPR_CONST(static_cast<int32>(2)), EXPR_CONST(FString(TEXT("XY"))));
 		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hi"))),          "PadLeft",   FString(TEXT("   hi")),     EXPR_CONST(static_cast<int32>(5)), EXPR_CONST(FString(TEXT(" "))));
 		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hi"))),          "PadRight",  FString(TEXT("hi   ")),     EXPR_CONST(static_cast<int32>(5)), EXPR_CONST(FString(TEXT(" "))));
-		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello"))),       "Remove",    FString(TEXT("he")),        EXPR_CONST(static_cast<int32>(2)), EXPR_CONST(static_cast<int32>(3)));
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello"))),       "Remove",    FString(TEXT("he")),        EXPR_CONST(static_cast<int32>(2)));
+#endif
 		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello"))),       "Remove",    FString(TEXT("ho")),        EXPR_CONST(static_cast<int32>(1)), EXPR_CONST(static_cast<int32>(3)));
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello world"))), "Replace",   FString(TEXT("hello earth")), EXPR_CONST(FString(TEXT("world"))), EXPR_CONST(FString(TEXT("earth"))));
+#endif
 		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("hello world"))), "Replace",   FString(TEXT("hello earth")), EXPR_CONST(FString(TEXT("world"))), EXPR_CONST(FString(TEXT("earth"))), EXPR_CONST(static_cast<int32>(EStringComparison::Ordinal)));
 		TEST_EXPR_INVOKE_CHECK_VALUE(EXPR_CONST(FString(TEXT("line1\r\nline2\nline3"))), "ReplaceLineEndings", FString(TEXT("line1\r\nline2\r\nline3")), EXPR_CONST(FString(TEXT("\r\n"))));
 

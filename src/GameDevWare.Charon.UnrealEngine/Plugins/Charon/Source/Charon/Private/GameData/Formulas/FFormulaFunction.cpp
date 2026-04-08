@@ -3,7 +3,7 @@
 #include "GameData/Formulas/FFormulaFunction.h"
 
 #include "GameData/Formulas/FFormulaInvokeArguments.h"
-#include "GameData/Formulas/IFormulaType.h"
+#include "Misc/EngineVersionComparison.h"
 
 DEFINE_LOG_CATEGORY(LogFormulaFunction);
 
@@ -130,14 +130,15 @@ FFormulaFunctionInvokeFunc FFormulaFunction::CreateDefaultFunctionInvoker(UFunct
 					bIsMatching = false; // argument bind failed
 					break;
 				}
-			} 
-			else if (FName MetadataKey(FString(TEXT("CPP_Default_")) + Parameter->GetName()); FunctionOrNull->HasMetaData(MetadataKey))
+			}
+#if UE_VERSION_NEWER_THAN(5, 6, -1)
+			else if (const FOptionalProperty* OptionalProperty = CastField<FOptionalProperty>(Parameter))
 			{
-				// bind default value
-				FString DefaultValue = FunctionOrNull->GetMetaData(MetadataKey);
-				Parameter->ImportText_Direct(*DefaultValue, ArgumentDataPtr, nullptr, PPF_None);
+				// bind optional value
+				OptionalProperty->MarkUnset(ArgumentDataPtr);
 				break;
 			}
+#endif
 			else
 			{
 				// failed to bind required parameter
