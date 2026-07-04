@@ -160,7 +160,7 @@ TSharedPtr<FFormulaMemberBinding> FExpressionBuildHelper::CreateBinding(const TS
 }
 
 TSharedPtr<FFormulaExpression> FExpressionBuildHelper::GetExpression(const TSharedPtr<FJsonObject>& ExpressionObj,
-                                                                     const FString& PropertyName, bool bOptional)
+                                                                     const FStringView& PropertyName, bool bOptional)
 {
 	if (!ExpressionObj.IsValid()) return nullptr;
 
@@ -175,7 +175,7 @@ TSharedPtr<FFormulaExpression> FExpressionBuildHelper::GetExpression(const TShar
 		return nullptr;
 	}
 
-	UE_LOG(LogExpressionBuildHelper, Error, TEXT("Missing required attribute in expression: %s"), *PropertyName);
+	UE_LOG(LogExpressionBuildHelper, Error, TEXT("Missing required attribute in expression: %s"), *FString(PropertyName));
 	return nullptr;
 }
 
@@ -251,7 +251,7 @@ TMap<FString, TSharedPtr<FFormulaExpression>> FExpressionBuildHelper::GetArgumen
 		for (const auto& Pair : (*ArgsObj)->Values)
 		{
 			auto CreatedExpression = GetExpression(*ArgsObj, Pair.Key, false);
-			Arguments.Add(Pair.Key, CreatedExpression);
+			Arguments.Add(FString(Pair.Key), CreatedExpression);
 		}
 	}
 

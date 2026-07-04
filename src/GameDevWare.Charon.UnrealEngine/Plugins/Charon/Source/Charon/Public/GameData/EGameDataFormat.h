@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "CoreMinimal.h"
 #include "EGameDataFormat.generated.h"
 
 UENUM(BlueprintType)

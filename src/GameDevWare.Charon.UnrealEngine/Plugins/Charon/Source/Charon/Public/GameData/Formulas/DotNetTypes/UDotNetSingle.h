@@ -51,19 +51,19 @@ public:
 	UPROPERTY()
 	float MinValue = std::numeric_limits<float>::min();
 	UPROPERTY()
-	float E = 2.71828175;
+	float E = 2.71828175f;
 	UPROPERTY()
-	float Epsilon = 1.401298E-45;
+	float Epsilon = 1.401298E-45f;
 	UPROPERTY()
 	float NegativeInfinity = -std::numeric_limits<float>::infinity();
 	UPROPERTY()
-	float NegativeZero = -0.0; 
+	float NegativeZero = -0.0f; 
 	UPROPERTY()
-	float Pi = 3.14159274;
+	float Pi = 3.14159274f;
 	UPROPERTY()
 	float PositiveInfinity = std::numeric_limits<float>::infinity();
 	UPROPERTY()
-	float Tau = 6.28318548;
+	float Tau = 6.28318548f;
 
 	//* instance properties */
 

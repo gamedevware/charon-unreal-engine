@@ -16,11 +16,11 @@ FJsonObjectGameDataReader::FJsonObjectReaderFrame::FJsonObjectReaderFrame(TArray
 	CurrentIndex = 0;
 	MemberNameIsVisited = false;
 	CurrentObject = nullptr;
-	CurrentObjectKeys = TArray<FString>();
+	CurrentObjectKeys = TArray<FJsonKeyString>();
 	CurrentArray = &JsonObject;
 }
 
-FString& FJsonObjectGameDataReader::FJsonObjectReaderFrame::GetCurrentMemberName()
+FJsonKeyString& FJsonObjectGameDataReader::FJsonObjectReaderFrame::GetCurrentMemberName()
 {
 	return CurrentObjectKeys[CurrentIndex];
 }
@@ -175,7 +175,7 @@ bool FJsonObjectGameDataReader::ReadNext()
 			TopFrame.NextMemberOrItem();
 			return true;
 		case EJsonToken::Identifier:
-			this->Identifier = TopFrame.GetCurrentMemberName();
+			this->Identifier = FString(TopFrame.GetCurrentMemberName());
 			continue;
 		case EJsonToken::None:
 			break;

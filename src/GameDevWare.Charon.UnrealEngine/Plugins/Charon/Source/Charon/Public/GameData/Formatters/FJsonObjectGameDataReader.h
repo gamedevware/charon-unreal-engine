@@ -11,6 +11,13 @@
 #include "Templates/SharedPointer.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonTypes.h"
+#include "Misc/EngineVersionComparison.h"
+
+#if UE_VERSION_NEWER_THAN(5, 8, -1)
+using FJsonKeyString = UE::FSharedString;
+#else
+using FJsonKeyString = FString;
+#endif
 
 /*
  * Token based reader for dynamic FJsonObject object as source of token stream.
@@ -26,14 +33,14 @@ private:
 		bool MemberNameIsVisited;
 		size_t CurrentIndex;
 		TArray<TSharedPtr<FJsonValue>>* CurrentArray;
-		TArray<FString> CurrentObjectKeys;
+		TArray<FJsonKeyString> CurrentObjectKeys;
 		TSharedPtr<FJsonObject>* CurrentObject;
 
 	public:
 		explicit FJsonObjectReaderFrame(TSharedPtr<FJsonObject>& JsonObject);
 		explicit FJsonObjectReaderFrame(TArray<TSharedPtr<FJsonValue>>& JsonObject);
 
-		FString& GetCurrentMemberName();
+		FJsonKeyString& GetCurrentMemberName();
 		TSharedPtr<FJsonValue> GetCurrentValue();
 		EJson GetContainerToken() const;
 

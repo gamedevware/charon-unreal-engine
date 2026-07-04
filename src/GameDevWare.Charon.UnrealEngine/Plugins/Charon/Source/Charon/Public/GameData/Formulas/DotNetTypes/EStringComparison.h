@@ -1,5 +1,8 @@
 ﻿#pragma once
 
+#include "CoreMinimal.h"
+#include "EStringComparison.generated.h"
+
 UENUM(BlueprintType)
 enum class EStringComparison : uint8 {
 	/*

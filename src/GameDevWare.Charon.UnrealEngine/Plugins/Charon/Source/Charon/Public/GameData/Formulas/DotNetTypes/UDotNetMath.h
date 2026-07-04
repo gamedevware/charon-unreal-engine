@@ -28,73 +28,73 @@ public:
 	/* static methods */
 
 	UFUNCTION()
-	static double Truncate(double d) {
-		return std::trunc(d);
+	static double Truncate(double D) {
+		return std::trunc(D);
 	}
 
 	UFUNCTION()
-	static double IEEERemainder(double x, double y) {
-		return std::remainder(x, y);
+	static double IEEERemainder(double X, double Y) {
+		return std::remainder(X, Y);
 	}
 
 	UFUNCTION()
-	static double Floor(double d) {
-		return std::floor(d);
+	static double Floor(double D) {
+		return std::floor(D);
 	}
 
 	UFUNCTION()
-	static double Ceiling(double d) {
-		return std::ceil(d);
+	static double Ceiling(double D) {
+		return std::ceil(D);
 	}
 
 	UFUNCTION()
-	static double Acos(double d) {
-		return std::acos(d);
+	static double Acos(double D) {
+		return std::acos(D);
 	}
 
 	UFUNCTION()
-	static double Acosh(double d) {
-		return std::acosh(d);
+	static double Acosh(double D) {
+		return std::acosh(D);
 	}
 
 	UFUNCTION()
-	static double Asin(double d) {
-		return std::asin(d);
+	static double Asin(double D) {
+		return std::asin(D);
 	}
 
 	UFUNCTION()
-	static double Asinh(double d) {
-		return std::asinh(d);
+	static double Asinh(double D) {
+		return std::asinh(D);
 	}
 
 	UFUNCTION()
-	static double Atan2(double y, double x) {
-		return std::atan2(y, x);
+	static double Atan2(double Y, double X) {
+		return std::atan2(Y, X);
 	}
 
 	UFUNCTION()
-	static double Atanh(double d) {
-		return std::atanh(d);
+	static double Atanh(double D) {
+		return std::atanh(D);
 	}
 
 	UFUNCTION()
-	static double Cbrt(double d) {
-		return std::cbrt(d);
+	static double Cbrt(double D) {
+		return std::cbrt(D);
 	}
 
 	UFUNCTION()
-	static double Cos(double d) {
-		return std::cos(d);
+	static double Cos(double D) {
+		return std::cos(D);
 	}
 
 	UFUNCTION()
-	static double Cosh(double value) {
-		return std::cosh(value);
+	static double Cosh(double Value) {
+		return std::cosh(Value);
 	}
 
 	UFUNCTION()
-	static double Exp(double d) {
-		return std::exp(d);
+	static double Exp(double D) {
+		return std::exp(D);
 	}
 
 	UFUNCTION()
@@ -103,43 +103,43 @@ public:
 	}
 
 	UFUNCTION()
-	static double Log10(double d) {
-		return std::log10(d);
+	static double Log10(double D) {
+		return std::log10(D);
 	}
 
 	UFUNCTION()
-	static double Pow(double x, double y) {
-		return std::pow(x, y);
+	static double Pow(double X, double Y) {
+		return std::pow(X, Y);
 	}
 
 	UFUNCTION()
-	static double Sin(double a) {
-		return std::sin(a);
+	static double Sin(double A) {
+		return std::sin(A);
 	}
 
 	UFUNCTION()
-	static double Sinh(double value) {
-		return std::sinh(value);
+	static double Sinh(double Value) {
+		return std::sinh(Value);
 	}
 
 	UFUNCTION()
-	static double Sqrt(double d) {
-		return std::sqrt(d);
+	static double Sqrt(double D) {
+		return std::sqrt(D);
 	}
 
 	UFUNCTION()
-	static double Tan(double a) {
-		return std::tan(a);
+	static double Tan(double A) {
+		return std::tan(A);
 	}
 
 	UFUNCTION()
-	static double Tanh(double value) {
-		return std::tanh(value);
+	static double Tanh(double Value) {
+		return std::tanh(Value);
 	}
 
 private:
 
-	static double FMod(double x, double y) {
-		return std::fmod(x, y);
+	static double FMod(double X, double Y) {
+		return std::fmod(X, Y);
 	}
 };

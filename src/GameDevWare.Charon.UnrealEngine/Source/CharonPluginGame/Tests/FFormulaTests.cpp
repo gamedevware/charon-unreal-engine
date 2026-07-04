@@ -3,6 +3,11 @@
 #if WITH_TESTS
 #pragma optimize("", off)
 
+#if defined(_MSC_VER) && !defined(__clang__)
+#pragma warning(push)
+#pragma warning(disable: 4883) // Disables "function size suppressed optimizations"
+#endif
+
 #include "limits"
 #include "UFormulaTestObject.h"
 #include "GameData/EGameDataFormat.h"
@@ -31,6 +36,7 @@
 #include "GameData/Formulas/Expressions/FFormulaMemberMemberBinding.h"
 #include "GameData/Formulas/Expressions/FNewArrayInitExpression.h"
 #include "GameData/Formulas/FormulaTypeTraits.h"
+#include "GameData/EGameDataFormat.h"
 #include "FFormulaTestStruct.h"
 #include "Tests/TestHarnessAdapter.h"
 #include "FFormulaTestMacros.h"
@@ -872,3 +878,6 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 }
 #endif
 
+#if defined(_MSC_VER) && !defined(__clang__)
+#pragma warning(pop)
+#endif

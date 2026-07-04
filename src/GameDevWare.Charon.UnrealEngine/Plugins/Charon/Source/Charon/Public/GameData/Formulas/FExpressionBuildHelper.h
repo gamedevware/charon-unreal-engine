@@ -22,7 +22,7 @@ public:
 	static TSharedPtr<FFormulaExpression> CreateExpression(const TSharedPtr<FJsonObject>* ExpressionObj);
 	static TSharedPtr<FFormulaMemberBinding> CreateBinding(const TSharedPtr<FJsonObject>* BindingObj);
 	
-	static TSharedPtr<FFormulaExpression> GetExpression(const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName, bool bOptional = false);
+	static TSharedPtr<FFormulaExpression> GetExpression(const TSharedPtr<FJsonObject>& ExpressionObj, const FStringView& PropertyName, bool bOptional = false);
 	static bool GetUseNullPropagation(const TSharedPtr<FJsonObject>& ExpressionObj, bool bOptional = true);
 	static FString GetString(const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName, bool bOptional = false);
 	static TSharedPtr<FFormulaTypeReference> GetTypeRef(const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName, bool bOptional = false);

@@ -15,6 +15,8 @@
 #include "GameData/Formulas/IFormulaType.h"
 #include "GameData/Formulas/EFormulaValueType.h"
 #include "GameData/Formulas/DotNetTypes/UDotNetMath.h"
+#include "GameData/Formulas/DotNetTypes/EStringComparison.h"
+#include "GameData/Formulas/DotNetTypes/EStringSplitOptions.h"
 
 static TMap<UPTRINT, TSharedRef<IFormulaType>> TypesByIdentity;
 static FCriticalSection TypesByIdentityLock;
@@ -157,7 +159,14 @@ static TSharedRef<IFormulaType> CreateFormulaType(const FProperty* InValueType)
 	}
 	else if (UClass* SurrogateClass = GetSurrogateType(GetFormulaValueTypeCode(InValueType)))
 	{
-		return MakeShared<FDotNetSurrogateType>(SurrogateClass, SurrogateClass->FindPropertyByName(TEXT("__Literal")));
+		if (SurrogateClass == UDotNetString::StaticClass())
+		{
+			return MakeShared<FDotNetStringType>(SurrogateClass, SurrogateClass->FindPropertyByName(TEXT("__Literal")));
+		}
+		else
+		{
+			return MakeShared<FDotNetSurrogateType>(SurrogateClass, SurrogateClass->FindPropertyByName(TEXT("__Literal")));
+		}
 	}
 	
 	return MakeShared<FFormulaUnknownType>(InValueType);

@@ -12,7 +12,6 @@
 #include "UObject/StrProperty.h"
 #endif
 #include "Misc/EngineVersionComparison.h"
-
 #include "UDotNetString.generated.h"
 
 /*
