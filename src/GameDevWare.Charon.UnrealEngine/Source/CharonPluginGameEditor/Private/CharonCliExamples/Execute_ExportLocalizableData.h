@@ -4,6 +4,7 @@
 #include "GameData/UGameDataBase.h"
 #include "GameData/CommandLine/FCharonCli.h"
 #include "GameDataExtensionCommandsLog.h"
+#include "Misc/Paths.h"
 
 static TSharedPtr<ICharonTask> CurrentI18NExportTask;
 

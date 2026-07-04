@@ -24,8 +24,8 @@
 #include "Framework/Commands/Commands.h"
 #include "Templates/SharedPointer.h"
 #include "Framework/Commands/UICommandList.h"
-#include "Framework/MultiBox/MultiBoxExtender.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
+#include "Misc/Paths.h"
 
 // Define the custom command class
 class FGameDataExtensionCommands: public TCommands< FGameDataExtensionCommands >

@@ -5,6 +5,7 @@
 #include "GameData/CommandLine/FCharonCli.h"
 #include "GameDataExtensionCommandsLog.h"
 #include "TryReadJson.h"
+#include "Misc/Paths.h"
 
 static TSharedPtr<ICharonTask> CurrentExportToFileTask;
 

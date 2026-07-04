@@ -4,6 +4,7 @@
 #include "GameData/UGameDataBase.h"
 #include "GameData/CommandLine/FCharonCli.h"
 #include "GameDataExtensionCommandsLog.h"
+#include "Misc/Paths.h"
 
 static TSharedPtr<ICharonTask> CurrentBulkDeleteTask;
 
@@ -46,10 +47,10 @@ static void Execute_BulkDeleteHeroes(const TArray<UObject*> ContextSensitiveObje
 	HeroCollection.Add(MakeShared<FJsonValueObject>(HeroDocument3));
 
 	// Adding the Hero collection to Collections
-	Collections->SetArrayField("Hero", HeroCollection);
+	Collections->SetArrayField(TEXT("Hero"), HeroCollection);
 
 	// Adding Collections to the root node so Hero documents will be under /Collections/Hero/0, /Collections/Hero/1, etc.
-	ImportData->SetObjectField("Collections", Collections);
+	ImportData->SetObjectField(TEXT("Collections"), Collections);
 
 	//
 	// Documentation for the Import command and its parameters:

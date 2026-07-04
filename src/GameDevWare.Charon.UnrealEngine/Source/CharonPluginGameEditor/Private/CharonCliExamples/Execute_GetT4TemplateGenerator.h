@@ -4,6 +4,7 @@
 #include "GameData/CommandLine/FCharonCli.h"
 #include "GameDataExtensionCommandsLog.h"
 #include "HAL/PlatformFilemanager.h"
+#include "Misc/Paths.h"
 
 static TSharedPtr<ICharonTask> CurrentPreprocessT4Task;
 

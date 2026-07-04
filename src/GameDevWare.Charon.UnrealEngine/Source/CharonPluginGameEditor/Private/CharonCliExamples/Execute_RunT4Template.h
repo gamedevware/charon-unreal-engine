@@ -5,7 +5,7 @@
 #include "GameDataExtensionCommandsLog.h"
 #include "UObject/Class.h"
 #include "UObject/UObjectIterator.h"
-#include "UObject/PropertyIterator.h"
+#include "Misc/Paths.h"
 
 static TSharedPtr<ICharonTask> CurrentRunT4TemplateTask;
 
