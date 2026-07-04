@@ -1,7 +1,7 @@
 {
   "FileVersion": 3,
-  "Version": 21,
-  "VersionName": "2026.3.3",
+  "Version": 22,
+  "VersionName": "2026.3.4",
   "FriendlyName": "Charon",
   "Description": "Charon automates game data workflows by replacing manual JSON/CSV handling with type-safe code generation. Model complex entities in a structured editor and get instant C++ access with zero boilerplate.",
   "Category": "Other",
