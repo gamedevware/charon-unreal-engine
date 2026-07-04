@@ -30,6 +30,8 @@
 #include "UObject/ReflectedTypeAccessors.h"
 #include "UObject/Class.h"
 #endif
+#include "Engine/Engine.h"
+#include "UObject/Object.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonTypes.h"
 #include "Serialization/Archive.h"
@@ -81,6 +83,12 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogURpgGameData, Log, All);
 
+#if UE_VERSION_NEWER_THAN(5, 8, -1)
+using FJsonKeyString = UE::FSharedString;
+#else
+using FJsonKeyString = FString;
+#endif
+
 /**
   * Main class used to access game data.
   */
@@ -91,7 +99,7 @@ class RPGGAMEDATA_API URpgGameData : public UGameDataBase
 
 public:
 	inline static const FString GeneratorName = TEXT("Charon");
-	inline static const FString GeneratorVersion = TEXT("2026.1.2.0");
+	inline static const FString GeneratorVersion = TEXT("2026.3.3.0");
 
 private:
 
@@ -472,7 +480,7 @@ private:
 	void MergePropertyLanguagesValue(TSharedRef<FJsonObject> MergedDocument, TSharedRef<FJsonObject> OriginalDocument, TSharedRef<FJsonObject> ModifiedDocument, const FString PropertyName);
 	void MergePropertyValue(TSharedRef<FJsonObject> MergedDocument, TSharedRef<FJsonObject> OriginalDocument, TSharedRef<FJsonObject> ModifiedDocument, const FString PropertyName, OptionalMergeValueFunc MergeFn = OptionalMergeValueFunc());
 	TSharedRef<FJsonValue> MergeLocalizedText(TSharedRef<FJsonValue> OriginalLocalizedText, TSharedRef<FJsonValue> ModifiedLocalizedText);
-	TSharedRef<TArray<FString>> MergeKeys(const TMap<FString, TSharedPtr<FJsonValue>>& Collection1, const TMap<FString, TSharedPtr<FJsonValue>>& Collection2);
+	TSharedRef<TArray<FJsonKeyString>> MergeKeys(const TMap<FJsonKeyString, TSharedPtr<FJsonValue>>& Collection1, const TMap<FJsonKeyString, TSharedPtr<FJsonValue>>& Collection2);
 public:
 	void ResolveAllReferences();
 	void FindAllDocuments();

@@ -13,7 +13,9 @@
 //------------------------------------------------------------------------------
 // ReSharper disable All
 
+#include "CoreMinimal.h"
 #include "Misc/TVariant.h"
+#include "ENumberTestEntityPickList64Bit.generated.h"
 
 /**
   * Enumeration based on int64. Used in Schemas: NumberTestEntity.

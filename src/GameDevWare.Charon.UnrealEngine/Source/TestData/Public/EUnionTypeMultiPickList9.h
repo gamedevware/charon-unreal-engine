@@ -13,7 +13,9 @@
 //------------------------------------------------------------------------------
 // ReSharper disable All
 
+#include "CoreMinimal.h"
 #include "Misc/TVariant.h"
+#include "EUnionTypeMultiPickList9.generated.h"
 
 /**
   * Enumeration based on int32. Default Value: Options - 0, Flags, Used in Schemas: UnionType.

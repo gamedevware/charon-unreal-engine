@@ -19,8 +19,8 @@ public class TestData : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		this.PublicDefinitions.Add("TESTDATA_CODEGEN_MAJOR_VERSION=2026");
-		this.PublicDefinitions.Add("TESTDATA_CODEGEN_MINOR_VERSION=1");
-		this.PublicDefinitions.Add("TESTDATA_CODEGEN_PATCH_VERSION=2");
+		this.PublicDefinitions.Add("TESTDATA_CODEGEN_MINOR_VERSION=3");
+		this.PublicDefinitions.Add("TESTDATA_CODEGEN_PATCH_VERSION=3");
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
 

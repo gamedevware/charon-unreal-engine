@@ -13,7 +13,9 @@
 //------------------------------------------------------------------------------
 // ReSharper disable All
 
+#include "CoreMinimal.h"
 #include "Misc/TVariant.h"
+#include "ECurioType.generated.h"
 
 /**
   * Enumeration based on int32. Default Value: Food - 0, Flags, Used in Schemas: Curio.

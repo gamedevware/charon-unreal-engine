@@ -13,7 +13,9 @@
 //------------------------------------------------------------------------------
 // ReSharper disable All
 
+#include "CoreMinimal.h"
 #include "Misc/TVariant.h"
+#include "EUnionTypePickList8.generated.h"
 
 /**
   * Enumeration based on int32. Default Value: Option - 0, Used in Schemas: UnionType.

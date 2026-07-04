@@ -13,7 +13,9 @@
 //------------------------------------------------------------------------------
 // ReSharper disable All
 
+#include "CoreMinimal.h"
 #include "Misc/TVariant.h"
+#include "ECurioPlacementRestictions.generated.h"
 
 /**
   * Enumeration based on int32. Default Value: Corridor - 0, Flags, Used in Schemas: Curio.

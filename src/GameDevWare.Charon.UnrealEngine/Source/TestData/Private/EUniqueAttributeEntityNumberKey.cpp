@@ -13,4 +13,4 @@
 #include "EUniqueAttributeEntityNumberKey.h"
 
 // ReSharper disable All
-const float EUniqueAttributeEntityNumberKey::UniqueAttributeEntity1 = 1.2;
+const float EUniqueAttributeEntityNumberKey::UniqueAttributeEntity1 = 1.2f;

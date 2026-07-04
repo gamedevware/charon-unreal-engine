@@ -13,7 +13,9 @@
 //------------------------------------------------------------------------------
 // ReSharper disable All
 
+#include "CoreMinimal.h"
 #include "Misc/TVariant.h"
+#include "ETrinketRarity.generated.h"
 
 /**
   * Enumeration based on int32. Used in Schemas: Trinket.

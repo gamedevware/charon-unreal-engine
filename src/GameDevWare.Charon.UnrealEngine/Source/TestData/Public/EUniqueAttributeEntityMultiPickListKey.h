@@ -13,7 +13,9 @@
 //------------------------------------------------------------------------------
 // ReSharper disable All
 
+#include "CoreMinimal.h"
 #include "Misc/TVariant.h"
+#include "EUniqueAttributeEntityMultiPickListKey.generated.h"
 
 /**
   * Enumeration based on int32. Flags, Used in Schemas: UniqueAttributeEntity.

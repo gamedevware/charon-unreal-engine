@@ -13,7 +13,9 @@
 //------------------------------------------------------------------------------
 // ReSharper disable All
 
+#include "CoreMinimal.h"
 #include "Misc/TVariant.h"
+#include "ENumberTestEntityMultiPickList16Bit.generated.h"
 
 /**
   * Enumeration based on int32. Flags, Used in Schemas: NumberTestEntity.

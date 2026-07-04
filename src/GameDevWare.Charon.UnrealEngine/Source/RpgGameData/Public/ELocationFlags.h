@@ -13,7 +13,9 @@
 //------------------------------------------------------------------------------
 // ReSharper disable All
 
+#include "CoreMinimal.h"
 #include "Misc/TVariant.h"
+#include "ELocationFlags.generated.h"
 
 /**
   * Enumeration based on int32. Default Value: Tutorial - 0, Flags, Used in Schemas: Location.

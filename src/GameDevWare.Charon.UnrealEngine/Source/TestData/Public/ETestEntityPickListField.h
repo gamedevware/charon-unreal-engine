@@ -13,7 +13,9 @@
 //------------------------------------------------------------------------------
 // ReSharper disable All
 
+#include "CoreMinimal.h"
 #include "Misc/TVariant.h"
+#include "ETestEntityPickListField.generated.h"
 
 /**
   * Enumeration based on int32. Default Value: PickValue4 - 0, Used in Schemas: TestEntity.

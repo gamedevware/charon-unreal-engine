@@ -19,8 +19,8 @@ public class RpgGameData : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		this.PublicDefinitions.Add("RPGGAMEDATA_CODEGEN_MAJOR_VERSION=2026");
-		this.PublicDefinitions.Add("RPGGAMEDATA_CODEGEN_MINOR_VERSION=1");
-		this.PublicDefinitions.Add("RPGGAMEDATA_CODEGEN_PATCH_VERSION=2");
+		this.PublicDefinitions.Add("RPGGAMEDATA_CODEGEN_MINOR_VERSION=3");
+		this.PublicDefinitions.Add("RPGGAMEDATA_CODEGEN_PATCH_VERSION=3");
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
 

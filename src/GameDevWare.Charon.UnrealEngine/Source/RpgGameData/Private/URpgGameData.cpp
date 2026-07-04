@@ -35,6 +35,27 @@
 #include "UItemWithCount.h"
 #include "UStartingSet.h"
 #include "UConditionsCheckFormula.h"
+#include "EParameterId.h"
+#include "EParameterValueKind.h"
+#include "ELocationFlags.h"
+#include "ETrinketRarity.h"
+#include "EMonsterType.h"
+#include "ELootType.h"
+#include "EDurationUnit.h"
+#include "ECurioType.h"
+#include "ECurioPlacementRestictions.h"
+#include "EConditionsId.h"
+#include "ECurioId.h"
+#include "EDiseaseId.h"
+#include "EHeroId.h"
+#include "EArmorId.h"
+#include "EWeaponId.h"
+#include "EItemId.h"
+#include "ELocationId.h"
+#include "EMonsterId.h"
+#include "EProvisionId.h"
+#include "EQuirkId.h"
+#include "ETrinketId.h"
 
 DEFINE_LOG_CATEGORY(LogURpgGameData);
 
@@ -1085,7 +1106,12 @@ static void URpgGameData_FillDocumentByUniqueNameMap(UObject* Outer, TSharedPtr<
 		}
 		DocumentsById->Add(ObjectName, Child);
 	},
-	/* bIncludeNested */ true);
+#if UE_VERSION_NEWER_THAN(5, 8, -1)
+	EGetObjectsFlags::IncludeNestedObjects
+#else
+	/* bIncludeNested */ true
+#endif
+	);
 }
 static void URpgGameData_ClearDocumentByUniqueNameMap(TSharedPtr<TMap<FString, UObject*>> DocumentsById)
 {
@@ -1150,7 +1176,13 @@ static void URpgGameData_TryDeleteDocument(UObject* Document)
 		return;
 	}
 
-	Document->Rename(nullptr, GetTransientPackage(), REN_DontCreateRedirectors | REN_NonTransactional | REN_ForceNoResetLoaders);
+	Document->Rename(nullptr, GetTransientPackage(), REN_DontCreateRedirectors | REN_NonTransactional |
+#if UE_VERSION_NEWER_THAN(5, 8, -1)
+		REN_AllowPackageLinkerMismatch
+#else
+		REN_ForceNoResetLoaders
+#endif
+	);
 }
 
 static void URpgGameData_MarkChildDocumentsForDeletion(UObject* Document)
@@ -1170,7 +1202,12 @@ static void URpgGameData_MarkChildDocumentsForDeletion(UObject* Document)
 		}
 		Child->SetFlags(EObjectFlags::RF_TagGarbageTemp);
 	},
-	/* bIncludeNested */ false);
+#if UE_VERSION_NEWER_THAN(5, 8, -1)
+	EGetObjectsFlags::IncludeNestedObjects
+#else
+	/* bIncludeNested */ true
+#endif
+	);
 }
 
 static void URpgGameData_SweepMarkedChildDocuments(UObject* Document)
@@ -1193,12 +1230,23 @@ static void URpgGameData_SweepMarkedChildDocuments(UObject* Document)
 		Child->ClearFlags(EObjectFlags::RF_TagGarbageTemp);
 		ChildrenToDestroy.Add(Child);
 	},
-	/* bIncludeNested */ false);
+#if UE_VERSION_NEWER_THAN(5, 8, -1)
+	EGetObjectsFlags::IncludeNestedObjects
+#else
+	/* bIncludeNested */ true
+#endif
+	);
 
 	for (UObject* Child : ChildrenToDestroy)
 	{
 		Child->MarkAsGarbage();
-		Child->Rename(nullptr, GetTransientPackage(), REN_DontCreateRedirectors | REN_NonTransactional | REN_ForceNoResetLoaders);
+		Child->Rename(nullptr, GetTransientPackage(), REN_DontCreateRedirectors | REN_NonTransactional |
+#if UE_VERSION_NEWER_THAN(5, 8, -1)
+		REN_AllowPackageLinkerMismatch
+#else
+		REN_ForceNoResetLoaders
+#endif
+		);
 	}
 }
 
@@ -5036,7 +5084,7 @@ TSharedPtr<FJsonObject> URpgGameData::MergeGameData(const TSharedPtr<FJsonObject
 		auto& GameDataCollectionsMap = GameDataCollections->Get()->Values;
 		auto& PatchCollectionsMap = PatchCollections->Get()->Values;
 
-		TSet<FString> VisitedSchemas;
+		TSet<FJsonKeyString> VisitedSchemas;
 		auto SchemaNames = MergeKeys(GameDataCollectionsMap, PatchCollectionsMap);
 
 		for (auto SchemaName : SchemaNames.Get())
@@ -5758,7 +5806,7 @@ TSharedPtr<FJsonValue> URpgGameData::MergeDocumentCollection(TSharedRef<FJsonVal
 	auto OriginalCollectionById = URpgGameData_ToIdMapper::ToDocumentById(OriginalCollection);
 	auto ModifiedCollectionById = URpgGameData_ToIdMapper::ToDocumentById(ModifiedCollection);
 	auto MergedCollectionById = MakeShared<FJsonObject>();
-	auto DocumentIds = PurgeRest ? MergeKeys(ModifiedCollectionById->Values, TMap<FString, TSharedPtr<FJsonValue>>()) : MergeKeys(OriginalCollectionById->Values, ModifiedCollectionById->Values);
+	auto DocumentIds = PurgeRest ? MergeKeys(ModifiedCollectionById->Values, TMap<FJsonKeyString, TSharedPtr<FJsonValue>>()) : MergeKeys(OriginalCollectionById->Values, ModifiedCollectionById->Values);
 
 	for (auto DocumentId : DocumentIds.Get())
 	{
@@ -6145,7 +6193,7 @@ TSharedRef<FJsonValue> URpgGameData::MergeLocalizedText(TSharedRef<FJsonValue> O
 	{
 		static bool IsSame(TSharedRef<FJsonObject> Left, TSharedRef<FJsonObject> Right)
 		{
-			TArray<FString> Keys;
+			TArray<FJsonKeyString> Keys;
 			for(int i = 0; i < 2; i++)
 			{
 				if (i == 0)
@@ -6236,12 +6284,12 @@ TSharedRef<FJsonValue> URpgGameData::MergeLocalizedText(TSharedRef<FJsonValue> O
 	return MakeShared<FJsonValueObject>(MergedLocalizedText);
 }
 
-TSharedRef<TArray<FString>> URpgGameData::MergeKeys(const TMap<FString, TSharedPtr<FJsonValue>>& Collection1, const TMap<FString, TSharedPtr<FJsonValue>>& Collection2)
+TSharedRef<TArray<FJsonKeyString>> URpgGameData::MergeKeys(const TMap<FJsonKeyString, TSharedPtr<FJsonValue>>& Collection1, const TMap<FJsonKeyString, TSharedPtr<FJsonValue>>& Collection2)
 {
-	TArray<FString> Keys;
+	TArray<FJsonKeyString> Keys;
 	Collection1.GetKeys(Keys);
 
-	auto MergedKeys = MakeShared<TArray<FString>>();
+	auto MergedKeys = MakeShared<TArray<FJsonKeyString>>();
 	for (auto Key : Keys)
 	{
 		MergedKeys->Push(Key);
