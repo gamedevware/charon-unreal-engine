@@ -25,6 +25,7 @@
 #include "GameData/Formulas/Expressions/FTypeOfExpression.h"
 #include "GameData/Formulas/Expressions/FUnaryExpression.h"
 
+
 DEFINE_LOG_CATEGORY(LogExpressionBuildHelper);
 
 TSharedPtr<FFormulaExpression> FExpressionBuildHelper::CreateExpression(const TSharedPtr<FJsonObject>* ExpressionObj)
@@ -160,7 +161,7 @@ TSharedPtr<FFormulaMemberBinding> FExpressionBuildHelper::CreateBinding(const TS
 }
 
 TSharedPtr<FFormulaExpression> FExpressionBuildHelper::GetExpression(const TSharedPtr<FJsonObject>& ExpressionObj,
-                                                                     const FStringView& PropertyName, bool bOptional)
+                                                                     const FJsonKeyString& PropertyName, bool bOptional)
 {
 	if (!ExpressionObj.IsValid()) return nullptr;
 
@@ -196,7 +197,7 @@ bool FExpressionBuildHelper::GetUseNullPropagation(const TSharedPtr<FJsonObject>
 	return false;
 }
 
-FString FExpressionBuildHelper::GetString(const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName,
+FString FExpressionBuildHelper::GetString(const TSharedPtr<FJsonObject>& ExpressionObj, const FJsonKeyString& PropertyName,
                                           bool bOptional)
 {
 	FString OutString;
@@ -210,12 +211,12 @@ FString FExpressionBuildHelper::GetString(const TSharedPtr<FJsonObject>& Express
 		return FString();
 	}
 
-	UE_LOG(LogExpressionBuildHelper, Error, TEXT("Missing required string attribute: %s"), *PropertyName);
+	UE_LOG(LogExpressionBuildHelper, Error, TEXT("Missing required string attribute: %s"), *FString(PropertyName));
 	return FString();
 }
 
 TSharedPtr<FFormulaTypeReference> FExpressionBuildHelper::GetTypeRef(const TSharedPtr<FJsonObject>& ExpressionObj,
-                                                                     const FString& PropertyName, bool bOptional)
+                                                                     const FJsonKeyString& PropertyName, bool bOptional)
 {
 	if (!ExpressionObj.IsValid()) return nullptr;
 
@@ -235,13 +236,13 @@ TSharedPtr<FFormulaTypeReference> FExpressionBuildHelper::GetTypeRef(const TShar
 
 	if (bOptional) return nullptr;
 
-	UE_LOG(LogExpressionBuildHelper, Error, TEXT("Missing required TypeRef: %s"), *PropertyName);
+	UE_LOG(LogExpressionBuildHelper, Error, TEXT("Missing required TypeRef: %s"), *FString(PropertyName));
 	return nullptr;
 }
 
 TMap<FString, TSharedPtr<FFormulaExpression>> FExpressionBuildHelper::GetArguments(
 	const TSharedPtr<FJsonObject>& ExpressionObj,
-	const FString& PropertyName)
+	const FJsonKeyString& PropertyName)
 {
 	TMap<FString, TSharedPtr<FFormulaExpression>> Arguments;
 	const TSharedPtr<FJsonObject>* ArgsObj;
@@ -260,7 +261,7 @@ TMap<FString, TSharedPtr<FFormulaExpression>> FExpressionBuildHelper::GetArgumen
 
 TArray<TSharedPtr<FFormulaExpression>> FExpressionBuildHelper::GetArgumentsList(
 	const TSharedPtr<FJsonObject>& ExpressionObj,
-	const FString& PropertyName)
+	const FJsonKeyString& PropertyName)
 {
 	
 	TArray<TSharedPtr<FFormulaExpression>> Arguments;
@@ -295,7 +296,7 @@ TArray<TSharedPtr<FFormulaExpression>> FExpressionBuildHelper::GetArgumentsList(
 }
 
 TArray<TSharedPtr<FFormulaTypeReference>> FExpressionBuildHelper::GetTypeRefArguments(
-	const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName)
+	const TSharedPtr<FJsonObject>& ExpressionObj, const FJsonKeyString& PropertyName)
 {
 	TArray<TSharedPtr<FFormulaTypeReference>> Arguments;
 	const TSharedPtr<FJsonObject>* ArgumentsObjPtr;
@@ -317,7 +318,7 @@ TArray<TSharedPtr<FFormulaTypeReference>> FExpressionBuildHelper::GetTypeRefArgu
 }
 
 TArray<TSharedPtr<FFormulaMemberBinding>> FExpressionBuildHelper::GetBindings(
-	const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName)
+	const TSharedPtr<FJsonObject>& ExpressionObj, const FJsonKeyString& PropertyName)
 {
 	TArray<TSharedPtr<FFormulaMemberBinding>> Bindings;
 	
@@ -355,7 +356,7 @@ TArray<TSharedPtr<FFormulaMemberBinding>> FExpressionBuildHelper::GetBindings(
 	return Bindings;
 }
 
-TArray<TSharedPtr<FFormulaElementInitBinding>> FExpressionBuildHelper::GetElementInitBindings(const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName)
+TArray<TSharedPtr<FFormulaElementInitBinding>> FExpressionBuildHelper::GetElementInitBindings(const TSharedPtr<FJsonObject>& ExpressionObj, const FJsonKeyString& PropertyName)
 {
 	TArray<TSharedPtr<FFormulaElementInitBinding>> Bindings;
 	

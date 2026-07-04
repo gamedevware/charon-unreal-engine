@@ -8,6 +8,14 @@
 #include "Containers/Map.h"
 #include "Dom/JsonObject.h"
 #include "Templates/SharedPointer.h"
+#include "Misc/EngineVersionComparison.h"
+
+
+#if UE_VERSION_NEWER_THAN(5, 4, -1)
+using FJsonKeyString = FStringView;
+#else
+using FJsonKeyString = FString;
+#endif
 
 class FFormulaTypeReference;
 class FFormulaExpression;
@@ -22,13 +30,13 @@ public:
 	static TSharedPtr<FFormulaExpression> CreateExpression(const TSharedPtr<FJsonObject>* ExpressionObj);
 	static TSharedPtr<FFormulaMemberBinding> CreateBinding(const TSharedPtr<FJsonObject>* BindingObj);
 	
-	static TSharedPtr<FFormulaExpression> GetExpression(const TSharedPtr<FJsonObject>& ExpressionObj, const FStringView& PropertyName, bool bOptional = false);
+	static TSharedPtr<FFormulaExpression> GetExpression(const TSharedPtr<FJsonObject>& ExpressionObj, const FJsonKeyString& PropertyName, bool bOptional = false);
 	static bool GetUseNullPropagation(const TSharedPtr<FJsonObject>& ExpressionObj, bool bOptional = true);
-	static FString GetString(const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName, bool bOptional = false);
-	static TSharedPtr<FFormulaTypeReference> GetTypeRef(const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName, bool bOptional = false);
-	static TMap<FString, TSharedPtr<FFormulaExpression>> GetArguments(const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName);
-	static TArray<TSharedPtr<FFormulaExpression>> GetArgumentsList(const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName);
-	static TArray<TSharedPtr<FFormulaTypeReference>> GetTypeRefArguments(const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName);
-	static TArray<TSharedPtr<FFormulaMemberBinding>> GetBindings(const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName);
-	static TArray<TSharedPtr<FFormulaElementInitBinding>> GetElementInitBindings(const TSharedPtr<FJsonObject>& ExpressionObj, const FString& PropertyName);
+	static FString GetString(const TSharedPtr<FJsonObject>& ExpressionObj, const FJsonKeyString& PropertyName, bool bOptional = false);
+	static TSharedPtr<FFormulaTypeReference> GetTypeRef(const TSharedPtr<FJsonObject>& ExpressionObj, const FJsonKeyString& PropertyName, bool bOptional = false);
+	static TMap<FString, TSharedPtr<FFormulaExpression>> GetArguments(const TSharedPtr<FJsonObject>& ExpressionObj, const FJsonKeyString& PropertyName);
+	static TArray<TSharedPtr<FFormulaExpression>> GetArgumentsList(const TSharedPtr<FJsonObject>& ExpressionObj, const FJsonKeyString& PropertyName);
+	static TArray<TSharedPtr<FFormulaTypeReference>> GetTypeRefArguments(const TSharedPtr<FJsonObject>& ExpressionObj, const FJsonKeyString& PropertyName);
+	static TArray<TSharedPtr<FFormulaMemberBinding>> GetBindings(const TSharedPtr<FJsonObject>& ExpressionObj, const FJsonKeyString& PropertyName);
+	static TArray<TSharedPtr<FFormulaElementInitBinding>> GetElementInitBindings(const TSharedPtr<FJsonObject>& ExpressionObj, const FJsonKeyString& PropertyName);
 };
