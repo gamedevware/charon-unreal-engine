@@ -13,12 +13,6 @@
 #include "Serialization/JsonTypes.h"
 #include "Misc/EngineVersionComparison.h"
 
-#if UE_VERSION_NEWER_THAN(5, 8, -1)
-using FJsonKeyString = UE::FSharedString;
-#else
-using FJsonKeyString = FString;
-#endif
-
 /*
  * Token based reader for dynamic FJsonObject object as source of token stream.
  * Provides generalized IGameDataReader behaviour for already de-serialized objects.
@@ -33,14 +27,23 @@ private:
 		bool MemberNameIsVisited;
 		size_t CurrentIndex;
 		TArray<TSharedPtr<FJsonValue>>* CurrentArray;
-		TArray<FJsonKeyString> CurrentObjectKeys;
+#if UE_VERSION_NEWER_THAN(5, 8, -1)
+		TArray<UE::FSharedString> CurrentObjectKeys;
+#else
+		TArray<FString> CurrentObjectKeys;
+#endif
 		TSharedPtr<FJsonObject>* CurrentObject;
 
 	public:
 		explicit FJsonObjectReaderFrame(TSharedPtr<FJsonObject>& JsonObject);
 		explicit FJsonObjectReaderFrame(TArray<TSharedPtr<FJsonValue>>& JsonObject);
 
-		FJsonKeyString& GetCurrentMemberName();
+#if UE_VERSION_NEWER_THAN(5, 8, -1)
+		UE::FSharedString& GetCurrentMemberName();
+#else
+		FString& GetCurrentMemberName();
+#endif
+		
 		TSharedPtr<FJsonValue> GetCurrentValue();
 		EJson GetContainerToken() const;
 

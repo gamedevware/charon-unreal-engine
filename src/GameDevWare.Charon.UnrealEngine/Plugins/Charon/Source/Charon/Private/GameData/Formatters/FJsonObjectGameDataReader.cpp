@@ -16,11 +16,15 @@ FJsonObjectGameDataReader::FJsonObjectReaderFrame::FJsonObjectReaderFrame(TArray
 	CurrentIndex = 0;
 	MemberNameIsVisited = false;
 	CurrentObject = nullptr;
-	CurrentObjectKeys = TArray<FJsonKeyString>();
+	CurrentObjectKeys = {};
 	CurrentArray = &JsonObject;
 }
 
-FJsonKeyString& FJsonObjectGameDataReader::FJsonObjectReaderFrame::GetCurrentMemberName()
+#if UE_VERSION_NEWER_THAN(5, 8, -1)
+UE::FSharedString& FJsonObjectGameDataReader::FJsonObjectReaderFrame::GetCurrentMemberName() 
+#else
+FString& FJsonObjectGameDataReader::FJsonObjectReaderFrame::GetCurrentMemberName() 
+#endif
 {
 	return CurrentObjectKeys[CurrentIndex];
 }

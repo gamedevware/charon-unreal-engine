@@ -5084,7 +5084,11 @@ TSharedPtr<FJsonObject> URpgGameData::MergeGameData(const TSharedPtr<FJsonObject
 		auto& GameDataCollectionsMap = GameDataCollections->Get()->Values;
 		auto& PatchCollectionsMap = PatchCollections->Get()->Values;
 
-		TSet<FJsonKeyString> VisitedSchemas;
+#if UE_VERSION_NEWER_THAN(5, 8, -1)
+		TSet<UE::FSharedString> VisitedSchemas;
+#else
+		TSet<FString> VisitedSchemas;
+#endif
 		auto SchemaNames = MergeKeys(GameDataCollectionsMap, PatchCollectionsMap);
 
 		for (auto SchemaName : SchemaNames.Get())
@@ -5806,7 +5810,7 @@ TSharedPtr<FJsonValue> URpgGameData::MergeDocumentCollection(TSharedRef<FJsonVal
 	auto OriginalCollectionById = URpgGameData_ToIdMapper::ToDocumentById(OriginalCollection);
 	auto ModifiedCollectionById = URpgGameData_ToIdMapper::ToDocumentById(ModifiedCollection);
 	auto MergedCollectionById = MakeShared<FJsonObject>();
-	auto DocumentIds = PurgeRest ? MergeKeys(ModifiedCollectionById->Values, TMap<FJsonKeyString, TSharedPtr<FJsonValue>>()) : MergeKeys(OriginalCollectionById->Values, ModifiedCollectionById->Values);
+	auto DocumentIds = PurgeRest ? MergeKeys(ModifiedCollectionById->Values, {}) : MergeKeys(OriginalCollectionById->Values, ModifiedCollectionById->Values);
 
 	for (auto DocumentId : DocumentIds.Get())
 	{
@@ -6193,7 +6197,11 @@ TSharedRef<FJsonValue> URpgGameData::MergeLocalizedText(TSharedRef<FJsonValue> O
 	{
 		static bool IsSame(TSharedRef<FJsonObject> Left, TSharedRef<FJsonObject> Right)
 		{
-			TArray<FJsonKeyString> Keys;
+#if UE_VERSION_NEWER_THAN(5, 8, -1)
+			TArray<UE::FSharedString> Keys;
+#else
+			TArray<FString> Keys;
+#endif
 			for(int i = 0; i < 2; i++)
 			{
 				if (i == 0)
@@ -6284,12 +6292,13 @@ TSharedRef<FJsonValue> URpgGameData::MergeLocalizedText(TSharedRef<FJsonValue> O
 	return MakeShared<FJsonValueObject>(MergedLocalizedText);
 }
 
-TSharedRef<TArray<FJsonKeyString>> URpgGameData::MergeKeys(const TMap<FJsonKeyString, TSharedPtr<FJsonValue>>& Collection1, const TMap<FJsonKeyString, TSharedPtr<FJsonValue>>& Collection2)
+template <typename KeyType>
+TSharedRef<TArray<KeyType>> URpgGameData::MergeKeys(const TMap<KeyType, TSharedPtr<FJsonValue>>& Collection1, const TMap<KeyType, TSharedPtr<FJsonValue>>& Collection2)
 {
-	TArray<FJsonKeyString> Keys;
+	TArray<KeyType> Keys;
 	Collection1.GetKeys(Keys);
 
-	auto MergedKeys = MakeShared<TArray<FJsonKeyString>>();
+	auto MergedKeys = MakeShared<TArray<KeyType>>();
 	for (auto Key : Keys)
 	{
 		MergedKeys->Push(Key);

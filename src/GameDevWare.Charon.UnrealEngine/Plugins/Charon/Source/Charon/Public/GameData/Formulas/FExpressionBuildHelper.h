@@ -10,13 +10,6 @@
 #include "Templates/SharedPointer.h"
 #include "Misc/EngineVersionComparison.h"
 
-
-#if UE_VERSION_NEWER_THAN(5, 4, -1)
-using FJsonKeyString = FStringView;
-#else
-using FJsonKeyString = FString;
-#endif
-
 class FFormulaTypeReference;
 class FFormulaExpression;
 class FFormulaMemberBinding;
@@ -26,6 +19,12 @@ DECLARE_LOG_CATEGORY_EXTERN(LogExpressionBuildHelper, Log, All);
 
 class CHARON_API FExpressionBuildHelper
 {
+#if UE_VERSION_NEWER_THAN(5, 4, -1)
+	using FJsonKeyString = FStringView;
+#else
+	using FJsonKeyString = FString;
+#endif
+	
 public:
 	static TSharedPtr<FFormulaExpression> CreateExpression(const TSharedPtr<FJsonObject>* ExpressionObj);
 	static TSharedPtr<FFormulaMemberBinding> CreateBinding(const TSharedPtr<FJsonObject>* BindingObj);

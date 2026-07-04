@@ -78,12 +78,6 @@
 
 DECLARE_LOG_CATEGORY_EXTERN(LogUTestData, Log, All);
 
-#if UE_VERSION_NEWER_THAN(5, 8, -1)
-using FJsonKeyString = UE::FSharedString;
-#else
-using FJsonKeyString = FString;
-#endif
-
 /**
   * Main class used to access game data.
   */
@@ -317,7 +311,8 @@ private:
 	void MergePropertyLanguagesValue(TSharedRef<FJsonObject> MergedDocument, TSharedRef<FJsonObject> OriginalDocument, TSharedRef<FJsonObject> ModifiedDocument, const FString PropertyName);
 	void MergePropertyValue(TSharedRef<FJsonObject> MergedDocument, TSharedRef<FJsonObject> OriginalDocument, TSharedRef<FJsonObject> ModifiedDocument, const FString PropertyName, OptionalMergeValueFunc MergeFn = OptionalMergeValueFunc());
 	TSharedRef<FJsonValue> MergeLocalizedText(TSharedRef<FJsonValue> OriginalLocalizedText, TSharedRef<FJsonValue> ModifiedLocalizedText);
-	TSharedRef<TArray<FJsonKeyString>> MergeKeys(const TMap<FJsonKeyString, TSharedPtr<FJsonValue>>& Collection1, const TMap<FJsonKeyString, TSharedPtr<FJsonValue>>& Collection2);
+	template <typename KeyType>
+	TSharedRef<TArray<KeyType>> MergeKeys(const TMap<KeyType, TSharedPtr<FJsonValue>>& Collection1, const TMap<KeyType, TSharedPtr<FJsonValue>>& Collection2);
 public:
 	void ResolveAllReferences();
 	void FindAllDocuments();
