@@ -1,6 +1,8 @@
 ﻿// Copyright GameDevWare, Denis Zykov 2025
 
 #pragma once
+#include "FFormulaTestItem.h"
+#include "GameData/EGameDataFormat.h"
 #include "Sound/AmbientSound.h"
 #include "UFormulaTestObject.generated.h"
 
@@ -12,6 +14,17 @@ class UFormulaTestObject : public UObject
 public:
 	UPROPERTY()
 	TArray<int32> Int32Array;
+
+	/** Second sequence, for Concat/Union/Except/Intersect. */
+	UPROPERTY()
+	TArray<int32> OtherInt32Array;
+
+	/** Struct and enum elements: the kinds TryCreateArray cannot synthesize an array for. */
+	UPROPERTY()
+	TArray<FFormulaTestItem> ItemArray;
+
+	UPROPERTY()
+	TArray<EGameDataFormat> EnumArray;
 
 	UPROPERTY()
 	TSet<int32> Int32Set;

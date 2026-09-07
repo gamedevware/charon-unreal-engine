@@ -1,3 +1,33 @@
+# Release Notes - vNext
+
+## New Features
+
+### Lambda Expressions in Formulas
+Lambda expressions (`x => x.Level > 10`) now execute instead of failing with an "unsupported expression" error. A lambda evaluates to a closure that captures the enclosing formula arguments and global scope, so it can be passed to any method that accepts one.
+
+### LINQ Methods on Array Properties
+Added `System.Linq.Enumerable` methods for `TArray` properties in formulas, allowing expressions such as:
+
+```csharp
+Heroes.Where(h => h.Level > 10).OrderBy(h => h.Name).First().Id
+Items.Sum(i => i.Price)
+Tags.Any(t => t == "Boss")
+```
+
+Supported methods:
+
+- **Scalar results** — `Any`, `All`, `Count`, `Contains`, `First`, `FirstOrDefault`, `Last`, `LastOrDefault`, `Single`, `SingleOrDefault`, `ElementAt`, `ElementAtOrDefault`, `Min`, `Max`, `Sum`, `Average`.
+- **Sequence results** — `Where`, `Skip`, `Take`, `SkipWhile`, `TakeWhile`, `Distinct`, `Reverse`, `OrderBy`, `OrderByDescending`, `Concat`, `Union`, `Except`, `Intersect`, `Select`, `ToArray`, `ToList`.
+
+Operators that preserve the element type work with arrays of structs and enums.
+
+Current limitations:
+
+- LINQ methods are available on `TArray` only. Convert `TSet` and `TMap` values to `TArray` before passing them into a formula.
+- `ThenBy` and `ThenByDescending` are not supported. Results are materialized eagerly, so the ordering context that these methods require is not carried between calls. Use a single `OrderBy` key instead.
+- `Select` cannot project to a struct or enum element type.
+- `GroupBy`, `Join`, `Zip`, `ToDictionary`, and `SelectMany` are not supported.
+
 # Release Notes - Version 2026.2.0
 
 ## New Features

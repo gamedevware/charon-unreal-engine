@@ -55,6 +55,54 @@ FFormulaValue::FFormulaValue():
 	this->StructBytes.SetNumZeroed(this->Type.GetSize());
 }
 
+bool FFormulaValue::TryCompare(const TSharedRef<FFormulaValue>& Other, int32& OutSign) const
+{
+	// null has no ordering; FBinaryExpression lifts nulls before ever reaching a comparison
+	if (this->IsNull() || Other->IsNull())
+	{
+		return false;
+	}
+
+	return this->VisitValue([&Other, &OutSign](const FProperty&, const auto& LeftValue) -> bool
+	{
+		return Other->VisitValue([&LeftValue, &OutSign](const FProperty&, const auto& RightValue) -> bool
+		{
+			using LeftT = std::decay_t<decltype(LeftValue)>;
+			using RightT = std::decay_t<decltype(RightValue)>;
+
+			// these guards must stay identical to the comparison cases of FBinaryExpression
+			constexpr bool bNotMixedPtr = std::is_pointer_v<LeftT> == std::is_pointer_v<RightT>;
+			constexpr bool bNotMixedBool = std::is_same_v<LeftT, bool> == std::is_same_v<RightT, bool>;
+			constexpr bool bNotMixedString = std::is_same_v<LeftT, FString> == std::is_same_v<RightT, FString>;
+			constexpr bool bNotMixedText = std::is_same_v<LeftT, FText> == std::is_same_v<RightT, FText>;
+			constexpr bool bNotMixedName = std::is_same_v<LeftT, FName> == std::is_same_v<RightT, FName>;
+			constexpr bool bNotMixedTypes = bNotMixedBool && bNotMixedPtr && bNotMixedString && bNotMixedText && bNotMixedName;
+			constexpr bool bNotMixedSign = !(std::is_integral_v<LeftT> && std::is_integral_v<RightT>) || (std::is_signed_v<LeftT> == std::is_signed_v<RightT>);
+
+			if constexpr (has_lt_v<LeftT, RightT> && has_gt_v<LeftT, RightT> && bNotMixedTypes && bNotMixedSign)
+			{
+				if (LeftValue < RightValue)
+				{
+					OutSign = -1;
+				}
+				else if (LeftValue > RightValue)
+				{
+					OutSign = 1;
+				}
+				else
+				{
+					OutSign = 0;
+				}
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		});
+	});
+}
+
 bool FFormulaValue::EqualsTo(const TSharedRef<FFormulaValue>& Other) const
 {
 	// Object pointers compare by identity (reference equality), including null objects

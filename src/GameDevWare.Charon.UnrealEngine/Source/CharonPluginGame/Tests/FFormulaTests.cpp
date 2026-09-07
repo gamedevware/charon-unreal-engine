@@ -35,9 +35,12 @@
 #include "GameData/Formulas/Expressions/FFormulaMemberListBinding.h"
 #include "GameData/Formulas/Expressions/FFormulaMemberMemberBinding.h"
 #include "GameData/Formulas/Expressions/FNewArrayInitExpression.h"
+#include "GameData/Formulas/FFormulaClosure.h"
+#include "GameData/Formulas/DotNetTypes/UDotNetFunc.h"
 #include "GameData/Formulas/FormulaTypeTraits.h"
 #include "GameData/EGameDataFormat.h"
 #include "FFormulaTestStruct.h"
+#include "FFormulaTestItem.h"
 #include "Tests/TestHarnessAdapter.h"
 #include "FFormulaTestMacros.h"
 #include "Misc/EngineVersionComparison.h"
@@ -726,9 +729,402 @@ TEST_CASE_NAMED(FFormulaTests, "Charon::Formulas", "[Core]")
 		}
 	}
 	
+	SECTION("Enumerable scalar methods without a selector")
+	{
+		// The enumerable methods log an error and substitute a default rather than failing
+		// the formula, and several sections below exercise those paths on purpose.
+		AddExpectedError(TEXT("found no element"), EAutomationExpectedErrorFlags::Contains, 0);
+		AddExpectedError(TEXT("has no value for an empty sequence"), EAutomationExpectedErrorFlags::Contains, 0);
+		AddExpectedError(TEXT("expected one element but found"), EAutomationExpectedErrorFlags::Contains, 0);
+		AddExpectedError(TEXT("instead of a boolean"), EAutomationExpectedErrorFlags::Contains, 0);
+		AddExpectedError(TEXT("cannot build a sequence of"), EAutomationExpectedErrorFlags::Contains, 0);
+
+		TestObject->Int32Array = TArray { 10, 20, 30 };
+		auto EnumObjExpr = EXPR_CONST_OBJECT(TestObject, TestObjectProperty);
+		auto Int32ArrayExpr = MakeShared<FMemberExpression>(EnumObjExpr, FString(TEXT("Int32Array")), EmptyTypeArguments, false);
+
+		TEST_EXPR_INVOKE_CHECK_VALUE(Int32ArrayExpr, "Count", 3);
+		TEST_EXPR_INVOKE_CHECK_VALUE(Int32ArrayExpr, "Any", true);
+		TEST_EXPR_INVOKE_CHECK_VALUE(Int32ArrayExpr, "First", 10);
+		TEST_EXPR_INVOKE_CHECK_VALUE(Int32ArrayExpr, "Last", 30);
+		TEST_EXPR_INVOKE_CHECK_VALUE(Int32ArrayExpr, "Min", 10);
+		TEST_EXPR_INVOKE_CHECK_VALUE(Int32ArrayExpr, "Max", 30);
+		TEST_EXPR_INVOKE_CHECK_VALUE(Int32ArrayExpr, "Sum", 60);
+
+		// an empty array reports emptiness rather than failing
+		TestObject->Int32Array.Empty();
+		TEST_EXPR_INVOKE_CHECK_VALUE(Int32ArrayExpr, "Count", 0);
+		TEST_EXPR_INVOKE_CHECK_VALUE(Int32ArrayExpr, "Any", false);
+
+		// First/Last/Min/Max on an empty array log the reason and yield the element default
+		// rather than failing the whole formula
+		TEST_EXPR_INVOKE_CHECK_VALUE(Int32ArrayExpr, "First", 0);
+		TEST_EXPR_INVOKE_CHECK_VALUE(Int32ArrayExpr, "Min", 0);
+		TEST_EXPR_INVOKE_CHECK_VALUE(Int32ArrayExpr, "Max", 0);
+
+		// the OrDefault variants behave the same, but without logging
+		TEST_EXPR_INVOKE_CHECK_VALUE(Int32ArrayExpr, "FirstOrDefault", 0);
+		TEST_EXPR_INVOKE_CHECK_VALUE(Int32ArrayExpr, "LastOrDefault", 0);
+	}
+
+	SECTION("Enumerable scalar methods with a predicate")
+	{
+		TestObject->Int32Array = TArray { 10, 20, 30 };
+		auto PredObjExpr = EXPR_CONST_OBJECT(TestObject, TestObjectProperty);
+		auto PredArrayExpr = MakeShared<FMemberExpression>(PredObjExpr, FString(TEXT("Int32Array")), EmptyTypeArguments, false);
+
+		// x => x > 15
+		auto OverFifteen = MakeShared<FLambdaExpression>(
+			MakeShared<FBinaryExpression>(
+				MakeShared<FMemberExpression>(nullptr, FString(TEXT("x")), EmptyTypeArguments, false),
+				EXPR_CONST(15),
+				EBinaryOperationType::GreaterThan
+			),
+			TArray<FString> { TEXT("x") }
+		);
+
+		TEST_EXPR_INVOKE_CHECK_VALUE(PredArrayExpr, "Count", 2, OverFifteen);
+		TEST_EXPR_INVOKE_CHECK_VALUE(PredArrayExpr, "Any", true, OverFifteen);
+		TEST_EXPR_INVOKE_CHECK_VALUE(PredArrayExpr, "All", false, OverFifteen);
+		TEST_EXPR_INVOKE_CHECK_VALUE(PredArrayExpr, "First", 20, OverFifteen);
+		TEST_EXPR_INVOKE_CHECK_VALUE(PredArrayExpr, "Last", 30, OverFifteen);
+
+		// value-taking and index-taking members
+		TEST_EXPR_INVOKE_CHECK_VALUE(PredArrayExpr, "Contains", true, EXPR_CONST(20));
+		TEST_EXPR_INVOKE_CHECK_VALUE(PredArrayExpr, "Contains", false, EXPR_CONST(99));
+		TEST_EXPR_INVOKE_CHECK_VALUE(PredArrayExpr, "ElementAt", 20, EXPR_CONST(1));
+
+		// Average widens to double even for an integer sequence, as .NET does
+		TEST_EXPR_INVOKE_CHECK_VALUE(PredArrayExpr, "Average", 20.0);
+
+		// Single needs exactly one match
+		TEST_EXPR_INVOKE_CHECK_VALUE(PredArrayExpr, "Single", 30, MakeShared<FLambdaExpression>(
+			MakeShared<FBinaryExpression>(
+				MakeShared<FMemberExpression>(nullptr, FString(TEXT("x")), EmptyTypeArguments, false),
+				EXPR_CONST(25),
+				EBinaryOperationType::GreaterThan
+			),
+			TArray<FString> { TEXT("x") }
+		));
+
+		// more than one match logs and yields the first match
+		TEST_EXPR_INVOKE_CHECK_VALUE(PredArrayExpr, "Single", 10);
+
+		// no match logs and yields the element default
+		auto OverThousand = MakeShared<FLambdaExpression>(
+			MakeShared<FBinaryExpression>(
+				MakeShared<FMemberExpression>(nullptr, FString(TEXT("x")), EmptyTypeArguments, false),
+				EXPR_CONST(1000),
+				EBinaryOperationType::GreaterThan
+			),
+			TArray<FString> { TEXT("x") }
+		);
+
+		TEST_EXPR_INVOKE_CHECK_VALUE(PredArrayExpr, "First", 0, OverThousand);
+		TEST_EXPR_INVOKE_CHECK_VALUE(PredArrayExpr, "FirstOrDefault", 0, OverThousand);
+
+		// a predicate that does not yield a boolean is an error
+		auto NotAPredicate = MakeShared<FLambdaExpression>(
+			MakeShared<FMemberExpression>(nullptr, FString(TEXT("x")), EmptyTypeArguments, false),
+			TArray<FString> { TEXT("x") }
+		);
+		TEST_EXPR_INVOKE_CHECK_VALUE(PredArrayExpr, "Any", false, NotAPredicate);
+	}
+
+	SECTION("Enumerable sequence methods")
+	{
+		TestObject->Int32Array = TArray { 30, 10, 20, 10 };
+		auto SeqObjExpr = EXPR_CONST_OBJECT(TestObject, TestObjectProperty);
+		auto SeqArrayExpr = MakeShared<FMemberExpression>(SeqObjExpr, FString(TEXT("Int32Array")), EmptyTypeArguments, false);
+
+		auto CheckSequence = [&](const TCHAR* MethodName, const TArray<TSharedPtr<FFormulaExpression>>& MethodArguments, const TArray<int32>& Expected)
+		{
+			Expression = MakeShared<FInvokeExpression>(
+				MakeShared<FMemberExpression>(SeqArrayExpr, FString(MethodName), EmptyTypeArguments, false),
+				PrepareArguments(MethodArguments)
+			);
+			INFO("Testing `" + Expression->ToString() + "` expression");
+			Result = Expression->Execute(Context, nullptr);
+			CHECK_FALSE_MESSAGE(Result.GetError().Message, Result.HasError());
+			if (Result.HasError())
+			{
+				return;
+			}
+
+			TArray<int32> Actual;
+			CHECK_MESSAGE(FString(MethodName) + TEXT(" returns an int32 array"), Result.GetValue()->TryCopyCompleteValue(UDotNetInt32::GetArrayProperty(), &Actual));
+			CHECK_EQUALS(FString(MethodName) + TEXT(" element count"), Actual.Num(), Expected.Num());
+			if (Actual.Num() == Expected.Num())
+			{
+				for (int32 Index = 0; Index < Expected.Num(); Index++)
+				{
+					CHECK_EQUALS(FString(MethodName) + TEXT("[") + FString::FromInt(Index) + TEXT("]"), Actual[Index], Expected[Index]);
+				}
+			}
+		};
+
+		// x => x > 15
+		auto SeqOverFifteen = MakeShared<FLambdaExpression>(
+			MakeShared<FBinaryExpression>(
+				MakeShared<FMemberExpression>(nullptr, FString(TEXT("x")), EmptyTypeArguments, false),
+				EXPR_CONST(15),
+				EBinaryOperationType::GreaterThan
+			),
+			TArray<FString> { TEXT("x") }
+		);
+		// x => x  (identity, used as an ordering key)
+		auto SeqIdentity = MakeShared<FLambdaExpression>(
+			MakeShared<FMemberExpression>(nullptr, FString(TEXT("x")), EmptyTypeArguments, false),
+			TArray<FString> { TEXT("x") }
+		);
+
+		CheckSequence(TEXT("ToArray"), {}, TArray { 30, 10, 20, 10 });
+		CheckSequence(TEXT("ToList"), {}, TArray { 30, 10, 20, 10 });
+		CheckSequence(TEXT("Where"), { SeqOverFifteen }, TArray { 30, 20 });
+		CheckSequence(TEXT("Skip"), { EXPR_CONST(2) }, TArray { 20, 10 });
+		CheckSequence(TEXT("Take"), { EXPR_CONST(2) }, TArray { 30, 10 });
+		CheckSequence(TEXT("Reverse"), {}, TArray { 10, 20, 10, 30 });
+		CheckSequence(TEXT("Distinct"), {}, TArray { 30, 10, 20 });
+		CheckSequence(TEXT("OrderBy"), { SeqIdentity }, TArray { 10, 10, 20, 30 });
+		CheckSequence(TEXT("OrderByDescending"), { SeqIdentity }, TArray { 30, 20, 10, 10 });
+		CheckSequence(TEXT("SkipWhile"), { SeqOverFifteen }, TArray { 10, 20, 10 });
+		CheckSequence(TEXT("TakeWhile"), { SeqOverFifteen }, TArray { 30 });
+
+		// Skip and Take clamp rather than failing, as .NET does
+		CheckSequence(TEXT("Skip"), { EXPR_CONST(99) }, TArray<int32>());
+		CheckSequence(TEXT("Take"), { EXPR_CONST(99) }, TArray { 30, 10, 20, 10 });
+
+		// element-preserving operators must work for struct elements, which
+		// FNewExpression::TryCreateArray cannot synthesize an array for
+		TestObject->ItemArray = TArray<FFormulaTestItem> {
+			FFormulaTestItem { 5, TEXT("five") },
+			FFormulaTestItem { 50, TEXT("fifty") }
+		};
+		auto ItemArrayExpr = MakeShared<FMemberExpression>(SeqObjExpr, FString(TEXT("ItemArray")), EmptyTypeArguments, false);
+		Expression = MakeShared<FInvokeExpression>(
+			MakeShared<FMemberExpression>(ItemArrayExpr, FString(TEXT("Where")), EmptyTypeArguments, false),
+			PrepareArguments(TArray<TSharedPtr<FFormulaExpression>> {
+				MakeShared<FLambdaExpression>(
+					MakeShared<FBinaryExpression>(
+						MakeShared<FMemberExpression>(
+							MakeShared<FMemberExpression>(nullptr, FString(TEXT("i")), EmptyTypeArguments, false),
+							FString(TEXT("Value")), EmptyTypeArguments, false
+						),
+						EXPR_CONST(10),
+						EBinaryOperationType::GreaterThan
+					),
+					TArray<FString> { TEXT("i") }
+				)
+			})
+		);
+		Result = Expression->Execute(Context, nullptr);
+		CHECK_FALSE_MESSAGE(Result.GetError().Message, Result.HasError());
+		if (!Result.HasError())
+		{
+			TArray<FFormulaTestItem> FilteredItems;
+			FArrayProperty* ItemArrayProperty = CastFieldChecked<FArrayProperty>(UFormulaTestObject::StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UFormulaTestObject, ItemArray)));
+			CHECK_MESSAGE(TEXT("struct array survives Where"), Result.GetValue()->TryCopyCompleteValue(ItemArrayProperty, &FilteredItems));
+			CHECK_EQUALS(TEXT("filtered struct count"), FilteredItems.Num(), 1);
+			if (FilteredItems.Num() == 1)
+			{
+				CHECK_EQUALS(TEXT("filtered struct value"), FilteredItems[0].Value, 50);
+				CHECK_EQUALS(TEXT("filtered struct name"), FilteredItems[0].Name, FString(TEXT("fifty")));
+			}
+		}
+
+		// set operations take a second sequence
+		TestObject->OtherInt32Array = TArray { 10, 99 };
+		auto OtherArrayExpr = MakeShared<FMemberExpression>(SeqObjExpr, FString(TEXT("OtherInt32Array")), EmptyTypeArguments, false);
+
+		CheckSequence(TEXT("Concat"), { OtherArrayExpr }, TArray { 30, 10, 20, 10, 10, 99 });
+		CheckSequence(TEXT("Union"), { OtherArrayExpr }, TArray { 30, 10, 20, 99 });
+		CheckSequence(TEXT("Except"), { OtherArrayExpr }, TArray { 30, 20 });
+		CheckSequence(TEXT("Intersect"), { OtherArrayExpr }, TArray { 10 });
+
+		// Select changes the element type, so it cannot reuse the source array property
+		CheckSequence(TEXT("Select"), { MakeShared<FLambdaExpression>(
+			MakeShared<FBinaryExpression>(
+				MakeShared<FMemberExpression>(nullptr, FString(TEXT("x")), EmptyTypeArguments, false),
+				EXPR_CONST(2),
+				EBinaryOperationType::Multiply
+			),
+			TArray<FString> { TEXT("x") }
+		) }, TArray { 60, 20, 40, 20 });
+
+		// projecting a struct member down to a primitive is supported
+		Expression = MakeShared<FInvokeExpression>(
+			MakeShared<FMemberExpression>(ItemArrayExpr, FString(TEXT("Select")), EmptyTypeArguments, false),
+			PrepareArguments(TArray<TSharedPtr<FFormulaExpression>> {
+				MakeShared<FLambdaExpression>(
+					MakeShared<FMemberExpression>(
+						MakeShared<FMemberExpression>(nullptr, FString(TEXT("i")), EmptyTypeArguments, false),
+						FString(TEXT("Value")), EmptyTypeArguments, false
+					),
+					TArray<FString> { TEXT("i") }
+				)
+			})
+		);
+		Result = Expression->Execute(Context, nullptr);
+		CHECK_FALSE_MESSAGE(Result.GetError().Message, Result.HasError());
+		if (!Result.HasError())
+		{
+			TArray<int32> ProjectedValues;
+			CHECK_MESSAGE(TEXT("struct member projects to an int32 array"), Result.GetValue()->TryCopyCompleteValue(UDotNetInt32::GetArrayProperty(), &ProjectedValues));
+			CHECK_EQUALS(TEXT("projected count"), ProjectedValues.Num(), 2);
+			if (ProjectedValues.Num() == 2)
+			{
+				CHECK_EQUALS(TEXT("projected[0]"), ProjectedValues[0], 5);
+				CHECK_EQUALS(TEXT("projected[1]"), ProjectedValues[1], 50);
+			}
+		}
+
+		// but projecting *to* a struct is a documented gap and must report it
+		Expression = MakeShared<FInvokeExpression>(
+			MakeShared<FMemberExpression>(ItemArrayExpr, FString(TEXT("Select")), EmptyTypeArguments, false),
+			PrepareArguments(TArray<TSharedPtr<FFormulaExpression>> {
+				MakeShared<FLambdaExpression>(
+					MakeShared<FMemberExpression>(nullptr, FString(TEXT("i")), EmptyTypeArguments, false),
+					TArray<FString> { TEXT("i") }
+				)
+			})
+		);
+		Result = Expression->Execute(Context, nullptr);
+		CHECK_FALSE_MESSAGE(Result.GetError().Message, Result.HasError());
+		if (!Result.HasError())
+		{
+			TArray<FFormulaTestItem> UnprojectableItems;
+			FArrayProperty* SelectItemArrayProperty = CastFieldChecked<FArrayProperty>(UFormulaTestObject::StaticClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UFormulaTestObject, ItemArray)));
+			CHECK_MESSAGE(TEXT("projecting to a struct yields an empty sequence"), Result.GetValue()->TryCopyCompleteValue(SelectItemArrayProperty, &UnprojectableItems));
+			CHECK_EQUALS(TEXT("unprojectable count"), UnprojectableItems.Num(), 0);
+		}
+
+		// ThenBy is deliberately unsupported, and must say so rather than mis-sort
+		Expression = MakeShared<FInvokeExpression>(
+			MakeShared<FMemberExpression>(SeqArrayExpr, FString(TEXT("ThenBy")), EmptyTypeArguments, false),
+			PrepareArguments(TArray<TSharedPtr<FFormulaExpression>> { SeqIdentity })
+		);
+		Result = Expression->Execute(Context, nullptr);
+		CHECK_MESSAGE(TEXT("ThenBy is not supported"), Result.HasError());
+	}
+
+	SECTION("FFormulaValue::TryCompare")
+	{
+		int32 Sign = 0;
+
+		CHECK_MESSAGE(TEXT("1 vs 2 is comparable"), MakeShared<FFormulaValue>(1)->TryCompare(MakeShared<FFormulaValue>(2), Sign));
+		CHECK_EQUALS(TEXT("1 vs 2"), Sign, -1);
+
+		CHECK_MESSAGE(TEXT("2 vs 1 is comparable"), MakeShared<FFormulaValue>(2)->TryCompare(MakeShared<FFormulaValue>(1), Sign));
+		CHECK_EQUALS(TEXT("2 vs 1"), Sign, 1);
+
+		CHECK_MESSAGE(TEXT("1 vs 1 is comparable"), MakeShared<FFormulaValue>(1)->TryCompare(MakeShared<FFormulaValue>(1), Sign));
+		CHECK_EQUALS(TEXT("1 vs 1"), Sign, 0);
+
+		// strings order lexicographically
+		CHECK_MESSAGE(TEXT("\"a\" vs \"b\" is comparable"), MakeShared<FFormulaValue>(FString(TEXT("a")))->TryCompare(MakeShared<FFormulaValue>(FString(TEXT("b"))), Sign));
+		CHECK_EQUALS(TEXT("\"a\" vs \"b\""), Sign, -1);
+
+		// numeric widths mix, matching what FBinaryExpression already allows
+		CHECK_MESSAGE(TEXT("1 vs 2.5 is comparable"), MakeShared<FFormulaValue>(1)->TryCompare(MakeShared<FFormulaValue>(2.5), Sign));
+		CHECK_EQUALS(TEXT("1 vs 2.5"), Sign, -1);
+
+		// null has no ordering
+		CHECK_FALSE_MESSAGE(TEXT("null is not comparable"), FFormulaValue::Null()->TryCompare(MakeShared<FFormulaValue>(1), Sign));
+
+		// mixed categories have no ordering, matching bNotMixedTypes in FBinaryExpression
+		CHECK_FALSE_MESSAGE(TEXT("string vs int is not comparable"), MakeShared<FFormulaValue>(FString(TEXT("a")))->TryCompare(MakeShared<FFormulaValue>(1), Sign));
+	}
+
+	SECTION("FDotNetFuncValue struct ops")
+	{
+		// A closure carried inside FFormulaValue must be reference-counted through
+		// FProperty::CopyCompleteValue / DestroyValue, not memcpy'd. If UE treats
+		// FDotNetFuncValue as POD the shared reference count will not track the copies
+		// and the closure is either leaked or double-freed.
+		FStructProperty* FuncProperty = UDotNetFunc::GetLiteralProperty();
+		REQUIRE(FuncProperty != nullptr);
+
+		TSharedPtr<FFormulaClosure> Closure = MakeShared<FFormulaClosure>(
+			EXPR_CONST(1),
+			TArray<FString> { TEXT("x") },
+			Context
+		);
+		CHECK_EQUALS(TEXT("refcount when only the test holds it"), Closure.GetSharedReferenceCount(), 1);
+
+		{
+			FDotNetFuncValue FuncStruct;
+			FuncStruct.Closure = Closure;
+			CHECK_EQUALS(TEXT("refcount after assigning into the struct"), Closure.GetSharedReferenceCount(), 2);
+
+			const auto FuncValue = MakeShared<FFormulaValue>(static_cast<FProperty*>(FuncProperty), &FuncStruct);
+			CHECK_EQUALS(TEXT("refcount after FFormulaValue copied the struct"), Closure.GetSharedReferenceCount(), 3);
+		}
+
+		CHECK_EQUALS(TEXT("refcount after both copies were destroyed"), Closure.GetSharedReferenceCount(), 1);
+	}
+
 	SECTION("FLambdaExpression")
 	{
-		
+		// (x) => x + 1
+		const auto AddOneLambda = MakeShared<FLambdaExpression>(
+			MakeShared<FBinaryExpression>(
+				MakeShared<FMemberExpression>(nullptr, FString(TEXT("x")), EmptyTypeArguments, false),
+				EXPR_CONST(1),
+				EBinaryOperationType::Add
+			),
+			TArray<FString> { TEXT("x") }
+		);
+
+		// a lambda evaluates to an invocable value instead of failing as unsupported
+		Result = AddOneLambda->Execute(Context, nullptr);
+		REQUIRE_NO_ERROR();
+
+		TSharedPtr<FFormulaClosure> AddOneClosure;
+		REQUIRE(FFormulaClosure::TryGetFrom(Result.GetValue(), AddOneClosure));
+
+		const auto AddOneResult = AddOneClosure->Invoke(TArray<TSharedRef<FFormulaValue>> { MakeShared<FFormulaValue>(41) });
+		CHECK_FALSE_MESSAGE(AddOneResult.GetError().Message, AddOneResult.HasError());
+		CHECK_EQUALS(TEXT("(x => x + 1)(41)"), GetValue<int32>(AddOneResult), 42);
+
+		// the lambda body sees the arguments of the scope it was declared in
+		const auto CaptureLambda = MakeShared<FLambdaExpression>(
+			MakeShared<FBinaryExpression>(
+				MakeShared<FMemberExpression>(nullptr, FString(TEXT("x")), EmptyTypeArguments, false),
+				MakeShared<FMemberExpression>(nullptr, FString(TEXT("Arg1")), EmptyTypeArguments, false),
+				EBinaryOperationType::Add
+			),
+			TArray<FString> { TEXT("x") }
+		);
+
+		Result = CaptureLambda->Execute(Context, nullptr);
+		REQUIRE_NO_ERROR();
+
+		TSharedPtr<FFormulaClosure> CaptureClosure;
+		REQUIRE(FFormulaClosure::TryGetFrom(Result.GetValue(), CaptureClosure));
+
+		const auto CaptureResult = CaptureClosure->Invoke(TArray<TSharedRef<FFormulaValue>> { MakeShared<FFormulaValue>(10) });
+		CHECK_FALSE_MESSAGE(CaptureResult.GetError().Message, CaptureResult.HasError());
+		CHECK_EQUALS(TEXT("(x => x + Arg1)(10) with Arg1 == 1"), GetValue<int32>(CaptureResult), 11);
+
+		// a parameter shadows a captured argument of the same name
+		const auto ShadowLambda = MakeShared<FLambdaExpression>(
+			MakeShared<FMemberExpression>(nullptr, FString(TEXT("Arg1")), EmptyTypeArguments, false),
+			TArray<FString> { TEXT("Arg1") }
+		);
+
+		Result = ShadowLambda->Execute(Context, nullptr);
+		REQUIRE_NO_ERROR();
+
+		TSharedPtr<FFormulaClosure> ShadowClosure;
+		REQUIRE(FFormulaClosure::TryGetFrom(Result.GetValue(), ShadowClosure));
+
+		const auto ShadowResult = ShadowClosure->Invoke(TArray<TSharedRef<FFormulaValue>> { MakeShared<FFormulaValue>(777) });
+		CHECK_FALSE_MESSAGE(ShadowResult.GetError().Message, ShadowResult.HasError());
+		CHECK_EQUALS(TEXT("parameter Arg1 shadows captured Arg1"), GetValue<int32>(ShadowResult), 777);
+
+		// invoking with fewer arguments than parameters is an error, not a crash
+		const auto MissingArgResult = AddOneClosure->Invoke(TArray<TSharedRef<FFormulaValue>>());
+		CHECK_MESSAGE(TEXT("invoking with no arguments should fail"), MissingArgResult.HasError());
 	}
 
 	SECTION("FMemberExpression")

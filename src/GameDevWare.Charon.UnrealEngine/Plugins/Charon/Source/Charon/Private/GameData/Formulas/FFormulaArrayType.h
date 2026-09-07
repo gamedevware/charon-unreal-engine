@@ -1,21 +1,18 @@
-﻿// Copyright GameDevWare, Denis Zykov 2025
+// Copyright GameDevWare, Denis Zykov 2025
 
 #pragma once
-#include "FDotNetSurrogateType.h"
+#include "FDotNetEnumerableType.h"
 #include "GameData/Formulas/DotNetTypes/UDotNetArray.h"
 
-class FFormulaArrayType : public FDotNetSurrogateType
+class FFormulaArrayType : public FDotNetEnumerableType
 {
-private:
-	TSharedRef<IFormulaType> const ElementType;
 public:
 	explicit FFormulaArrayType(const TSharedRef<IFormulaType>& ElementType)
-		: FDotNetSurrogateType(UDotNetArray::StaticClass(), nullptr), ElementType(ElementType)
+		: FDotNetEnumerableType(UDotNetArray::StaticClass(), nullptr, ElementType)
 	{
 	}
 
 	virtual FString GetCPPType() const override { return TEXT("TArray<") + this->ElementType->GetCPPType() + TEXT(">"); }
-	virtual TSharedPtr<IFormulaType> GetUnderlyingType() const override { return this->ElementType; }
 
 protected:
 	virtual void InitializeProperties(UClass* DeclaringClass, const TSharedRef<TMap<FString, FFormulaProperty>> PropertyList) override;

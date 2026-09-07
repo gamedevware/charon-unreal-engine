@@ -92,6 +92,18 @@ public:
 	 */
 	bool IsNull() const { return  this->TypeCode == EFormulaValueType::Null; }
 	bool EqualsTo(const TSharedRef<FFormulaValue>& Other) const;
+
+	/**
+	 * Orders this value against another, using the same type rules as the comparison
+	 * operators of FBinaryExpression: numeric widths mix freely, but bool, pointer,
+	 * string, text and name never mix with another category, and signed never mixes
+	 * with unsigned.
+	 *
+	 * @param Other Value to compare against.
+	 * @param OutSign Set to -1, 0 or 1 when the values are comparable.
+	 * @return True if the two values have an ordering, false otherwise (nulls included).
+	 */
+	bool TryCompare(const TSharedRef<FFormulaValue>& Other, int32& OutSign) const;
 	
 	/**
 	 * Validates and copies the internal value to a destination memory address.

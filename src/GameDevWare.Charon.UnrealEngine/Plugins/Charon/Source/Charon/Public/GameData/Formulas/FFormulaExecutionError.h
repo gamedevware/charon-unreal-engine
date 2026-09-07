@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "FFormulaExecutionResult.h"
-#include "FFormulaExecutionResult.h"
 #include "Misc/TVariant.h"
 
 enum class EFormulaExecutionErrorCode

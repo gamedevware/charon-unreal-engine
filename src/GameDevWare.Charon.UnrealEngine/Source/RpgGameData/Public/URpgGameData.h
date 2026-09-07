@@ -93,7 +93,7 @@ class RPGGAMEDATA_API URpgGameData : public UGameDataBase
 
 public:
 	inline static const FString GeneratorName = TEXT("Charon");
-	inline static const FString GeneratorVersion = TEXT("2026.3.3.0");
+	inline static const FString GeneratorVersion = TEXT("2026.3.4.0");
 
 private:
 

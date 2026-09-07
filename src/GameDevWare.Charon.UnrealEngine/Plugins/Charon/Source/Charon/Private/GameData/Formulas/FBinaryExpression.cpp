@@ -224,11 +224,35 @@ FFormulaExecutionResult FBinaryExpression::Execute(const FFormulaExecutionContex
 			FFormulaValue::FalseBool();
 	} else if (this->BinaryOperationType == EBinaryOperationType::NotEqual)
 	{
-		return LeftOperand->EqualsTo(RightOperand) ? 
-			FFormulaValue::FalseBool() : 
+		return LeftOperand->EqualsTo(RightOperand) ?
+			FFormulaValue::FalseBool() :
 			FFormulaValue::TrueBool();
 	}
-	
+
+	// Ordering comparisons share one implementation with OrderBy and Min/Max.
+	// When the values have no ordering this falls through to the visitor below,
+	// which reaches the custom binary operation lookup.
+	if (this->BinaryOperationType == EBinaryOperationType::GreaterThan ||
+		this->BinaryOperationType == EBinaryOperationType::GreaterThanOrEqual ||
+		this->BinaryOperationType == EBinaryOperationType::LessThan ||
+		this->BinaryOperationType == EBinaryOperationType::LessThanOrEqual)
+	{
+		int32 Sign = 0;
+		if (LeftOperand->TryCompare(RightOperand, Sign))
+		{
+			bool bComparisonResult = false;
+			switch (this->BinaryOperationType)
+			{
+			case EBinaryOperationType::GreaterThan: bComparisonResult = Sign > 0; break;
+			case EBinaryOperationType::GreaterThanOrEqual: bComparisonResult = Sign >= 0; break;
+			case EBinaryOperationType::LessThan: bComparisonResult = Sign < 0; break;
+			case EBinaryOperationType::LessThanOrEqual: bComparisonResult = Sign <= 0; break;
+			default: break;
+			}
+			return bComparisonResult ? FFormulaValue::TrueBool() : FFormulaValue::FalseBool();
+		}
+	}
+
 	return LeftOperand->VisitValue([this, &LeftOperand, &RightOperand, &Context](const FProperty& LeftProperty, const auto& LeftValue) -> FFormulaExecutionResult
 	{
 		return RightOperand->VisitValue([this, &LeftProperty, &LeftValue, &LeftOperand, &RightOperand, &Context](const FProperty& RightProperty, const auto& RightValue) -> FFormulaExecutionResult
@@ -313,29 +337,10 @@ FFormulaExecutionResult FBinaryExpression::Execute(const FFormulaExecutionContex
 					return LeftValue >> RightValue;
 				}
 				break;
-			case EBinaryOperationType::GreaterThan:
-				if constexpr (has_gt_v<LeftT, RightT> && bNotMixedTypes && bNotMixedSign)
-				{
-					return LeftValue > RightValue;
-				}
-				break;
-			case EBinaryOperationType::GreaterThanOrEqual:
-				if constexpr (has_gte_v<LeftT, RightT> && bNotMixedTypes && bNotMixedSign)
-				{
-					return LeftValue >= RightValue;
-				}
-				break;
-			case EBinaryOperationType::LessThan:
-				if constexpr (has_lt_v<LeftT, RightT> && bNotMixedTypes && bNotMixedSign)
-				{
-					return LeftValue < RightValue;
-				}
-				break;
-			case EBinaryOperationType::LessThanOrEqual:
-				if constexpr (has_lte_v<LeftT, RightT> && bNotMixedTypes && bNotMixedSign)
-				{
-					return LeftValue <= RightValue;
-				}
+			// Ordering comparisons are handled by FFormulaValue::TryCompare before this
+			// visitor runs. Reaching here means the values had no ordering, so the code
+			// below falls through to the custom binary operation lookup.
+			default:
 				break;
 			}
 

@@ -2,6 +2,7 @@
 
 #include "GameData/Formulas/Expressions/FLambdaExpression.h"
 #include "GameData/Formulas/FExpressionBuildHelper.h"
+#include "GameData/Formulas/FFormulaClosure.h"
 #include "GameData/Formulas/FFormulaNotation.h"
 #include "GameData/Formulas/FFormulaTypeReference.h"
 #include "GameData/Formulas/Expressions/FMemberExpression.h"
@@ -28,9 +29,38 @@ FLambdaExpression::FLambdaExpression(const TSharedRef<FJsonObject>& ExpressionOb
 {
 }
 
+static TArray<TPair<FString, TSharedPtr<FFormulaTypeReference>>> MakeLambdaArguments(const TArray<FString>& ParameterNames)
+{
+	TArray<TPair<FString, TSharedPtr<FFormulaTypeReference>>> Arguments;
+	Arguments.Reserve(ParameterNames.Num());
+	for (const auto& ParameterName : ParameterNames)
+	{
+		Arguments.Add(TPair<FString, TSharedPtr<FFormulaTypeReference>>(ParameterName, nullptr));
+	}
+	return Arguments;
+}
+
+FLambdaExpression::FLambdaExpression(const TSharedPtr<FFormulaExpression>& Body, const TArray<FString>& ParameterNames):
+	Body(Body),
+	Arguments(MakeLambdaArguments(ParameterNames))
+{
+}
+
 FFormulaExecutionResult FLambdaExpression::Execute(const FFormulaExecutionContext& Context, FProperty* ExpectedType) const
 {
-	return FFormulaExecutionError::UnsupportedExpression(TEXT("Lambda"));
+	if (!this->IsValid())
+	{
+		return FFormulaExecutionError::ExpressionIsInvalid();
+	}
+
+	TArray<FString> ParameterNames;
+	ParameterNames.Reserve(this->Arguments.Num());
+	for (const auto& ArgumentPair : this->Arguments)
+	{
+		ParameterNames.Add(ArgumentPair.Key);
+	}
+
+	return FFormulaClosure::ToValue(MakeShared<FFormulaClosure>(this->Body, ParameterNames, Context));
 }
 
 bool FLambdaExpression::IsValid() const

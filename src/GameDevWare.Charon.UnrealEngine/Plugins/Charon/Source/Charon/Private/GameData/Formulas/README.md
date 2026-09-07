@@ -248,6 +248,109 @@ class IFormulaType
 
 ---
 
+## LINQ (System.Linq.Enumerable)
+
+Formulas can use LINQ methods on `TArray` properties:
+
+```csharp
+Heroes.Where(h => h.Level > 10).OrderBy(h => h.Name).First().Id
+Items.Sum(i => i.Price)
+Tags.Any(t => t == "Boss")
+```
+
+### Where the methods live
+
+`FDotNetEnumerableType` declares the entire method surface **once**, and
+`FFormulaArrayType` derives from it:
+
+```
+FDotNetSurrogateType
+└── FDotNetEnumerableType      // ElementType + all LINQ methods
+    └── FFormulaArrayType      // Count/Length properties, GetCPPType
+```
+
+Methods inspect the target's `FArrayProperty` at invoke time, so the element type is
+never baked into a declaration. One implementation therefore serves every element type,
+and the predicate-less and predicate-taking overloads of a method are a single function:
+`TryGetMatchingIndices` treats "no predicate" as "everything matches", and
+`TryGetAggregateValues` treats "no selector" as "the elements themselves".
+
+### How lambdas work
+
+`FLambdaExpression::Execute` returns an `FFormulaClosure` wrapped in an `FDotNetFuncValue`
+struct value. Because a lambda evaluates to an ordinary value, `FInvokeExpression` needs
+no special handling — it evaluates a lambda argument eagerly like any other argument, and
+the receiving method pulls the closure back out with `FFormulaClosure::TryGetFrom`.
+
+A closure captures the arguments, global scope, type resolver and null-propagation mode of
+the scope it was declared in. Parameters shadow captured arguments of the same name.
+
+### Supported methods
+
+**Scalar results** — `Any`, `All`, `Count`, `Contains`, `First`, `FirstOrDefault`, `Last`,
+`LastOrDefault`, `Single`, `SingleOrDefault`, `ElementAt`, `ElementAtOrDefault`, `Min`,
+`Max`, `Sum`, `Average`.
+
+**Sequence results** — `Where`, `Skip`, `Take`, `SkipWhile`, `TakeWhile`, `Distinct`,
+`Reverse`, `OrderBy`, `OrderByDescending`, `Concat`, `Union`, `Except`, `Intersect`,
+`Select`, `ToArray`, `ToList`.
+
+`Sum` keeps the summed type (a sequence of `int32` sums to `int32`), while `Average`
+widens to `double`, both matching .NET.
+
+### Result construction
+
+Operators that preserve the element type copy into a new array of the **source** array
+property. Nothing is synthesized, so arrays of structs and enums work even though
+`FNewExpression::TryCreateArray` cannot build an `FArrayProperty` for those element types.
+
+`Select` is the exception: its result element type differs from the source, so it looks up
+a declared array property with `FindArrayPropertyForTypeCode`.
+
+### Limitations
+
+- **`TArray` only.** `TSet` and `TMap` are not supported as LINQ sources. Convert them to
+  `TArray` before evaluating the formula. Sequence operators must return ordered arrays,
+  and a set or map source has no array property to reuse.
+- **`ThenBy`/`ThenByDescending` are unsupported.** Results are materialized eagerly, so the
+  ordering context .NET carries in `IOrderedEnumerable` does not exist between calls. Use a
+  single `OrderBy` key.
+- **`Select` cannot project to a struct or enum**, for the reason above. It reports
+  `Type_UnsupportedCollectionType`. Projecting a struct *member* to a primitive is fine.
+- **`GroupBy`, `Join`, `Zip`, `ToDictionary`, `SelectMany` are unsupported** — they need
+  grouping and tuple types `FFormulaValue` has no representation for.
+- **No lazy evaluation.** Each operator materializes a `TArray`, so a chain allocates once
+  per link.
+
+### Bad data logs and continues
+
+A LINQ method never fails the formula because of the data it was given. When it cannot
+produce a real answer it writes an error to `LogFormulaEnumerable` explaining what happened
+and what was substituted, then returns the default of the relevant type and carries on:
+
+| Situation | Result |
+|---|---|
+| `First`/`Last`/`Single` match nothing | default of the element type |
+| `Min`/`Max` on an empty sequence | default of the element type |
+| `Average` on an empty sequence | zero |
+| `Single` matches more than once | the first match |
+| `ElementAt` index out of range | default of the element type |
+| a predicate throws, or returns a non-boolean | the element is treated as not matching |
+| a selector throws | the default of the element type is used for that element |
+| `Min`/`Max` cannot order two values | the element is skipped |
+| `Select` projects to a struct or enum | an empty sequence |
+
+A consequence worth knowing: `First` and `FirstOrDefault` now return the same value, and
+differ only in that `First` logs. The same holds for `Last`, `Single` and `ElementAt`.
+
+Malformed *formulas* are still errors. A missing or wrong-typed argument — `Skip()` with no
+count, a predicate that is not a lambda — fails to bind and reports
+`Bind_MethodSignatureMismatch`, exactly as any other method does. The distinction is between
+awkward data, which is logged and survived, and a formula that does not make sense, which is
+reported.
+
+---
+
 ## .NET Type Simulation
 
 ### Why .NET Surrogate Types?

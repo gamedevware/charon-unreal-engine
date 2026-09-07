@@ -11,6 +11,7 @@ public:
 	const TArray<TPair<FString, TSharedPtr<FFormulaTypeReference>>> Arguments;
 	
 	explicit FLambdaExpression(const TSharedRef<FJsonObject>& ExpressionObj);
+	FLambdaExpression(const TSharedPtr<FFormulaExpression>& Body, const TArray<FString>& ParameterNames);
 
 	virtual FFormulaExecutionResult Execute(const FFormulaExecutionContext& Context, FProperty* ExpectedType) const override;
 	
